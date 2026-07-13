@@ -7,9 +7,9 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/Erain-byte/grpc_go_project/proto/llm;llm";
 
-service LLMService {
+service LlmService {
   rpc Chat(ChatRequest) returns (ChatResponse);
-  rpc StreamChat(ChatRequest) returns (stream StreamChatResponse);
+  rpc StreamChat(StreamChatRequest) returns (stream StreamChatResponse);
   rpc GetChatHistory(GetChatHistoryRequest) returns (GetChatHistoryResponse);
   rpc GetChatList(GetChatListRequest) returns (GetChatListResponse);
   rpc CallModel(CallModelRequest) returns (CallModelResponse);
@@ -30,6 +30,14 @@ message ChatResponse {
   string model = 4;
   google.protobuf.Timestamp timestamp = 5;
   TokenUsage usage = 6;
+}
+
+message StreamChatRequest {
+  string message = 1;
+  string conversation_id = 2;
+  string user_id = 3;
+  string model = 4;
+  google.protobuf.Timestamp timestamp = 5;
 }
 
 message StreamChatResponse {

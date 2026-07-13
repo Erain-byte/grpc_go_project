@@ -19,49 +19,49 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LLMService_Chat_FullMethodName           = "/llm.LLMService/Chat"
-	LLMService_StreamChat_FullMethodName     = "/llm.LLMService/StreamChat"
-	LLMService_GetChatHistory_FullMethodName = "/llm.LLMService/GetChatHistory"
-	LLMService_GetChatList_FullMethodName    = "/llm.LLMService/GetChatList"
-	LLMService_CallModel_FullMethodName      = "/llm.LLMService/CallModel"
+	LlmService_Chat_FullMethodName           = "/llm.LlmService/Chat"
+	LlmService_StreamChat_FullMethodName     = "/llm.LlmService/StreamChat"
+	LlmService_GetChatHistory_FullMethodName = "/llm.LlmService/GetChatHistory"
+	LlmService_GetChatList_FullMethodName    = "/llm.LlmService/GetChatList"
+	LlmService_CallModel_FullMethodName      = "/llm.LlmService/CallModel"
 )
 
-// LLMServiceClient is the client API for LLMService service.
+// LlmServiceClient is the client API for LlmService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type LLMServiceClient interface {
+type LlmServiceClient interface {
 	Chat(ctx context.Context, in *ChatRequest, opts ...grpc.CallOption) (*ChatResponse, error)
-	StreamChat(ctx context.Context, in *ChatRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamChatResponse], error)
+	StreamChat(ctx context.Context, in *StreamChatRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamChatResponse], error)
 	GetChatHistory(ctx context.Context, in *GetChatHistoryRequest, opts ...grpc.CallOption) (*GetChatHistoryResponse, error)
 	GetChatList(ctx context.Context, in *GetChatListRequest, opts ...grpc.CallOption) (*GetChatListResponse, error)
 	CallModel(ctx context.Context, in *CallModelRequest, opts ...grpc.CallOption) (*CallModelResponse, error)
 }
 
-type lLMServiceClient struct {
+type llmServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewLLMServiceClient(cc grpc.ClientConnInterface) LLMServiceClient {
-	return &lLMServiceClient{cc}
+func NewLlmServiceClient(cc grpc.ClientConnInterface) LlmServiceClient {
+	return &llmServiceClient{cc}
 }
 
-func (c *lLMServiceClient) Chat(ctx context.Context, in *ChatRequest, opts ...grpc.CallOption) (*ChatResponse, error) {
+func (c *llmServiceClient) Chat(ctx context.Context, in *ChatRequest, opts ...grpc.CallOption) (*ChatResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ChatResponse)
-	err := c.cc.Invoke(ctx, LLMService_Chat_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, LlmService_Chat_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *lLMServiceClient) StreamChat(ctx context.Context, in *ChatRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamChatResponse], error) {
+func (c *llmServiceClient) StreamChat(ctx context.Context, in *StreamChatRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamChatResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &LLMService_ServiceDesc.Streams[0], LLMService_StreamChat_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &LlmService_ServiceDesc.Streams[0], LlmService_StreamChat_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[ChatRequest, StreamChatResponse]{ClientStream: stream}
+	x := &grpc.GenericClientStream[StreamChatRequest, StreamChatResponse]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -72,204 +72,204 @@ func (c *lLMServiceClient) StreamChat(ctx context.Context, in *ChatRequest, opts
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type LLMService_StreamChatClient = grpc.ServerStreamingClient[StreamChatResponse]
+type LlmService_StreamChatClient = grpc.ServerStreamingClient[StreamChatResponse]
 
-func (c *lLMServiceClient) GetChatHistory(ctx context.Context, in *GetChatHistoryRequest, opts ...grpc.CallOption) (*GetChatHistoryResponse, error) {
+func (c *llmServiceClient) GetChatHistory(ctx context.Context, in *GetChatHistoryRequest, opts ...grpc.CallOption) (*GetChatHistoryResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetChatHistoryResponse)
-	err := c.cc.Invoke(ctx, LLMService_GetChatHistory_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, LlmService_GetChatHistory_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *lLMServiceClient) GetChatList(ctx context.Context, in *GetChatListRequest, opts ...grpc.CallOption) (*GetChatListResponse, error) {
+func (c *llmServiceClient) GetChatList(ctx context.Context, in *GetChatListRequest, opts ...grpc.CallOption) (*GetChatListResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetChatListResponse)
-	err := c.cc.Invoke(ctx, LLMService_GetChatList_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, LlmService_GetChatList_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *lLMServiceClient) CallModel(ctx context.Context, in *CallModelRequest, opts ...grpc.CallOption) (*CallModelResponse, error) {
+func (c *llmServiceClient) CallModel(ctx context.Context, in *CallModelRequest, opts ...grpc.CallOption) (*CallModelResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CallModelResponse)
-	err := c.cc.Invoke(ctx, LLMService_CallModel_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, LlmService_CallModel_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// LLMServiceServer is the server API for LLMService service.
-// All implementations must embed UnimplementedLLMServiceServer
+// LlmServiceServer is the server API for LlmService service.
+// All implementations must embed UnimplementedLlmServiceServer
 // for forward compatibility.
-type LLMServiceServer interface {
+type LlmServiceServer interface {
 	Chat(context.Context, *ChatRequest) (*ChatResponse, error)
-	StreamChat(*ChatRequest, grpc.ServerStreamingServer[StreamChatResponse]) error
+	StreamChat(*StreamChatRequest, grpc.ServerStreamingServer[StreamChatResponse]) error
 	GetChatHistory(context.Context, *GetChatHistoryRequest) (*GetChatHistoryResponse, error)
 	GetChatList(context.Context, *GetChatListRequest) (*GetChatListResponse, error)
 	CallModel(context.Context, *CallModelRequest) (*CallModelResponse, error)
-	mustEmbedUnimplementedLLMServiceServer()
+	mustEmbedUnimplementedLlmServiceServer()
 }
 
-// UnimplementedLLMServiceServer must be embedded to have
+// UnimplementedLlmServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedLLMServiceServer struct{}
+type UnimplementedLlmServiceServer struct{}
 
-func (UnimplementedLLMServiceServer) Chat(context.Context, *ChatRequest) (*ChatResponse, error) {
+func (UnimplementedLlmServiceServer) Chat(context.Context, *ChatRequest) (*ChatResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Chat not implemented")
 }
-func (UnimplementedLLMServiceServer) StreamChat(*ChatRequest, grpc.ServerStreamingServer[StreamChatResponse]) error {
+func (UnimplementedLlmServiceServer) StreamChat(*StreamChatRequest, grpc.ServerStreamingServer[StreamChatResponse]) error {
 	return status.Error(codes.Unimplemented, "method StreamChat not implemented")
 }
-func (UnimplementedLLMServiceServer) GetChatHistory(context.Context, *GetChatHistoryRequest) (*GetChatHistoryResponse, error) {
+func (UnimplementedLlmServiceServer) GetChatHistory(context.Context, *GetChatHistoryRequest) (*GetChatHistoryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetChatHistory not implemented")
 }
-func (UnimplementedLLMServiceServer) GetChatList(context.Context, *GetChatListRequest) (*GetChatListResponse, error) {
+func (UnimplementedLlmServiceServer) GetChatList(context.Context, *GetChatListRequest) (*GetChatListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetChatList not implemented")
 }
-func (UnimplementedLLMServiceServer) CallModel(context.Context, *CallModelRequest) (*CallModelResponse, error) {
+func (UnimplementedLlmServiceServer) CallModel(context.Context, *CallModelRequest) (*CallModelResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CallModel not implemented")
 }
-func (UnimplementedLLMServiceServer) mustEmbedUnimplementedLLMServiceServer() {}
-func (UnimplementedLLMServiceServer) testEmbeddedByValue()                    {}
+func (UnimplementedLlmServiceServer) mustEmbedUnimplementedLlmServiceServer() {}
+func (UnimplementedLlmServiceServer) testEmbeddedByValue()                    {}
 
-// UnsafeLLMServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to LLMServiceServer will
+// UnsafeLlmServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to LlmServiceServer will
 // result in compilation errors.
-type UnsafeLLMServiceServer interface {
-	mustEmbedUnimplementedLLMServiceServer()
+type UnsafeLlmServiceServer interface {
+	mustEmbedUnimplementedLlmServiceServer()
 }
 
-func RegisterLLMServiceServer(s grpc.ServiceRegistrar, srv LLMServiceServer) {
-	// If the following call panics, it indicates UnimplementedLLMServiceServer was
+func RegisterLlmServiceServer(s grpc.ServiceRegistrar, srv LlmServiceServer) {
+	// If the following call panics, it indicates UnimplementedLlmServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&LLMService_ServiceDesc, srv)
+	s.RegisterService(&LlmService_ServiceDesc, srv)
 }
 
-func _LLMService_Chat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _LlmService_Chat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ChatRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LLMServiceServer).Chat(ctx, in)
+		return srv.(LlmServiceServer).Chat(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: LLMService_Chat_FullMethodName,
+		FullMethod: LlmService_Chat_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LLMServiceServer).Chat(ctx, req.(*ChatRequest))
+		return srv.(LlmServiceServer).Chat(ctx, req.(*ChatRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LLMService_StreamChat_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ChatRequest)
+func _LlmService_StreamChat_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamChatRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(LLMServiceServer).StreamChat(m, &grpc.GenericServerStream[ChatRequest, StreamChatResponse]{ServerStream: stream})
+	return srv.(LlmServiceServer).StreamChat(m, &grpc.GenericServerStream[StreamChatRequest, StreamChatResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type LLMService_StreamChatServer = grpc.ServerStreamingServer[StreamChatResponse]
+type LlmService_StreamChatServer = grpc.ServerStreamingServer[StreamChatResponse]
 
-func _LLMService_GetChatHistory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _LlmService_GetChatHistory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetChatHistoryRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LLMServiceServer).GetChatHistory(ctx, in)
+		return srv.(LlmServiceServer).GetChatHistory(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: LLMService_GetChatHistory_FullMethodName,
+		FullMethod: LlmService_GetChatHistory_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LLMServiceServer).GetChatHistory(ctx, req.(*GetChatHistoryRequest))
+		return srv.(LlmServiceServer).GetChatHistory(ctx, req.(*GetChatHistoryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LLMService_GetChatList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _LlmService_GetChatList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetChatListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LLMServiceServer).GetChatList(ctx, in)
+		return srv.(LlmServiceServer).GetChatList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: LLMService_GetChatList_FullMethodName,
+		FullMethod: LlmService_GetChatList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LLMServiceServer).GetChatList(ctx, req.(*GetChatListRequest))
+		return srv.(LlmServiceServer).GetChatList(ctx, req.(*GetChatListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LLMService_CallModel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _LlmService_CallModel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CallModelRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LLMServiceServer).CallModel(ctx, in)
+		return srv.(LlmServiceServer).CallModel(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: LLMService_CallModel_FullMethodName,
+		FullMethod: LlmService_CallModel_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LLMServiceServer).CallModel(ctx, req.(*CallModelRequest))
+		return srv.(LlmServiceServer).CallModel(ctx, req.(*CallModelRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// LLMService_ServiceDesc is the grpc.ServiceDesc for LLMService service.
+// LlmService_ServiceDesc is the grpc.ServiceDesc for LlmService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var LLMService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "llm.LLMService",
-	HandlerType: (*LLMServiceServer)(nil),
+var LlmService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "llm.LlmService",
+	HandlerType: (*LlmServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Chat",
-			Handler:    _LLMService_Chat_Handler,
+			Handler:    _LlmService_Chat_Handler,
 		},
 		{
 			MethodName: "GetChatHistory",
-			Handler:    _LLMService_GetChatHistory_Handler,
+			Handler:    _LlmService_GetChatHistory_Handler,
 		},
 		{
 			MethodName: "GetChatList",
-			Handler:    _LLMService_GetChatList_Handler,
+			Handler:    _LlmService_GetChatList_Handler,
 		},
 		{
 			MethodName: "CallModel",
-			Handler:    _LLMService_CallModel_Handler,
+			Handler:    _LlmService_CallModel_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "StreamChat",
-			Handler:       _LLMService_StreamChat_Handler,
+			Handler:       _LlmService_StreamChat_Handler,
 			ServerStreams: true,
 		},
 	},

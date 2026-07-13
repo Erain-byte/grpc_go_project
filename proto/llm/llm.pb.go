@@ -238,6 +238,82 @@ func (x *ChatResponse) GetUsage() *TokenUsage {
 	return nil
 }
 
+type StreamChatRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Message        string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	ConversationId string                 `protobuf:"bytes,2,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
+	UserId         string                 `protobuf:"bytes,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Model          string                 `protobuf:"bytes,4,opt,name=model,proto3" json:"model,omitempty"`
+	Timestamp      *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *StreamChatRequest) Reset() {
+	*x = StreamChatRequest{}
+	mi := &file_llm_llm_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamChatRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamChatRequest) ProtoMessage() {}
+
+func (x *StreamChatRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_llm_llm_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamChatRequest.ProtoReflect.Descriptor instead.
+func (*StreamChatRequest) Descriptor() ([]byte, []int) {
+	return file_llm_llm_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *StreamChatRequest) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *StreamChatRequest) GetConversationId() string {
+	if x != nil {
+		return x.ConversationId
+	}
+	return ""
+}
+
+func (x *StreamChatRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *StreamChatRequest) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *StreamChatRequest) GetTimestamp() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Timestamp
+	}
+	return nil
+}
+
 type StreamChatResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Delta          string                 `protobuf:"bytes,1,opt,name=delta,proto3" json:"delta,omitempty"`
@@ -252,7 +328,7 @@ type StreamChatResponse struct {
 
 func (x *StreamChatResponse) Reset() {
 	*x = StreamChatResponse{}
-	mi := &file_llm_llm_proto_msgTypes[2]
+	mi := &file_llm_llm_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -264,7 +340,7 @@ func (x *StreamChatResponse) String() string {
 func (*StreamChatResponse) ProtoMessage() {}
 
 func (x *StreamChatResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_llm_llm_proto_msgTypes[2]
+	mi := &file_llm_llm_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -277,7 +353,7 @@ func (x *StreamChatResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamChatResponse.ProtoReflect.Descriptor instead.
 func (*StreamChatResponse) Descriptor() ([]byte, []int) {
-	return file_llm_llm_proto_rawDescGZIP(), []int{2}
+	return file_llm_llm_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *StreamChatResponse) GetDelta() string {
@@ -333,7 +409,7 @@ type TokenUsage struct {
 
 func (x *TokenUsage) Reset() {
 	*x = TokenUsage{}
-	mi := &file_llm_llm_proto_msgTypes[3]
+	mi := &file_llm_llm_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -345,7 +421,7 @@ func (x *TokenUsage) String() string {
 func (*TokenUsage) ProtoMessage() {}
 
 func (x *TokenUsage) ProtoReflect() protoreflect.Message {
-	mi := &file_llm_llm_proto_msgTypes[3]
+	mi := &file_llm_llm_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -358,7 +434,7 @@ func (x *TokenUsage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TokenUsage.ProtoReflect.Descriptor instead.
 func (*TokenUsage) Descriptor() ([]byte, []int) {
-	return file_llm_llm_proto_rawDescGZIP(), []int{3}
+	return file_llm_llm_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *TokenUsage) GetPromptTokens() int32 {
@@ -394,7 +470,7 @@ type GetChatHistoryRequest struct {
 
 func (x *GetChatHistoryRequest) Reset() {
 	*x = GetChatHistoryRequest{}
-	mi := &file_llm_llm_proto_msgTypes[4]
+	mi := &file_llm_llm_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -406,7 +482,7 @@ func (x *GetChatHistoryRequest) String() string {
 func (*GetChatHistoryRequest) ProtoMessage() {}
 
 func (x *GetChatHistoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_llm_llm_proto_msgTypes[4]
+	mi := &file_llm_llm_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -419,7 +495,7 @@ func (x *GetChatHistoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetChatHistoryRequest.ProtoReflect.Descriptor instead.
 func (*GetChatHistoryRequest) Descriptor() ([]byte, []int) {
-	return file_llm_llm_proto_rawDescGZIP(), []int{4}
+	return file_llm_llm_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetChatHistoryRequest) GetConversationId() string {
@@ -460,7 +536,7 @@ type GetChatHistoryResponse struct {
 
 func (x *GetChatHistoryResponse) Reset() {
 	*x = GetChatHistoryResponse{}
-	mi := &file_llm_llm_proto_msgTypes[5]
+	mi := &file_llm_llm_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -472,7 +548,7 @@ func (x *GetChatHistoryResponse) String() string {
 func (*GetChatHistoryResponse) ProtoMessage() {}
 
 func (x *GetChatHistoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_llm_llm_proto_msgTypes[5]
+	mi := &file_llm_llm_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -485,7 +561,7 @@ func (x *GetChatHistoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetChatHistoryResponse.ProtoReflect.Descriptor instead.
 func (*GetChatHistoryResponse) Descriptor() ([]byte, []int) {
-	return file_llm_llm_proto_rawDescGZIP(), []int{5}
+	return file_llm_llm_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetChatHistoryResponse) GetMessages() []*ChatMessage {
@@ -514,7 +590,7 @@ type ChatMessage struct {
 
 func (x *ChatMessage) Reset() {
 	*x = ChatMessage{}
-	mi := &file_llm_llm_proto_msgTypes[6]
+	mi := &file_llm_llm_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -526,7 +602,7 @@ func (x *ChatMessage) String() string {
 func (*ChatMessage) ProtoMessage() {}
 
 func (x *ChatMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_llm_llm_proto_msgTypes[6]
+	mi := &file_llm_llm_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -539,7 +615,7 @@ func (x *ChatMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatMessage.ProtoReflect.Descriptor instead.
 func (*ChatMessage) Descriptor() ([]byte, []int) {
-	return file_llm_llm_proto_rawDescGZIP(), []int{6}
+	return file_llm_llm_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ChatMessage) GetId() string {
@@ -581,7 +657,7 @@ type GetChatListRequest struct {
 
 func (x *GetChatListRequest) Reset() {
 	*x = GetChatListRequest{}
-	mi := &file_llm_llm_proto_msgTypes[7]
+	mi := &file_llm_llm_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -593,7 +669,7 @@ func (x *GetChatListRequest) String() string {
 func (*GetChatListRequest) ProtoMessage() {}
 
 func (x *GetChatListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_llm_llm_proto_msgTypes[7]
+	mi := &file_llm_llm_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -606,7 +682,7 @@ func (x *GetChatListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetChatListRequest.ProtoReflect.Descriptor instead.
 func (*GetChatListRequest) Descriptor() ([]byte, []int) {
-	return file_llm_llm_proto_rawDescGZIP(), []int{7}
+	return file_llm_llm_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetChatListRequest) GetUserId() string {
@@ -640,7 +716,7 @@ type GetChatListResponse struct {
 
 func (x *GetChatListResponse) Reset() {
 	*x = GetChatListResponse{}
-	mi := &file_llm_llm_proto_msgTypes[8]
+	mi := &file_llm_llm_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -652,7 +728,7 @@ func (x *GetChatListResponse) String() string {
 func (*GetChatListResponse) ProtoMessage() {}
 
 func (x *GetChatListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_llm_llm_proto_msgTypes[8]
+	mi := &file_llm_llm_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -665,7 +741,7 @@ func (x *GetChatListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetChatListResponse.ProtoReflect.Descriptor instead.
 func (*GetChatListResponse) Descriptor() ([]byte, []int) {
-	return file_llm_llm_proto_rawDescGZIP(), []int{8}
+	return file_llm_llm_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetChatListResponse) GetConversations() []*Conversation {
@@ -695,7 +771,7 @@ type Conversation struct {
 
 func (x *Conversation) Reset() {
 	*x = Conversation{}
-	mi := &file_llm_llm_proto_msgTypes[9]
+	mi := &file_llm_llm_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -707,7 +783,7 @@ func (x *Conversation) String() string {
 func (*Conversation) ProtoMessage() {}
 
 func (x *Conversation) ProtoReflect() protoreflect.Message {
-	mi := &file_llm_llm_proto_msgTypes[9]
+	mi := &file_llm_llm_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -720,7 +796,7 @@ func (x *Conversation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Conversation.ProtoReflect.Descriptor instead.
 func (*Conversation) Descriptor() ([]byte, []int) {
-	return file_llm_llm_proto_rawDescGZIP(), []int{9}
+	return file_llm_llm_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Conversation) GetConversationId() string {
@@ -769,7 +845,7 @@ type CallModelRequest struct {
 
 func (x *CallModelRequest) Reset() {
 	*x = CallModelRequest{}
-	mi := &file_llm_llm_proto_msgTypes[10]
+	mi := &file_llm_llm_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -781,7 +857,7 @@ func (x *CallModelRequest) String() string {
 func (*CallModelRequest) ProtoMessage() {}
 
 func (x *CallModelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_llm_llm_proto_msgTypes[10]
+	mi := &file_llm_llm_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -794,7 +870,7 @@ func (x *CallModelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CallModelRequest.ProtoReflect.Descriptor instead.
 func (*CallModelRequest) Descriptor() ([]byte, []int) {
-	return file_llm_llm_proto_rawDescGZIP(), []int{10}
+	return file_llm_llm_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CallModelRequest) GetModel() string {
@@ -828,7 +904,7 @@ type CallModelResponse struct {
 
 func (x *CallModelResponse) Reset() {
 	*x = CallModelResponse{}
-	mi := &file_llm_llm_proto_msgTypes[11]
+	mi := &file_llm_llm_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -840,7 +916,7 @@ func (x *CallModelResponse) String() string {
 func (*CallModelResponse) ProtoMessage() {}
 
 func (x *CallModelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_llm_llm_proto_msgTypes[11]
+	mi := &file_llm_llm_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -853,7 +929,7 @@ func (x *CallModelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CallModelResponse.ProtoReflect.Descriptor instead.
 func (*CallModelResponse) Descriptor() ([]byte, []int) {
-	return file_llm_llm_proto_rawDescGZIP(), []int{11}
+	return file_llm_llm_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CallModelResponse) GetOutput() string {
@@ -887,7 +963,13 @@ const file_llm_llm_proto_rawDesc = "" +
 	"\auser_id\x18\x03 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05model\x18\x04 \x01(\tR\x05model\x128\n" +
 	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12%\n" +
-	"\x05usage\x18\x06 \x01(\v2\x0f.llm.TokenUsageR\x05usage\"\xd1\x01\n" +
+	"\x05usage\x18\x06 \x01(\v2\x0f.llm.TokenUsageR\x05usage\"\xbf\x01\n" +
+	"\x11StreamChatRequest\x12\x18\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\x12'\n" +
+	"\x0fconversation_id\x18\x02 \x01(\tR\x0econversationId\x12\x17\n" +
+	"\auser_id\x18\x03 \x01(\tR\x06userId\x12\x14\n" +
+	"\x05model\x18\x04 \x01(\tR\x05model\x128\n" +
+	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"\xd1\x01\n" +
 	"\x12StreamChatResponse\x12\x14\n" +
 	"\x05delta\x18\x01 \x01(\tR\x05delta\x12'\n" +
 	"\x0fconversation_id\x18\x02 \x01(\tR\x0econversationId\x12\x14\n" +
@@ -943,12 +1025,12 @@ const file_llm_llm_proto_rawDesc = "" +
 	"\x10CHAT_ROLE_SYSTEM\x10\x01\x12\x12\n" +
 	"\x0eCHAT_ROLE_USER\x10\x02\x12\x17\n" +
 	"\x13CHAT_ROLE_ASSISTANT\x10\x03\x12\x12\n" +
-	"\x0eCHAT_ROLE_TOOL\x10\x042\xbd\x02\n" +
+	"\x0eCHAT_ROLE_TOOL\x10\x042\xc3\x02\n" +
 	"\n" +
-	"LLMService\x12+\n" +
-	"\x04Chat\x12\x10.llm.ChatRequest\x1a\x11.llm.ChatResponse\x129\n" +
+	"LlmService\x12+\n" +
+	"\x04Chat\x12\x10.llm.ChatRequest\x1a\x11.llm.ChatResponse\x12?\n" +
 	"\n" +
-	"StreamChat\x12\x10.llm.ChatRequest\x1a\x17.llm.StreamChatResponse0\x01\x12I\n" +
+	"StreamChat\x12\x16.llm.StreamChatRequest\x1a\x17.llm.StreamChatResponse0\x01\x12I\n" +
 	"\x0eGetChatHistory\x12\x1a.llm.GetChatHistoryRequest\x1a\x1b.llm.GetChatHistoryResponse\x12@\n" +
 	"\vGetChatList\x12\x17.llm.GetChatListRequest\x1a\x18.llm.GetChatListResponse\x12:\n" +
 	"\tCallModel\x12\x15.llm.CallModelRequest\x1a\x16.llm.CallModelResponseB5Z3github.com/Erain-byte/grpc_go_project/proto/llm;llmb\x06proto3"
@@ -966,51 +1048,53 @@ func file_llm_llm_proto_rawDescGZIP() []byte {
 }
 
 var file_llm_llm_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_llm_llm_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_llm_llm_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_llm_llm_proto_goTypes = []any{
 	(ChatRole)(0),                  // 0: llm.ChatRole
 	(*ChatRequest)(nil),            // 1: llm.ChatRequest
 	(*ChatResponse)(nil),           // 2: llm.ChatResponse
-	(*StreamChatResponse)(nil),     // 3: llm.StreamChatResponse
-	(*TokenUsage)(nil),             // 4: llm.TokenUsage
-	(*GetChatHistoryRequest)(nil),  // 5: llm.GetChatHistoryRequest
-	(*GetChatHistoryResponse)(nil), // 6: llm.GetChatHistoryResponse
-	(*ChatMessage)(nil),            // 7: llm.ChatMessage
-	(*GetChatListRequest)(nil),     // 8: llm.GetChatListRequest
-	(*GetChatListResponse)(nil),    // 9: llm.GetChatListResponse
-	(*Conversation)(nil),           // 10: llm.Conversation
-	(*CallModelRequest)(nil),       // 11: llm.CallModelRequest
-	(*CallModelResponse)(nil),      // 12: llm.CallModelResponse
-	(*timestamppb.Timestamp)(nil),  // 13: google.protobuf.Timestamp
-	(*structpb.Struct)(nil),        // 14: google.protobuf.Struct
+	(*StreamChatRequest)(nil),      // 3: llm.StreamChatRequest
+	(*StreamChatResponse)(nil),     // 4: llm.StreamChatResponse
+	(*TokenUsage)(nil),             // 5: llm.TokenUsage
+	(*GetChatHistoryRequest)(nil),  // 6: llm.GetChatHistoryRequest
+	(*GetChatHistoryResponse)(nil), // 7: llm.GetChatHistoryResponse
+	(*ChatMessage)(nil),            // 8: llm.ChatMessage
+	(*GetChatListRequest)(nil),     // 9: llm.GetChatListRequest
+	(*GetChatListResponse)(nil),    // 10: llm.GetChatListResponse
+	(*Conversation)(nil),           // 11: llm.Conversation
+	(*CallModelRequest)(nil),       // 12: llm.CallModelRequest
+	(*CallModelResponse)(nil),      // 13: llm.CallModelResponse
+	(*timestamppb.Timestamp)(nil),  // 14: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),        // 15: google.protobuf.Struct
 }
 var file_llm_llm_proto_depIdxs = []int32{
-	13, // 0: llm.ChatRequest.timestamp:type_name -> google.protobuf.Timestamp
-	13, // 1: llm.ChatResponse.timestamp:type_name -> google.protobuf.Timestamp
-	4,  // 2: llm.ChatResponse.usage:type_name -> llm.TokenUsage
-	4,  // 3: llm.StreamChatResponse.usage:type_name -> llm.TokenUsage
-	7,  // 4: llm.GetChatHistoryResponse.messages:type_name -> llm.ChatMessage
-	0,  // 5: llm.ChatMessage.role:type_name -> llm.ChatRole
-	13, // 6: llm.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
-	10, // 7: llm.GetChatListResponse.conversations:type_name -> llm.Conversation
-	13, // 8: llm.Conversation.last_message_time:type_name -> google.protobuf.Timestamp
-	14, // 9: llm.CallModelRequest.parameters:type_name -> google.protobuf.Struct
-	4,  // 10: llm.CallModelResponse.usage:type_name -> llm.TokenUsage
-	1,  // 11: llm.LLMService.Chat:input_type -> llm.ChatRequest
-	1,  // 12: llm.LLMService.StreamChat:input_type -> llm.ChatRequest
-	5,  // 13: llm.LLMService.GetChatHistory:input_type -> llm.GetChatHistoryRequest
-	8,  // 14: llm.LLMService.GetChatList:input_type -> llm.GetChatListRequest
-	11, // 15: llm.LLMService.CallModel:input_type -> llm.CallModelRequest
-	2,  // 16: llm.LLMService.Chat:output_type -> llm.ChatResponse
-	3,  // 17: llm.LLMService.StreamChat:output_type -> llm.StreamChatResponse
-	6,  // 18: llm.LLMService.GetChatHistory:output_type -> llm.GetChatHistoryResponse
-	9,  // 19: llm.LLMService.GetChatList:output_type -> llm.GetChatListResponse
-	12, // 20: llm.LLMService.CallModel:output_type -> llm.CallModelResponse
-	16, // [16:21] is the sub-list for method output_type
-	11, // [11:16] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	14, // 0: llm.ChatRequest.timestamp:type_name -> google.protobuf.Timestamp
+	14, // 1: llm.ChatResponse.timestamp:type_name -> google.protobuf.Timestamp
+	5,  // 2: llm.ChatResponse.usage:type_name -> llm.TokenUsage
+	14, // 3: llm.StreamChatRequest.timestamp:type_name -> google.protobuf.Timestamp
+	5,  // 4: llm.StreamChatResponse.usage:type_name -> llm.TokenUsage
+	8,  // 5: llm.GetChatHistoryResponse.messages:type_name -> llm.ChatMessage
+	0,  // 6: llm.ChatMessage.role:type_name -> llm.ChatRole
+	14, // 7: llm.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
+	11, // 8: llm.GetChatListResponse.conversations:type_name -> llm.Conversation
+	14, // 9: llm.Conversation.last_message_time:type_name -> google.protobuf.Timestamp
+	15, // 10: llm.CallModelRequest.parameters:type_name -> google.protobuf.Struct
+	5,  // 11: llm.CallModelResponse.usage:type_name -> llm.TokenUsage
+	1,  // 12: llm.LlmService.Chat:input_type -> llm.ChatRequest
+	3,  // 13: llm.LlmService.StreamChat:input_type -> llm.StreamChatRequest
+	6,  // 14: llm.LlmService.GetChatHistory:input_type -> llm.GetChatHistoryRequest
+	9,  // 15: llm.LlmService.GetChatList:input_type -> llm.GetChatListRequest
+	12, // 16: llm.LlmService.CallModel:input_type -> llm.CallModelRequest
+	2,  // 17: llm.LlmService.Chat:output_type -> llm.ChatResponse
+	4,  // 18: llm.LlmService.StreamChat:output_type -> llm.StreamChatResponse
+	7,  // 19: llm.LlmService.GetChatHistory:output_type -> llm.GetChatHistoryResponse
+	10, // 20: llm.LlmService.GetChatList:output_type -> llm.GetChatListResponse
+	13, // 21: llm.LlmService.CallModel:output_type -> llm.CallModelResponse
+	17, // [17:22] is the sub-list for method output_type
+	12, // [12:17] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_llm_llm_proto_init() }
@@ -1024,7 +1108,7 @@ func file_llm_llm_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_llm_llm_proto_rawDesc), len(file_llm_llm_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   12,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
