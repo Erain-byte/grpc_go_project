@@ -19,11 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LlmService_Chat_FullMethodName           = "/llm.LlmService/Chat"
-	LlmService_StreamChat_FullMethodName     = "/llm.LlmService/StreamChat"
-	LlmService_GetChatHistory_FullMethodName = "/llm.LlmService/GetChatHistory"
-	LlmService_GetChatList_FullMethodName    = "/llm.LlmService/GetChatList"
-	LlmService_CallModel_FullMethodName      = "/llm.LlmService/CallModel"
+	LlmService_Chat_FullMethodName           = "/llm.v1.LlmService/Chat"
+	LlmService_StreamChat_FullMethodName     = "/llm.v1.LlmService/StreamChat"
+	LlmService_GetChatHistory_FullMethodName = "/llm.v1.LlmService/GetChatHistory"
+	LlmService_GetChatList_FullMethodName    = "/llm.v1.LlmService/GetChatList"
+	LlmService_CallModel_FullMethodName      = "/llm.v1.LlmService/CallModel"
 )
 
 // LlmServiceClient is the client API for LlmService service.
@@ -246,7 +246,7 @@ func _LlmService_CallModel_Handler(srv interface{}, ctx context.Context, dec fun
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var LlmService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "llm.LlmService",
+	ServiceName: "llm.v1.LlmService",
 	HandlerType: (*LlmServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

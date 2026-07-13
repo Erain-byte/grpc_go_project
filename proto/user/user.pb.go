@@ -404,7 +404,7 @@ type UserInfo struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	Status        UserStatus             `protobuf:"varint,4,opt,name=status,proto3,enum=user.UserStatus" json:"status,omitempty"`
+	Status        UserStatus             `protobuf:"varint,4,opt,name=status,proto3,enum=user.v1.UserStatus" json:"status,omitempty"`
 	Nickname      string                 `protobuf:"bytes,5,opt,name=nickname,proto3" json:"nickname,omitempty"`
 	AvatarUrl     string                 `protobuf:"bytes,6,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
 	Phone         string                 `protobuf:"bytes,7,opt,name=phone,proto3" json:"phone,omitempty"`
@@ -767,7 +767,7 @@ var File_user_user_proto protoreflect.FileDescriptor
 
 const file_user_user_proto_rawDesc = "" +
 	"\n" +
-	"\x0fuser/user.proto\x12\x04user\x1a\x1fgoogle/protobuf/timestamp.proto\"\x7f\n" +
+	"\x0fuser/user.proto\x12\auser.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x7f\n" +
 	"\fLoginRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x18\n" +
@@ -784,17 +784,17 @@ const file_user_user_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"*\n" +
 	"\x12GetUserInfoRequest\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\"v\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\"y\n" +
 	"\x13GetUserInfoResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\x12+\n" +
-	"\tuser_info\x18\x03 \x01(\v2\x0e.user.UserInfoR\buserInfo\"\xe7\x02\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12.\n" +
+	"\tuser_info\x18\x03 \x01(\v2\x11.user.v1.UserInfoR\buserInfo\"\xea\x02\n" +
 	"\bUserInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x129\n" +
 	"\n" +
-	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12(\n" +
-	"\x06status\x18\x04 \x01(\x0e2\x10.user.UserStatusR\x06status\x12\x1a\n" +
+	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12+\n" +
+	"\x06status\x18\x04 \x01(\x0e2\x13.user.v1.UserStatusR\x06status\x12\x1a\n" +
 	"\bnickname\x18\x05 \x01(\tR\bnickname\x12\x1d\n" +
 	"\n" +
 	"avatar_url\x18\x06 \x01(\tR\tavatarUrl\x12\x14\n" +
@@ -805,18 +805,18 @@ const file_user_user_proto_rawDesc = "" +
 	"\x11CreateUserRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\"u\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\"x\n" +
 	"\x12CreateUserResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\x12+\n" +
-	"\tuser_info\x18\x03 \x01(\v2\x0e.user.UserInfoR\buserInfo\"E\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12.\n" +
+	"\tuser_info\x18\x03 \x01(\v2\x11.user.v1.UserInfoR\buserInfo\"E\n" +
 	"\x12GetUserListRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"\xbd\x01\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"\xc0\x01\n" +
 	"\x13GetUserListResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\x12+\n" +
-	"\tuser_list\x18\x03 \x03(\v2\x0e.user.UserInfoR\buserList\x12\x14\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12.\n" +
+	"\tuser_list\x18\x03 \x03(\v2\x11.user.v1.UserInfoR\buserList\x12\x14\n" +
 	"\x05total\x18\x04 \x01(\x03R\x05total\x12\x12\n" +
 	"\x04page\x18\x05 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x06 \x01(\x05R\bpageSize*[\n" +
@@ -824,14 +824,14 @@ const file_user_user_proto_rawDesc = "" +
 	"UserStatus\x12\x1b\n" +
 	"\x17USER_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12USER_STATUS_ACTIVE\x10\x01\x12\x18\n" +
-	"\x14USER_STATUS_DISABLED\x10\x022\xbd\x02\n" +
-	"\vUserService\x120\n" +
-	"\x05Login\x12\x12.user.LoginRequest\x1a\x13.user.LoginResponse\x123\n" +
-	"\x06Logout\x12\x13.user.LogoutRequest\x1a\x14.user.LogoutResponse\x12B\n" +
-	"\vGetUserInfo\x12\x18.user.GetUserInfoRequest\x1a\x19.user.GetUserInfoResponse\x12?\n" +
+	"\x14USER_STATUS_DISABLED\x10\x022\xdb\x02\n" +
+	"\vUserService\x126\n" +
+	"\x05Login\x12\x15.user.v1.LoginRequest\x1a\x16.user.v1.LoginResponse\x129\n" +
+	"\x06Logout\x12\x16.user.v1.LogoutRequest\x1a\x17.user.v1.LogoutResponse\x12H\n" +
+	"\vGetUserInfo\x12\x1b.user.v1.GetUserInfoRequest\x1a\x1c.user.v1.GetUserInfoResponse\x12E\n" +
 	"\n" +
-	"CreateUser\x12\x17.user.CreateUserRequest\x1a\x18.user.CreateUserResponse\x12B\n" +
-	"\vGetUserList\x12\x18.user.GetUserListRequest\x1a\x19.user.GetUserListResponseB7Z5github.com/Erain-byte/grpc_go_project/proto/user;userb\x06proto3"
+	"CreateUser\x12\x1a.user.v1.CreateUserRequest\x1a\x1b.user.v1.CreateUserResponse\x12H\n" +
+	"\vGetUserList\x12\x1b.user.v1.GetUserListRequest\x1a\x1c.user.v1.GetUserListResponseB7Z5github.com/Erain-byte/grpc_go_project/proto/user;userb\x06proto3"
 
 var (
 	file_user_user_proto_rawDescOnce sync.Once
@@ -848,38 +848,38 @@ func file_user_user_proto_rawDescGZIP() []byte {
 var file_user_user_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_user_user_proto_goTypes = []any{
-	(UserStatus)(0),               // 0: user.UserStatus
-	(*LoginRequest)(nil),          // 1: user.LoginRequest
-	(*LoginResponse)(nil),         // 2: user.LoginResponse
-	(*LogoutRequest)(nil),         // 3: user.LogoutRequest
-	(*LogoutResponse)(nil),        // 4: user.LogoutResponse
-	(*GetUserInfoRequest)(nil),    // 5: user.GetUserInfoRequest
-	(*GetUserInfoResponse)(nil),   // 6: user.GetUserInfoResponse
-	(*UserInfo)(nil),              // 7: user.UserInfo
-	(*CreateUserRequest)(nil),     // 8: user.CreateUserRequest
-	(*CreateUserResponse)(nil),    // 9: user.CreateUserResponse
-	(*GetUserListRequest)(nil),    // 10: user.GetUserListRequest
-	(*GetUserListResponse)(nil),   // 11: user.GetUserListResponse
+	(UserStatus)(0),               // 0: user.v1.UserStatus
+	(*LoginRequest)(nil),          // 1: user.v1.LoginRequest
+	(*LoginResponse)(nil),         // 2: user.v1.LoginResponse
+	(*LogoutRequest)(nil),         // 3: user.v1.LogoutRequest
+	(*LogoutResponse)(nil),        // 4: user.v1.LogoutResponse
+	(*GetUserInfoRequest)(nil),    // 5: user.v1.GetUserInfoRequest
+	(*GetUserInfoResponse)(nil),   // 6: user.v1.GetUserInfoResponse
+	(*UserInfo)(nil),              // 7: user.v1.UserInfo
+	(*CreateUserRequest)(nil),     // 8: user.v1.CreateUserRequest
+	(*CreateUserResponse)(nil),    // 9: user.v1.CreateUserResponse
+	(*GetUserListRequest)(nil),    // 10: user.v1.GetUserListRequest
+	(*GetUserListResponse)(nil),   // 11: user.v1.GetUserListResponse
 	(*timestamppb.Timestamp)(nil), // 12: google.protobuf.Timestamp
 }
 var file_user_user_proto_depIdxs = []int32{
-	7,  // 0: user.GetUserInfoResponse.user_info:type_name -> user.UserInfo
-	12, // 1: user.UserInfo.created_at:type_name -> google.protobuf.Timestamp
-	0,  // 2: user.UserInfo.status:type_name -> user.UserStatus
-	12, // 3: user.UserInfo.updated_at:type_name -> google.protobuf.Timestamp
-	12, // 4: user.UserInfo.last_login_at:type_name -> google.protobuf.Timestamp
-	7,  // 5: user.CreateUserResponse.user_info:type_name -> user.UserInfo
-	7,  // 6: user.GetUserListResponse.user_list:type_name -> user.UserInfo
-	1,  // 7: user.UserService.Login:input_type -> user.LoginRequest
-	3,  // 8: user.UserService.Logout:input_type -> user.LogoutRequest
-	5,  // 9: user.UserService.GetUserInfo:input_type -> user.GetUserInfoRequest
-	8,  // 10: user.UserService.CreateUser:input_type -> user.CreateUserRequest
-	10, // 11: user.UserService.GetUserList:input_type -> user.GetUserListRequest
-	2,  // 12: user.UserService.Login:output_type -> user.LoginResponse
-	4,  // 13: user.UserService.Logout:output_type -> user.LogoutResponse
-	6,  // 14: user.UserService.GetUserInfo:output_type -> user.GetUserInfoResponse
-	9,  // 15: user.UserService.CreateUser:output_type -> user.CreateUserResponse
-	11, // 16: user.UserService.GetUserList:output_type -> user.GetUserListResponse
+	7,  // 0: user.v1.GetUserInfoResponse.user_info:type_name -> user.v1.UserInfo
+	12, // 1: user.v1.UserInfo.created_at:type_name -> google.protobuf.Timestamp
+	0,  // 2: user.v1.UserInfo.status:type_name -> user.v1.UserStatus
+	12, // 3: user.v1.UserInfo.updated_at:type_name -> google.protobuf.Timestamp
+	12, // 4: user.v1.UserInfo.last_login_at:type_name -> google.protobuf.Timestamp
+	7,  // 5: user.v1.CreateUserResponse.user_info:type_name -> user.v1.UserInfo
+	7,  // 6: user.v1.GetUserListResponse.user_list:type_name -> user.v1.UserInfo
+	1,  // 7: user.v1.UserService.Login:input_type -> user.v1.LoginRequest
+	3,  // 8: user.v1.UserService.Logout:input_type -> user.v1.LogoutRequest
+	5,  // 9: user.v1.UserService.GetUserInfo:input_type -> user.v1.GetUserInfoRequest
+	8,  // 10: user.v1.UserService.CreateUser:input_type -> user.v1.CreateUserRequest
+	10, // 11: user.v1.UserService.GetUserList:input_type -> user.v1.GetUserListRequest
+	2,  // 12: user.v1.UserService.Login:output_type -> user.v1.LoginResponse
+	4,  // 13: user.v1.UserService.Logout:output_type -> user.v1.LogoutResponse
+	6,  // 14: user.v1.UserService.GetUserInfo:output_type -> user.v1.GetUserInfoResponse
+	9,  // 15: user.v1.UserService.CreateUser:output_type -> user.v1.CreateUserResponse
+	11, // 16: user.v1.UserService.GetUserList:output_type -> user.v1.GetUserListResponse
 	12, // [12:17] is the sub-list for method output_type
 	7,  // [7:12] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name

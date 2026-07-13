@@ -581,7 +581,7 @@ func (x *GetChatHistoryResponse) GetTotalCount() int64 {
 type ChatMessage struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Role          ChatRole               `protobuf:"varint,2,opt,name=role,proto3,enum=llm.ChatRole" json:"role,omitempty"`
+	Role          ChatRole               `protobuf:"varint,2,opt,name=role,proto3,enum=llm.v1.ChatRole" json:"role,omitempty"`
 	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -950,33 +950,33 @@ var File_llm_llm_proto protoreflect.FileDescriptor
 
 const file_llm_llm_proto_rawDesc = "" +
 	"\n" +
-	"\rllm/llm.proto\x12\x03llm\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb9\x01\n" +
+	"\rllm/llm.proto\x12\x06llm.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb9\x01\n" +
 	"\vChatRequest\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\x12'\n" +
 	"\x0fconversation_id\x18\x02 \x01(\tR\x0econversationId\x12\x17\n" +
 	"\auser_id\x18\x03 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05model\x18\x04 \x01(\tR\x05model\x128\n" +
-	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"\xdd\x01\n" +
+	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"\xe0\x01\n" +
 	"\fChatResponse\x12\x14\n" +
 	"\x05reply\x18\x01 \x01(\tR\x05reply\x12'\n" +
 	"\x0fconversation_id\x18\x02 \x01(\tR\x0econversationId\x12\x17\n" +
 	"\auser_id\x18\x03 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05model\x18\x04 \x01(\tR\x05model\x128\n" +
-	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12%\n" +
-	"\x05usage\x18\x06 \x01(\v2\x0f.llm.TokenUsageR\x05usage\"\xbf\x01\n" +
+	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12(\n" +
+	"\x05usage\x18\x06 \x01(\v2\x12.llm.v1.TokenUsageR\x05usage\"\xbf\x01\n" +
 	"\x11StreamChatRequest\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\x12'\n" +
 	"\x0fconversation_id\x18\x02 \x01(\tR\x0econversationId\x12\x17\n" +
 	"\auser_id\x18\x03 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05model\x18\x04 \x01(\tR\x05model\x128\n" +
-	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"\xd1\x01\n" +
+	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"\xd4\x01\n" +
 	"\x12StreamChatResponse\x12\x14\n" +
 	"\x05delta\x18\x01 \x01(\tR\x05delta\x12'\n" +
 	"\x0fconversation_id\x18\x02 \x01(\tR\x0econversationId\x12\x14\n" +
 	"\x05model\x18\x03 \x01(\tR\x05model\x12\x1a\n" +
 	"\bfinished\x18\x04 \x01(\bR\bfinished\x12#\n" +
-	"\rfinish_reason\x18\x05 \x01(\tR\ffinishReason\x12%\n" +
-	"\x05usage\x18\x06 \x01(\v2\x0f.llm.TokenUsageR\x05usage\"\x81\x01\n" +
+	"\rfinish_reason\x18\x05 \x01(\tR\ffinishReason\x12(\n" +
+	"\x05usage\x18\x06 \x01(\v2\x12.llm.v1.TokenUsageR\x05usage\"\x81\x01\n" +
 	"\n" +
 	"TokenUsage\x12#\n" +
 	"\rprompt_tokens\x18\x01 \x01(\x05R\fpromptTokens\x12+\n" +
@@ -986,23 +986,23 @@ const file_llm_llm_proto_rawDesc = "" +
 	"\x0fconversation_id\x18\x01 \x01(\tR\x0econversationId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x16\n" +
-	"\x06offset\x18\x04 \x01(\x05R\x06offset\"g\n" +
-	"\x16GetChatHistoryResponse\x12,\n" +
-	"\bmessages\x18\x01 \x03(\v2\x10.llm.ChatMessageR\bmessages\x12\x1f\n" +
+	"\x06offset\x18\x04 \x01(\x05R\x06offset\"j\n" +
+	"\x16GetChatHistoryResponse\x12/\n" +
+	"\bmessages\x18\x01 \x03(\v2\x13.llm.v1.ChatMessageR\bmessages\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x03R\n" +
-	"totalCount\"\x95\x01\n" +
+	"totalCount\"\x98\x01\n" +
 	"\vChatMessage\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
-	"\x04role\x18\x02 \x01(\x0e2\r.llm.ChatRoleR\x04role\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12$\n" +
+	"\x04role\x18\x02 \x01(\x0e2\x10.llm.v1.ChatRoleR\x04role\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\tR\acontent\x129\n" +
 	"\n" +
 	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"r\n" +
 	"\x12GetChatListRequest\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x16\n" +
-	"\x06offset\x18\x04 \x01(\x05R\x06offsetJ\x04\b\x01\x10\x02R\x0fconversation_id\"o\n" +
-	"\x13GetChatListResponse\x127\n" +
-	"\rconversations\x18\x01 \x03(\v2\x11.llm.ConversationR\rconversations\x12\x1f\n" +
+	"\x06offset\x18\x04 \x01(\x05R\x06offsetJ\x04\b\x01\x10\x02R\x0fconversation_id\"r\n" +
+	"\x13GetChatListResponse\x12:\n" +
+	"\rconversations\x18\x01 \x03(\v2\x14.llm.v1.ConversationR\rconversations\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x03R\n" +
 	"totalCount\"\xd3\x01\n" +
 	"\fConversation\x12'\n" +
@@ -1016,24 +1016,24 @@ const file_llm_llm_proto_rawDesc = "" +
 	"\x05input\x18\x02 \x01(\tR\x05input\x127\n" +
 	"\n" +
 	"parameters\x18\x03 \x01(\v2\x17.google.protobuf.StructR\n" +
-	"parameters\"R\n" +
+	"parameters\"U\n" +
 	"\x11CallModelResponse\x12\x16\n" +
-	"\x06output\x18\x01 \x01(\tR\x06output\x12%\n" +
-	"\x05usage\x18\x02 \x01(\v2\x0f.llm.TokenUsageR\x05usage*|\n" +
+	"\x06output\x18\x01 \x01(\tR\x06output\x12(\n" +
+	"\x05usage\x18\x02 \x01(\v2\x12.llm.v1.TokenUsageR\x05usage*|\n" +
 	"\bChatRole\x12\x19\n" +
 	"\x15CHAT_ROLE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10CHAT_ROLE_SYSTEM\x10\x01\x12\x12\n" +
 	"\x0eCHAT_ROLE_USER\x10\x02\x12\x17\n" +
 	"\x13CHAT_ROLE_ASSISTANT\x10\x03\x12\x12\n" +
-	"\x0eCHAT_ROLE_TOOL\x10\x042\xc3\x02\n" +
+	"\x0eCHAT_ROLE_TOOL\x10\x042\xe1\x02\n" +
 	"\n" +
-	"LlmService\x12+\n" +
-	"\x04Chat\x12\x10.llm.ChatRequest\x1a\x11.llm.ChatResponse\x12?\n" +
+	"LlmService\x121\n" +
+	"\x04Chat\x12\x13.llm.v1.ChatRequest\x1a\x14.llm.v1.ChatResponse\x12E\n" +
 	"\n" +
-	"StreamChat\x12\x16.llm.StreamChatRequest\x1a\x17.llm.StreamChatResponse0\x01\x12I\n" +
-	"\x0eGetChatHistory\x12\x1a.llm.GetChatHistoryRequest\x1a\x1b.llm.GetChatHistoryResponse\x12@\n" +
-	"\vGetChatList\x12\x17.llm.GetChatListRequest\x1a\x18.llm.GetChatListResponse\x12:\n" +
-	"\tCallModel\x12\x15.llm.CallModelRequest\x1a\x16.llm.CallModelResponseB5Z3github.com/Erain-byte/grpc_go_project/proto/llm;llmb\x06proto3"
+	"StreamChat\x12\x19.llm.v1.StreamChatRequest\x1a\x1a.llm.v1.StreamChatResponse0\x01\x12O\n" +
+	"\x0eGetChatHistory\x12\x1d.llm.v1.GetChatHistoryRequest\x1a\x1e.llm.v1.GetChatHistoryResponse\x12F\n" +
+	"\vGetChatList\x12\x1a.llm.v1.GetChatListRequest\x1a\x1b.llm.v1.GetChatListResponse\x12@\n" +
+	"\tCallModel\x12\x18.llm.v1.CallModelRequest\x1a\x19.llm.v1.CallModelResponseB5Z3github.com/Erain-byte/grpc_go_project/proto/llm;llmb\x06proto3"
 
 var (
 	file_llm_llm_proto_rawDescOnce sync.Once
@@ -1050,46 +1050,46 @@ func file_llm_llm_proto_rawDescGZIP() []byte {
 var file_llm_llm_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_llm_llm_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_llm_llm_proto_goTypes = []any{
-	(ChatRole)(0),                  // 0: llm.ChatRole
-	(*ChatRequest)(nil),            // 1: llm.ChatRequest
-	(*ChatResponse)(nil),           // 2: llm.ChatResponse
-	(*StreamChatRequest)(nil),      // 3: llm.StreamChatRequest
-	(*StreamChatResponse)(nil),     // 4: llm.StreamChatResponse
-	(*TokenUsage)(nil),             // 5: llm.TokenUsage
-	(*GetChatHistoryRequest)(nil),  // 6: llm.GetChatHistoryRequest
-	(*GetChatHistoryResponse)(nil), // 7: llm.GetChatHistoryResponse
-	(*ChatMessage)(nil),            // 8: llm.ChatMessage
-	(*GetChatListRequest)(nil),     // 9: llm.GetChatListRequest
-	(*GetChatListResponse)(nil),    // 10: llm.GetChatListResponse
-	(*Conversation)(nil),           // 11: llm.Conversation
-	(*CallModelRequest)(nil),       // 12: llm.CallModelRequest
-	(*CallModelResponse)(nil),      // 13: llm.CallModelResponse
+	(ChatRole)(0),                  // 0: llm.v1.ChatRole
+	(*ChatRequest)(nil),            // 1: llm.v1.ChatRequest
+	(*ChatResponse)(nil),           // 2: llm.v1.ChatResponse
+	(*StreamChatRequest)(nil),      // 3: llm.v1.StreamChatRequest
+	(*StreamChatResponse)(nil),     // 4: llm.v1.StreamChatResponse
+	(*TokenUsage)(nil),             // 5: llm.v1.TokenUsage
+	(*GetChatHistoryRequest)(nil),  // 6: llm.v1.GetChatHistoryRequest
+	(*GetChatHistoryResponse)(nil), // 7: llm.v1.GetChatHistoryResponse
+	(*ChatMessage)(nil),            // 8: llm.v1.ChatMessage
+	(*GetChatListRequest)(nil),     // 9: llm.v1.GetChatListRequest
+	(*GetChatListResponse)(nil),    // 10: llm.v1.GetChatListResponse
+	(*Conversation)(nil),           // 11: llm.v1.Conversation
+	(*CallModelRequest)(nil),       // 12: llm.v1.CallModelRequest
+	(*CallModelResponse)(nil),      // 13: llm.v1.CallModelResponse
 	(*timestamppb.Timestamp)(nil),  // 14: google.protobuf.Timestamp
 	(*structpb.Struct)(nil),        // 15: google.protobuf.Struct
 }
 var file_llm_llm_proto_depIdxs = []int32{
-	14, // 0: llm.ChatRequest.timestamp:type_name -> google.protobuf.Timestamp
-	14, // 1: llm.ChatResponse.timestamp:type_name -> google.protobuf.Timestamp
-	5,  // 2: llm.ChatResponse.usage:type_name -> llm.TokenUsage
-	14, // 3: llm.StreamChatRequest.timestamp:type_name -> google.protobuf.Timestamp
-	5,  // 4: llm.StreamChatResponse.usage:type_name -> llm.TokenUsage
-	8,  // 5: llm.GetChatHistoryResponse.messages:type_name -> llm.ChatMessage
-	0,  // 6: llm.ChatMessage.role:type_name -> llm.ChatRole
-	14, // 7: llm.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
-	11, // 8: llm.GetChatListResponse.conversations:type_name -> llm.Conversation
-	14, // 9: llm.Conversation.last_message_time:type_name -> google.protobuf.Timestamp
-	15, // 10: llm.CallModelRequest.parameters:type_name -> google.protobuf.Struct
-	5,  // 11: llm.CallModelResponse.usage:type_name -> llm.TokenUsage
-	1,  // 12: llm.LlmService.Chat:input_type -> llm.ChatRequest
-	3,  // 13: llm.LlmService.StreamChat:input_type -> llm.StreamChatRequest
-	6,  // 14: llm.LlmService.GetChatHistory:input_type -> llm.GetChatHistoryRequest
-	9,  // 15: llm.LlmService.GetChatList:input_type -> llm.GetChatListRequest
-	12, // 16: llm.LlmService.CallModel:input_type -> llm.CallModelRequest
-	2,  // 17: llm.LlmService.Chat:output_type -> llm.ChatResponse
-	4,  // 18: llm.LlmService.StreamChat:output_type -> llm.StreamChatResponse
-	7,  // 19: llm.LlmService.GetChatHistory:output_type -> llm.GetChatHistoryResponse
-	10, // 20: llm.LlmService.GetChatList:output_type -> llm.GetChatListResponse
-	13, // 21: llm.LlmService.CallModel:output_type -> llm.CallModelResponse
+	14, // 0: llm.v1.ChatRequest.timestamp:type_name -> google.protobuf.Timestamp
+	14, // 1: llm.v1.ChatResponse.timestamp:type_name -> google.protobuf.Timestamp
+	5,  // 2: llm.v1.ChatResponse.usage:type_name -> llm.v1.TokenUsage
+	14, // 3: llm.v1.StreamChatRequest.timestamp:type_name -> google.protobuf.Timestamp
+	5,  // 4: llm.v1.StreamChatResponse.usage:type_name -> llm.v1.TokenUsage
+	8,  // 5: llm.v1.GetChatHistoryResponse.messages:type_name -> llm.v1.ChatMessage
+	0,  // 6: llm.v1.ChatMessage.role:type_name -> llm.v1.ChatRole
+	14, // 7: llm.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
+	11, // 8: llm.v1.GetChatListResponse.conversations:type_name -> llm.v1.Conversation
+	14, // 9: llm.v1.Conversation.last_message_time:type_name -> google.protobuf.Timestamp
+	15, // 10: llm.v1.CallModelRequest.parameters:type_name -> google.protobuf.Struct
+	5,  // 11: llm.v1.CallModelResponse.usage:type_name -> llm.v1.TokenUsage
+	1,  // 12: llm.v1.LlmService.Chat:input_type -> llm.v1.ChatRequest
+	3,  // 13: llm.v1.LlmService.StreamChat:input_type -> llm.v1.StreamChatRequest
+	6,  // 14: llm.v1.LlmService.GetChatHistory:input_type -> llm.v1.GetChatHistoryRequest
+	9,  // 15: llm.v1.LlmService.GetChatList:input_type -> llm.v1.GetChatListRequest
+	12, // 16: llm.v1.LlmService.CallModel:input_type -> llm.v1.CallModelRequest
+	2,  // 17: llm.v1.LlmService.Chat:output_type -> llm.v1.ChatResponse
+	4,  // 18: llm.v1.LlmService.StreamChat:output_type -> llm.v1.StreamChatResponse
+	7,  // 19: llm.v1.LlmService.GetChatHistory:output_type -> llm.v1.GetChatHistoryResponse
+	10, // 20: llm.v1.LlmService.GetChatList:output_type -> llm.v1.GetChatListResponse
+	13, // 21: llm.v1.LlmService.CallModel:output_type -> llm.v1.CallModelResponse
 	17, // [17:22] is the sub-list for method output_type
 	12, // [12:17] is the sub-list for method input_type
 	12, // [12:12] is the sub-list for extension type_name

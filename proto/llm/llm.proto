@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package llm;
+package llm.v1;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
