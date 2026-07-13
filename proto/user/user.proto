@@ -7,21 +7,21 @@ import "google/protobuf/timestamp.proto";
 option go_package = "github.com/Erain-byte/grpc_go_project/proto/user;user";
 
 service UserService {
-  rpc Login(UserLoginRequest) returns (UserLoginResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
   rpc Logout(LogoutRequest) returns (LogoutResponse);
   rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse);
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
   rpc GetUserList(GetUserListRequest) returns (GetUserListResponse);
 }
 
-message UserLoginRequest {
+message LoginRequest {
   string username = 1;
   string password = 2;
   string captcha = 3;
   string ip_address = 4;
 }
 
-message UserLoginResponse {
+message LoginResponse {
   bool success = 1;
   string message = 2;
   string token = 3;

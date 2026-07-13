@@ -70,7 +70,7 @@ func (AdminRole) EnumDescriptor() ([]byte, []int) {
 	return file_admin_admin_proto_rawDescGZIP(), []int{0}
 }
 
-type AdminLoginRequest struct {
+type LoginRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
@@ -78,20 +78,20 @@ type AdminLoginRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AdminLoginRequest) Reset() {
-	*x = AdminLoginRequest{}
+func (x *LoginRequest) Reset() {
+	*x = LoginRequest{}
 	mi := &file_admin_admin_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AdminLoginRequest) String() string {
+func (x *LoginRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AdminLoginRequest) ProtoMessage() {}
+func (*LoginRequest) ProtoMessage() {}
 
-func (x *AdminLoginRequest) ProtoReflect() protoreflect.Message {
+func (x *LoginRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_admin_admin_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -103,26 +103,26 @@ func (x *AdminLoginRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AdminLoginRequest.ProtoReflect.Descriptor instead.
-func (*AdminLoginRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
+func (*LoginRequest) Descriptor() ([]byte, []int) {
 	return file_admin_admin_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *AdminLoginRequest) GetUsername() string {
+func (x *LoginRequest) GetUsername() string {
 	if x != nil {
 		return x.Username
 	}
 	return ""
 }
 
-func (x *AdminLoginRequest) GetPassword() string {
+func (x *LoginRequest) GetPassword() string {
 	if x != nil {
 		return x.Password
 	}
 	return ""
 }
 
-type AdminLoginResponse struct {
+type LoginResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
@@ -131,20 +131,20 @@ type AdminLoginResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AdminLoginResponse) Reset() {
-	*x = AdminLoginResponse{}
+func (x *LoginResponse) Reset() {
+	*x = LoginResponse{}
 	mi := &file_admin_admin_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AdminLoginResponse) String() string {
+func (x *LoginResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AdminLoginResponse) ProtoMessage() {}
+func (*LoginResponse) ProtoMessage() {}
 
-func (x *AdminLoginResponse) ProtoReflect() protoreflect.Message {
+func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_admin_admin_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -156,26 +156,26 @@ func (x *AdminLoginResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AdminLoginResponse.ProtoReflect.Descriptor instead.
-func (*AdminLoginResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
+func (*LoginResponse) Descriptor() ([]byte, []int) {
 	return file_admin_admin_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *AdminLoginResponse) GetSuccess() bool {
+func (x *LoginResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *AdminLoginResponse) GetMessage() string {
+func (x *LoginResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *AdminLoginResponse) GetToken() string {
+func (x *LoginResponse) GetToken() string {
 	if x != nil {
 		return x.Token
 	}
@@ -702,11 +702,11 @@ var File_admin_admin_proto protoreflect.FileDescriptor
 
 const file_admin_admin_proto_rawDesc = "" +
 	"\n" +
-	"\x11admin/admin.proto\x12\x05admin\"K\n" +
-	"\x11AdminLoginRequest\x12\x1a\n" +
+	"\x11admin/admin.proto\x12\x05admin\"F\n" +
+	"\fLoginRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"^\n" +
-	"\x12AdminLoginResponse\x12\x18\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"Y\n" +
+	"\rLoginResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x14\n" +
 	"\x05token\x18\x03 \x01(\tR\x05token\"%\n" +
@@ -747,9 +747,9 @@ const file_admin_admin_proto_rawDesc = "" +
 	"\tAdminRole\x12\x1a\n" +
 	"\x16ADMIN_ROLE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16ADMIN_ROLE_SUPER_ADMIN\x10\x01\x12\x14\n" +
-	"\x10ADMIN_ROLE_ADMIN\x10\x022\xdb\x02\n" +
-	"\fAdminService\x12<\n" +
-	"\x05Login\x12\x18.admin.AdminLoginRequest\x1a\x19.admin.AdminLoginResponse\x125\n" +
+	"\x10ADMIN_ROLE_ADMIN\x10\x022\xd1\x02\n" +
+	"\fAdminService\x122\n" +
+	"\x05Login\x12\x13.admin.LoginRequest\x1a\x14.admin.LoginResponse\x125\n" +
 	"\x06Logout\x12\x14.admin.LogoutRequest\x1a\x15.admin.LogoutResponse\x12G\n" +
 	"\fGetAdminInfo\x12\x1a.admin.GetAdminInfoRequest\x1a\x1b.admin.GetAdminInfoResponse\x12D\n" +
 	"\vCreateAdmin\x12\x19.admin.CreateAdminRequest\x1a\x1a.admin.CreateAdminResponse\x12G\n" +
@@ -771,8 +771,8 @@ var file_admin_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_admin_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_admin_admin_proto_goTypes = []any{
 	(AdminRole)(0),               // 0: admin.AdminRole
-	(*AdminLoginRequest)(nil),    // 1: admin.AdminLoginRequest
-	(*AdminLoginResponse)(nil),   // 2: admin.AdminLoginResponse
+	(*LoginRequest)(nil),         // 1: admin.LoginRequest
+	(*LoginResponse)(nil),        // 2: admin.LoginResponse
 	(*LogoutRequest)(nil),        // 3: admin.LogoutRequest
 	(*LogoutResponse)(nil),       // 4: admin.LogoutResponse
 	(*GetAdminInfoRequest)(nil),  // 5: admin.GetAdminInfoRequest
@@ -789,12 +789,12 @@ var file_admin_admin_proto_depIdxs = []int32{
 	11, // 2: admin.CreateAdminResponse.admin:type_name -> admin.Admin
 	11, // 3: admin.GetAdminListResponse.admins:type_name -> admin.Admin
 	0,  // 4: admin.Admin.role:type_name -> admin.AdminRole
-	1,  // 5: admin.AdminService.Login:input_type -> admin.AdminLoginRequest
+	1,  // 5: admin.AdminService.Login:input_type -> admin.LoginRequest
 	3,  // 6: admin.AdminService.Logout:input_type -> admin.LogoutRequest
 	5,  // 7: admin.AdminService.GetAdminInfo:input_type -> admin.GetAdminInfoRequest
 	7,  // 8: admin.AdminService.CreateAdmin:input_type -> admin.CreateAdminRequest
 	9,  // 9: admin.AdminService.GetAdminList:input_type -> admin.GetAdminListRequest
-	2,  // 10: admin.AdminService.Login:output_type -> admin.AdminLoginResponse
+	2,  // 10: admin.AdminService.Login:output_type -> admin.LoginResponse
 	4,  // 11: admin.AdminService.Logout:output_type -> admin.LogoutResponse
 	6,  // 12: admin.AdminService.GetAdminInfo:output_type -> admin.GetAdminInfoResponse
 	8,  // 13: admin.AdminService.CreateAdmin:output_type -> admin.CreateAdminResponse

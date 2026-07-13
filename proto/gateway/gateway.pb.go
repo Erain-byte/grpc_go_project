@@ -539,8 +539,8 @@ const file_gateway_gateway_proto_rawDesc = "" +
 	"\rServiceHealth\x12\x18\n" +
 	"\ahealthy\x18\x01 \x01(\bR\ahealthy\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x123\n" +
-	"\alatency\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\alatency2\xd5\x01\n" +
-	"\aGateway\x12<\n" +
+	"\alatency\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\alatency2\xdc\x01\n" +
+	"\x0eGatewayService\x12<\n" +
 	"\aForward\x12\x17.gateway.ForwardRequest\x1a\x18.gateway.ForwardResponse\x12B\n" +
 	"\tGetRoutes\x12\x19.gateway.GetRoutesRequest\x1a\x1a.gateway.GetRoutesResponse\x12H\n" +
 	"\vHealthCheck\x12\x1b.gateway.HealthCheckRequest\x1a\x1c.gateway.HealthCheckResponseB=Z;github.com/Erain-byte/grpc_go_project/proto/gateway;gatewayb\x06proto3"
@@ -580,12 +580,12 @@ var file_gateway_gateway_proto_depIdxs = []int32{
 	10, // 4: gateway.HealthCheckResponse.services:type_name -> gateway.HealthCheckResponse.ServicesEntry
 	11, // 5: gateway.ServiceHealth.latency:type_name -> google.protobuf.Duration
 	7,  // 6: gateway.HealthCheckResponse.ServicesEntry.value:type_name -> gateway.ServiceHealth
-	0,  // 7: gateway.Gateway.Forward:input_type -> gateway.ForwardRequest
-	2,  // 8: gateway.Gateway.GetRoutes:input_type -> gateway.GetRoutesRequest
-	5,  // 9: gateway.Gateway.HealthCheck:input_type -> gateway.HealthCheckRequest
-	1,  // 10: gateway.Gateway.Forward:output_type -> gateway.ForwardResponse
-	3,  // 11: gateway.Gateway.GetRoutes:output_type -> gateway.GetRoutesResponse
-	6,  // 12: gateway.Gateway.HealthCheck:output_type -> gateway.HealthCheckResponse
+	0,  // 7: gateway.GatewayService.Forward:input_type -> gateway.ForwardRequest
+	2,  // 8: gateway.GatewayService.GetRoutes:input_type -> gateway.GetRoutesRequest
+	5,  // 9: gateway.GatewayService.HealthCheck:input_type -> gateway.HealthCheckRequest
+	1,  // 10: gateway.GatewayService.Forward:output_type -> gateway.ForwardResponse
+	3,  // 11: gateway.GatewayService.GetRoutes:output_type -> gateway.GetRoutesResponse
+	6,  // 12: gateway.GatewayService.HealthCheck:output_type -> gateway.HealthCheckResponse
 	10, // [10:13] is the sub-list for method output_type
 	7,  // [7:10] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name

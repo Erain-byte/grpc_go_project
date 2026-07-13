@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-package gateway;
+package gateway.v1;
 
 import "google/protobuf/duration.proto";
 
 option go_package = "github.com/Erain-byte/grpc_go_project/proto/gateway;gateway";
 
-service Gateway {
+service GatewayService {
   rpc Forward(ForwardRequest) returns (ForwardResponse);
   rpc GetRoutes(GetRoutesRequest) returns (GetRoutesResponse);
   rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
