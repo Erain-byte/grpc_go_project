@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package user;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/Erain-byte/grpc_go_project/proto/user;user";
+
+service UserService {
+  rpc Login(UserLoginRequest) returns (UserLoginResponse);
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+  rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse);
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc GetUserList(GetUserListRequest) returns (GetUserListResponse);
+}
+
+message UserLoginRequest {
+  string username = 1;
+  string password = 2;
+  string captcha = 3;
+  string ip_address = 4;
+}
+
+message UserLoginResponse {
+  bool success = 1;
+  string message = 2;
+  string token = 3;
+}
+
+message LogoutRequest { string token = 1; }
+
+message LogoutResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetUserInfoRequest { string token = 1; }
+
+message GetUserInfoResponse {
+  bool success = 1;
+  string message = 2;
+  UserInfo user_info = 3;
+}
+
+message UserInfo {
+  string id = 1;
+  string username = 2;
+  google.protobuf.Timestamp created_at = 3;
+  UserStatus status = 4;
+  string nickname = 5;
+  string avatar_url = 6;
+  string phone = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  google.protobuf.Timestamp last_login_at = 9;
+}
+
+enum UserStatus {
+  USER_STATUS_UNSPECIFIED = 0;
+  USER_STATUS_ACTIVE = 1;
+  USER_STATUS_DISABLED = 2;
+}
+
+message CreateUserRequest {
+  string username = 1;
+  string password = 2;
+  string email = 3;
+}
+
+message CreateUserResponse {
+  bool success = 1;
+  string message = 2;
+  UserInfo user_info = 3;
+}
+
+message GetUserListRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message GetUserListResponse {
+  bool success = 1;
+  string message = 2;
+  repeated UserInfo user_list = 3;
+  int64 total = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}

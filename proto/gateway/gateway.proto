@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package gateway;
+
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/Erain-byte/grpc_go_project/proto/gateway;gateway";
+
+service Gateway {
+  rpc Forward(ForwardRequest) returns (ForwardResponse);
+  rpc GetRoutes(GetRoutesRequest) returns (GetRoutesResponse);
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message ForwardRequest {
+  string service = 1;
+  string path = 2;
+  string method = 3;
+  bytes body = 4;
+  map<string, string> headers = 5;
+}
+
+message ForwardResponse {
+  bool success = 1;
+  string message = 2;
+  bytes data = 3;
+  int32 code = 4;
+  map<string, string> headers = 5;
+}
+
+message GetRoutesRequest {}
+
+message GetRoutesResponse { repeated Route routes = 1; }
+
+message Route {
+  string name = 1;
+  string path = 2;
+  string service = 3;
+  bool strip_path = 4;
+  google.protobuf.Duration timeout = 5;
+}
+
+message HealthCheckRequest { string service = 1; }
+
+message HealthCheckResponse {
+  bool healthy = 1;
+  string message = 2;
+  map<string, ServiceHealth> services = 3;
+}
+
+message ServiceHealth {
+  bool healthy = 1;
+  string message = 2;
+  google.protobuf.Duration latency = 3;
+}

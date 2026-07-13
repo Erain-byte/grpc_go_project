@@ -1,0 +1,15 @@
+# Build output
+/bin/
+/dist/
+/.gocache/
+*.exe
+*.test
+*.out
+
+# Local configuration and environment files
+.env
+configs/config.local.yaml
+
+# Editors and operating systems
+.idea/
+.DS_Store

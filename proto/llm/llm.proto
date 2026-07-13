@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package llm;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/Erain-byte/grpc_go_project/proto/llm;llm";
+
+service LLMService {
+  rpc Chat(ChatRequest) returns (ChatResponse);
+  rpc StreamChat(ChatRequest) returns (stream StreamChatResponse);
+  rpc GetChatHistory(GetChatHistoryRequest) returns (GetChatHistoryResponse);
+  rpc GetChatList(GetChatListRequest) returns (GetChatListResponse);
+  rpc CallModel(CallModelRequest) returns (CallModelResponse);
+}
+
+message ChatRequest {
+  string message = 1;
+  string conversation_id = 2;
+  string user_id = 3;
+  string model = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+message ChatResponse {
+  string reply = 1;
+  string conversation_id = 2;
+  string user_id = 3;
+  string model = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  TokenUsage usage = 6;
+}
+
+message StreamChatResponse {
+  string delta = 1;
+  string conversation_id = 2;
+  string model = 3;
+  bool finished = 4;
+  string finish_reason = 5;
+  TokenUsage usage = 6;
+}
+
+message TokenUsage {
+  int32 prompt_tokens = 1;
+  int32 completion_tokens = 2;
+  int32 total_tokens = 3;
+}
+
+message GetChatHistoryRequest {
+  string conversation_id = 1;
+  string user_id = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message GetChatHistoryResponse {
+  repeated ChatMessage messages = 1;
+  int64 total_count = 2;
+}
+
+message ChatMessage {
+  string id = 1;
+  ChatRole role = 2;
+  string content = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+enum ChatRole {
+  CHAT_ROLE_UNSPECIFIED = 0;
+  CHAT_ROLE_SYSTEM = 1;
+  CHAT_ROLE_USER = 2;
+  CHAT_ROLE_ASSISTANT = 3;
+  CHAT_ROLE_TOOL = 4;
+}
+
+message GetChatListRequest {
+  reserved 1;
+  reserved "conversation_id";
+  string user_id = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message GetChatListResponse {
+  repeated Conversation conversations = 1;
+  int64 total_count = 2;
+}
+
+message Conversation {
+  string conversation_id = 1;
+  string user_id = 2;
+  string model = 3;
+  google.protobuf.Timestamp last_message_time = 4;
+  int64 message_count = 5;
+}
+
+message CallModelRequest {
+  string model = 1;
+  string input = 2;
+  google.protobuf.Struct parameters = 3;
+}
+
+message CallModelResponse {
+  string output = 1;
+  TokenUsage usage = 2;
+}

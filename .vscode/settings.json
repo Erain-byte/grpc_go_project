@@ -1,0 +1,13 @@
+{
+  "files.associations": {
+    "*.proto": "proto"
+  },
+  "[proto]": {
+    "editor.quickSuggestions": {
+      "comments": false,
+      "strings": true,
+      "other": true
+    },
+    "editor.suggestOnTriggerCharacters": true
+  }
+}
