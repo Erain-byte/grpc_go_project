@@ -1,0 +1,5 @@
+# Local agent configuration
+**/.agents/
+
+# Visual Studio Code workspace settings
+**/.vscode/
