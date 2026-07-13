@@ -19,9 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GatewayService_Forward_FullMethodName     = "/gateway.GatewayService/Forward"
-	GatewayService_GetRoutes_FullMethodName   = "/gateway.GatewayService/GetRoutes"
-	GatewayService_HealthCheck_FullMethodName = "/gateway.GatewayService/HealthCheck"
+	GatewayService_Forward_FullMethodName     = "/gateway.v1.GatewayService/Forward"
+	GatewayService_GetRoutes_FullMethodName   = "/gateway.v1.GatewayService/GetRoutes"
+	GatewayService_HealthCheck_FullMethodName = "/gateway.v1.GatewayService/HealthCheck"
 )
 
 // GatewayServiceClient is the client API for GatewayService service.
@@ -176,7 +176,7 @@ func _GatewayService_HealthCheck_Handler(srv interface{}, ctx context.Context, d
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var GatewayService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "gateway.GatewayService",
+	ServiceName: "gateway.v1.GatewayService",
 	HandlerType: (*GatewayServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

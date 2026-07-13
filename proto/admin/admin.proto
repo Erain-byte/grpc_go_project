@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package admin;
+package admin.v1;
 
 option go_package = "github.com/Erain-byte/grpc_go_project/proto/admin;admin";
 
@@ -23,14 +23,18 @@ message LoginResponse {
   string token = 3;
 }
 
-message LogoutRequest { string token = 1; }
+message LogoutRequest {
+  string token = 1;
+}
 
 message LogoutResponse {
   bool success = 1;
   string message = 2;
 }
 
-message GetAdminInfoRequest { string token = 1; }
+message GetAdminInfoRequest {
+  string token = 1;
+}
 
 message GetAdminInfoResponse {
   bool success = 1;

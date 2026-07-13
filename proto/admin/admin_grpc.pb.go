@@ -19,11 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AdminService_Login_FullMethodName        = "/admin.AdminService/Login"
-	AdminService_Logout_FullMethodName       = "/admin.AdminService/Logout"
-	AdminService_GetAdminInfo_FullMethodName = "/admin.AdminService/GetAdminInfo"
-	AdminService_CreateAdmin_FullMethodName  = "/admin.AdminService/CreateAdmin"
-	AdminService_GetAdminList_FullMethodName = "/admin.AdminService/GetAdminList"
+	AdminService_Login_FullMethodName        = "/admin.v1.AdminService/Login"
+	AdminService_Logout_FullMethodName       = "/admin.v1.AdminService/Logout"
+	AdminService_GetAdminInfo_FullMethodName = "/admin.v1.AdminService/GetAdminInfo"
+	AdminService_CreateAdmin_FullMethodName  = "/admin.v1.AdminService/CreateAdmin"
+	AdminService_GetAdminList_FullMethodName = "/admin.v1.AdminService/GetAdminList"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -244,7 +244,7 @@ func _AdminService_GetAdminList_Handler(srv interface{}, ctx context.Context, de
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AdminService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "admin.AdminService",
+	ServiceName: "admin.v1.AdminService",
 	HandlerType: (*AdminServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

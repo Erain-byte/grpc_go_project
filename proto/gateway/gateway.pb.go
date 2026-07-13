@@ -498,28 +498,29 @@ var File_gateway_gateway_proto protoreflect.FileDescriptor
 
 const file_gateway_gateway_proto_rawDesc = "" +
 	"\n" +
-	"\x15gateway/gateway.proto\x12\agateway\x1a\x1egoogle/protobuf/duration.proto\"\xe6\x01\n" +
+	"\x15gateway/gateway.proto\x12\n" +
+	"gateway.v1\x1a\x1egoogle/protobuf/duration.proto\"\xe9\x01\n" +
 	"\x0eForwardRequest\x12\x18\n" +
 	"\aservice\x18\x01 \x01(\tR\aservice\x12\x12\n" +
 	"\x04path\x18\x02 \x01(\tR\x04path\x12\x16\n" +
 	"\x06method\x18\x03 \x01(\tR\x06method\x12\x12\n" +
-	"\x04body\x18\x04 \x01(\fR\x04body\x12>\n" +
-	"\aheaders\x18\x05 \x03(\v2$.gateway.ForwardRequest.HeadersEntryR\aheaders\x1a:\n" +
+	"\x04body\x18\x04 \x01(\fR\x04body\x12A\n" +
+	"\aheaders\x18\x05 \x03(\v2'.gateway.v1.ForwardRequest.HeadersEntryR\aheaders\x1a:\n" +
 	"\fHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xea\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xed\x01\n" +
 	"\x0fForwardResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x12\n" +
 	"\x04data\x18\x03 \x01(\fR\x04data\x12\x12\n" +
-	"\x04code\x18\x04 \x01(\x05R\x04code\x12?\n" +
-	"\aheaders\x18\x05 \x03(\v2%.gateway.ForwardResponse.HeadersEntryR\aheaders\x1a:\n" +
+	"\x04code\x18\x04 \x01(\x05R\x04code\x12B\n" +
+	"\aheaders\x18\x05 \x03(\v2(.gateway.v1.ForwardResponse.HeadersEntryR\aheaders\x1a:\n" +
 	"\fHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x12\n" +
-	"\x10GetRoutesRequest\";\n" +
-	"\x11GetRoutesResponse\x12&\n" +
-	"\x06routes\x18\x01 \x03(\v2\x0e.gateway.RouteR\x06routes\"\x9d\x01\n" +
+	"\x10GetRoutesRequest\">\n" +
+	"\x11GetRoutesResponse\x12)\n" +
+	"\x06routes\x18\x01 \x03(\v2\x11.gateway.v1.RouteR\x06routes\"\x9d\x01\n" +
 	"\x05Route\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04path\x18\x02 \x01(\tR\x04path\x12\x18\n" +
@@ -528,22 +529,22 @@ const file_gateway_gateway_proto_rawDesc = "" +
 	"strip_path\x18\x04 \x01(\bR\tstripPath\x123\n" +
 	"\atimeout\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\atimeout\".\n" +
 	"\x12HealthCheckRequest\x12\x18\n" +
-	"\aservice\x18\x01 \x01(\tR\aservice\"\xe6\x01\n" +
+	"\aservice\x18\x01 \x01(\tR\aservice\"\xec\x01\n" +
 	"\x13HealthCheckResponse\x12\x18\n" +
 	"\ahealthy\x18\x01 \x01(\bR\ahealthy\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\x12F\n" +
-	"\bservices\x18\x03 \x03(\v2*.gateway.HealthCheckResponse.ServicesEntryR\bservices\x1aS\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12I\n" +
+	"\bservices\x18\x03 \x03(\v2-.gateway.v1.HealthCheckResponse.ServicesEntryR\bservices\x1aV\n" +
 	"\rServicesEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12,\n" +
-	"\x05value\x18\x02 \x01(\v2\x16.gateway.ServiceHealthR\x05value:\x028\x01\"x\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
+	"\x05value\x18\x02 \x01(\v2\x19.gateway.v1.ServiceHealthR\x05value:\x028\x01\"x\n" +
 	"\rServiceHealth\x12\x18\n" +
 	"\ahealthy\x18\x01 \x01(\bR\ahealthy\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x123\n" +
-	"\alatency\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\alatency2\xdc\x01\n" +
-	"\x0eGatewayService\x12<\n" +
-	"\aForward\x12\x17.gateway.ForwardRequest\x1a\x18.gateway.ForwardResponse\x12B\n" +
-	"\tGetRoutes\x12\x19.gateway.GetRoutesRequest\x1a\x1a.gateway.GetRoutesResponse\x12H\n" +
-	"\vHealthCheck\x12\x1b.gateway.HealthCheckRequest\x1a\x1c.gateway.HealthCheckResponseB=Z;github.com/Erain-byte/grpc_go_project/proto/gateway;gatewayb\x06proto3"
+	"\alatency\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\alatency2\xee\x01\n" +
+	"\x0eGatewayService\x12B\n" +
+	"\aForward\x12\x1a.gateway.v1.ForwardRequest\x1a\x1b.gateway.v1.ForwardResponse\x12H\n" +
+	"\tGetRoutes\x12\x1c.gateway.v1.GetRoutesRequest\x1a\x1d.gateway.v1.GetRoutesResponse\x12N\n" +
+	"\vHealthCheck\x12\x1e.gateway.v1.HealthCheckRequest\x1a\x1f.gateway.v1.HealthCheckResponseB=Z;github.com/Erain-byte/grpc_go_project/proto/gateway;gatewayb\x06proto3"
 
 var (
 	file_gateway_gateway_proto_rawDescOnce sync.Once
@@ -559,33 +560,33 @@ func file_gateway_gateway_proto_rawDescGZIP() []byte {
 
 var file_gateway_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_gateway_gateway_proto_goTypes = []any{
-	(*ForwardRequest)(nil),      // 0: gateway.ForwardRequest
-	(*ForwardResponse)(nil),     // 1: gateway.ForwardResponse
-	(*GetRoutesRequest)(nil),    // 2: gateway.GetRoutesRequest
-	(*GetRoutesResponse)(nil),   // 3: gateway.GetRoutesResponse
-	(*Route)(nil),               // 4: gateway.Route
-	(*HealthCheckRequest)(nil),  // 5: gateway.HealthCheckRequest
-	(*HealthCheckResponse)(nil), // 6: gateway.HealthCheckResponse
-	(*ServiceHealth)(nil),       // 7: gateway.ServiceHealth
-	nil,                         // 8: gateway.ForwardRequest.HeadersEntry
-	nil,                         // 9: gateway.ForwardResponse.HeadersEntry
-	nil,                         // 10: gateway.HealthCheckResponse.ServicesEntry
+	(*ForwardRequest)(nil),      // 0: gateway.v1.ForwardRequest
+	(*ForwardResponse)(nil),     // 1: gateway.v1.ForwardResponse
+	(*GetRoutesRequest)(nil),    // 2: gateway.v1.GetRoutesRequest
+	(*GetRoutesResponse)(nil),   // 3: gateway.v1.GetRoutesResponse
+	(*Route)(nil),               // 4: gateway.v1.Route
+	(*HealthCheckRequest)(nil),  // 5: gateway.v1.HealthCheckRequest
+	(*HealthCheckResponse)(nil), // 6: gateway.v1.HealthCheckResponse
+	(*ServiceHealth)(nil),       // 7: gateway.v1.ServiceHealth
+	nil,                         // 8: gateway.v1.ForwardRequest.HeadersEntry
+	nil,                         // 9: gateway.v1.ForwardResponse.HeadersEntry
+	nil,                         // 10: gateway.v1.HealthCheckResponse.ServicesEntry
 	(*durationpb.Duration)(nil), // 11: google.protobuf.Duration
 }
 var file_gateway_gateway_proto_depIdxs = []int32{
-	8,  // 0: gateway.ForwardRequest.headers:type_name -> gateway.ForwardRequest.HeadersEntry
-	9,  // 1: gateway.ForwardResponse.headers:type_name -> gateway.ForwardResponse.HeadersEntry
-	4,  // 2: gateway.GetRoutesResponse.routes:type_name -> gateway.Route
-	11, // 3: gateway.Route.timeout:type_name -> google.protobuf.Duration
-	10, // 4: gateway.HealthCheckResponse.services:type_name -> gateway.HealthCheckResponse.ServicesEntry
-	11, // 5: gateway.ServiceHealth.latency:type_name -> google.protobuf.Duration
-	7,  // 6: gateway.HealthCheckResponse.ServicesEntry.value:type_name -> gateway.ServiceHealth
-	0,  // 7: gateway.GatewayService.Forward:input_type -> gateway.ForwardRequest
-	2,  // 8: gateway.GatewayService.GetRoutes:input_type -> gateway.GetRoutesRequest
-	5,  // 9: gateway.GatewayService.HealthCheck:input_type -> gateway.HealthCheckRequest
-	1,  // 10: gateway.GatewayService.Forward:output_type -> gateway.ForwardResponse
-	3,  // 11: gateway.GatewayService.GetRoutes:output_type -> gateway.GetRoutesResponse
-	6,  // 12: gateway.GatewayService.HealthCheck:output_type -> gateway.HealthCheckResponse
+	8,  // 0: gateway.v1.ForwardRequest.headers:type_name -> gateway.v1.ForwardRequest.HeadersEntry
+	9,  // 1: gateway.v1.ForwardResponse.headers:type_name -> gateway.v1.ForwardResponse.HeadersEntry
+	4,  // 2: gateway.v1.GetRoutesResponse.routes:type_name -> gateway.v1.Route
+	11, // 3: gateway.v1.Route.timeout:type_name -> google.protobuf.Duration
+	10, // 4: gateway.v1.HealthCheckResponse.services:type_name -> gateway.v1.HealthCheckResponse.ServicesEntry
+	11, // 5: gateway.v1.ServiceHealth.latency:type_name -> google.protobuf.Duration
+	7,  // 6: gateway.v1.HealthCheckResponse.ServicesEntry.value:type_name -> gateway.v1.ServiceHealth
+	0,  // 7: gateway.v1.GatewayService.Forward:input_type -> gateway.v1.ForwardRequest
+	2,  // 8: gateway.v1.GatewayService.GetRoutes:input_type -> gateway.v1.GetRoutesRequest
+	5,  // 9: gateway.v1.GatewayService.HealthCheck:input_type -> gateway.v1.HealthCheckRequest
+	1,  // 10: gateway.v1.GatewayService.Forward:output_type -> gateway.v1.ForwardResponse
+	3,  // 11: gateway.v1.GatewayService.GetRoutes:output_type -> gateway.v1.GetRoutesResponse
+	6,  // 12: gateway.v1.GatewayService.HealthCheck:output_type -> gateway.v1.HealthCheckResponse
 	10, // [10:13] is the sub-list for method output_type
 	7,  // [7:10] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name

@@ -387,7 +387,7 @@ type CreateAdminRequest struct {
 	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
-	Role          AdminRole              `protobuf:"varint,4,opt,name=role,proto3,enum=admin.AdminRole" json:"role,omitempty"`
+	Role          AdminRole              `protobuf:"varint,4,opt,name=role,proto3,enum=admin.v1.AdminRole" json:"role,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -635,7 +635,7 @@ type Admin struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
-	Role          AdminRole              `protobuf:"varint,4,opt,name=role,proto3,enum=admin.AdminRole" json:"role,omitempty"`
+	Role          AdminRole              `protobuf:"varint,4,opt,name=role,proto3,enum=admin.v1.AdminRole" json:"role,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -702,7 +702,7 @@ var File_admin_admin_proto protoreflect.FileDescriptor
 
 const file_admin_admin_proto_rawDesc = "" +
 	"\n" +
-	"\x11admin/admin.proto\x12\x05admin\"F\n" +
+	"\x11admin/admin.proto\x12\badmin.v1\"F\n" +
 	"\fLoginRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"Y\n" +
@@ -716,44 +716,44 @@ const file_admin_admin_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"+\n" +
 	"\x13GetAdminInfoRequest\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\"w\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\"z\n" +
 	"\x14GetAdminInfoResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\x12+\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12.\n" +
 	"\n" +
-	"admin_info\x18\x03 \x01(\v2\f.admin.AdminR\tadminInfo\"\x88\x01\n" +
+	"admin_info\x18\x03 \x01(\v2\x0f.admin.v1.AdminR\tadminInfo\"\x8b\x01\n" +
 	"\x12CreateAdminRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\x12$\n" +
-	"\x04role\x18\x04 \x01(\x0e2\x10.admin.AdminRoleR\x04role\"m\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12'\n" +
+	"\x04role\x18\x04 \x01(\x0e2\x13.admin.v1.AdminRoleR\x04role\"p\n" +
 	"\x13CreateAdminResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\x12\"\n" +
-	"\x05admin\x18\x03 \x01(\v2\f.admin.AdminR\x05admin\"F\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12%\n" +
+	"\x05admin\x18\x03 \x01(\v2\x0f.admin.v1.AdminR\x05admin\"F\n" +
 	"\x13GetAdminListRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"\x83\x01\n" +
-	"\x14GetAdminListResponse\x12$\n" +
-	"\x06admins\x18\x01 \x03(\v2\f.admin.AdminR\x06admins\x12\x14\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"\x86\x01\n" +
+	"\x14GetAdminListResponse\x12'\n" +
+	"\x06admins\x18\x01 \x03(\v2\x0f.admin.v1.AdminR\x06admins\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x03R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"o\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"r\n" +
 	"\x05Admin\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\x12$\n" +
-	"\x04role\x18\x04 \x01(\x0e2\x10.admin.AdminRoleR\x04role*Y\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12'\n" +
+	"\x04role\x18\x04 \x01(\x0e2\x13.admin.v1.AdminRoleR\x04role*Y\n" +
 	"\tAdminRole\x12\x1a\n" +
 	"\x16ADMIN_ROLE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16ADMIN_ROLE_SUPER_ADMIN\x10\x01\x12\x14\n" +
-	"\x10ADMIN_ROLE_ADMIN\x10\x022\xd1\x02\n" +
-	"\fAdminService\x122\n" +
-	"\x05Login\x12\x13.admin.LoginRequest\x1a\x14.admin.LoginResponse\x125\n" +
-	"\x06Logout\x12\x14.admin.LogoutRequest\x1a\x15.admin.LogoutResponse\x12G\n" +
-	"\fGetAdminInfo\x12\x1a.admin.GetAdminInfoRequest\x1a\x1b.admin.GetAdminInfoResponse\x12D\n" +
-	"\vCreateAdmin\x12\x19.admin.CreateAdminRequest\x1a\x1a.admin.CreateAdminResponse\x12G\n" +
-	"\fGetAdminList\x12\x1a.admin.GetAdminListRequest\x1a\x1b.admin.GetAdminListResponseB9Z7github.com/Erain-byte/grpc_go_project/proto/admin;adminb\x06proto3"
+	"\x10ADMIN_ROLE_ADMIN\x10\x022\xef\x02\n" +
+	"\fAdminService\x128\n" +
+	"\x05Login\x12\x16.admin.v1.LoginRequest\x1a\x17.admin.v1.LoginResponse\x12;\n" +
+	"\x06Logout\x12\x17.admin.v1.LogoutRequest\x1a\x18.admin.v1.LogoutResponse\x12M\n" +
+	"\fGetAdminInfo\x12\x1d.admin.v1.GetAdminInfoRequest\x1a\x1e.admin.v1.GetAdminInfoResponse\x12J\n" +
+	"\vCreateAdmin\x12\x1c.admin.v1.CreateAdminRequest\x1a\x1d.admin.v1.CreateAdminResponse\x12M\n" +
+	"\fGetAdminList\x12\x1d.admin.v1.GetAdminListRequest\x1a\x1e.admin.v1.GetAdminListResponseB9Z7github.com/Erain-byte/grpc_go_project/proto/admin;adminb\x06proto3"
 
 var (
 	file_admin_admin_proto_rawDescOnce sync.Once
@@ -770,35 +770,35 @@ func file_admin_admin_proto_rawDescGZIP() []byte {
 var file_admin_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_admin_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_admin_admin_proto_goTypes = []any{
-	(AdminRole)(0),               // 0: admin.AdminRole
-	(*LoginRequest)(nil),         // 1: admin.LoginRequest
-	(*LoginResponse)(nil),        // 2: admin.LoginResponse
-	(*LogoutRequest)(nil),        // 3: admin.LogoutRequest
-	(*LogoutResponse)(nil),       // 4: admin.LogoutResponse
-	(*GetAdminInfoRequest)(nil),  // 5: admin.GetAdminInfoRequest
-	(*GetAdminInfoResponse)(nil), // 6: admin.GetAdminInfoResponse
-	(*CreateAdminRequest)(nil),   // 7: admin.CreateAdminRequest
-	(*CreateAdminResponse)(nil),  // 8: admin.CreateAdminResponse
-	(*GetAdminListRequest)(nil),  // 9: admin.GetAdminListRequest
-	(*GetAdminListResponse)(nil), // 10: admin.GetAdminListResponse
-	(*Admin)(nil),                // 11: admin.Admin
+	(AdminRole)(0),               // 0: admin.v1.AdminRole
+	(*LoginRequest)(nil),         // 1: admin.v1.LoginRequest
+	(*LoginResponse)(nil),        // 2: admin.v1.LoginResponse
+	(*LogoutRequest)(nil),        // 3: admin.v1.LogoutRequest
+	(*LogoutResponse)(nil),       // 4: admin.v1.LogoutResponse
+	(*GetAdminInfoRequest)(nil),  // 5: admin.v1.GetAdminInfoRequest
+	(*GetAdminInfoResponse)(nil), // 6: admin.v1.GetAdminInfoResponse
+	(*CreateAdminRequest)(nil),   // 7: admin.v1.CreateAdminRequest
+	(*CreateAdminResponse)(nil),  // 8: admin.v1.CreateAdminResponse
+	(*GetAdminListRequest)(nil),  // 9: admin.v1.GetAdminListRequest
+	(*GetAdminListResponse)(nil), // 10: admin.v1.GetAdminListResponse
+	(*Admin)(nil),                // 11: admin.v1.Admin
 }
 var file_admin_admin_proto_depIdxs = []int32{
-	11, // 0: admin.GetAdminInfoResponse.admin_info:type_name -> admin.Admin
-	0,  // 1: admin.CreateAdminRequest.role:type_name -> admin.AdminRole
-	11, // 2: admin.CreateAdminResponse.admin:type_name -> admin.Admin
-	11, // 3: admin.GetAdminListResponse.admins:type_name -> admin.Admin
-	0,  // 4: admin.Admin.role:type_name -> admin.AdminRole
-	1,  // 5: admin.AdminService.Login:input_type -> admin.LoginRequest
-	3,  // 6: admin.AdminService.Logout:input_type -> admin.LogoutRequest
-	5,  // 7: admin.AdminService.GetAdminInfo:input_type -> admin.GetAdminInfoRequest
-	7,  // 8: admin.AdminService.CreateAdmin:input_type -> admin.CreateAdminRequest
-	9,  // 9: admin.AdminService.GetAdminList:input_type -> admin.GetAdminListRequest
-	2,  // 10: admin.AdminService.Login:output_type -> admin.LoginResponse
-	4,  // 11: admin.AdminService.Logout:output_type -> admin.LogoutResponse
-	6,  // 12: admin.AdminService.GetAdminInfo:output_type -> admin.GetAdminInfoResponse
-	8,  // 13: admin.AdminService.CreateAdmin:output_type -> admin.CreateAdminResponse
-	10, // 14: admin.AdminService.GetAdminList:output_type -> admin.GetAdminListResponse
+	11, // 0: admin.v1.GetAdminInfoResponse.admin_info:type_name -> admin.v1.Admin
+	0,  // 1: admin.v1.CreateAdminRequest.role:type_name -> admin.v1.AdminRole
+	11, // 2: admin.v1.CreateAdminResponse.admin:type_name -> admin.v1.Admin
+	11, // 3: admin.v1.GetAdminListResponse.admins:type_name -> admin.v1.Admin
+	0,  // 4: admin.v1.Admin.role:type_name -> admin.v1.AdminRole
+	1,  // 5: admin.v1.AdminService.Login:input_type -> admin.v1.LoginRequest
+	3,  // 6: admin.v1.AdminService.Logout:input_type -> admin.v1.LogoutRequest
+	5,  // 7: admin.v1.AdminService.GetAdminInfo:input_type -> admin.v1.GetAdminInfoRequest
+	7,  // 8: admin.v1.AdminService.CreateAdmin:input_type -> admin.v1.CreateAdminRequest
+	9,  // 9: admin.v1.AdminService.GetAdminList:input_type -> admin.v1.GetAdminListRequest
+	2,  // 10: admin.v1.AdminService.Login:output_type -> admin.v1.LoginResponse
+	4,  // 11: admin.v1.AdminService.Logout:output_type -> admin.v1.LogoutResponse
+	6,  // 12: admin.v1.AdminService.GetAdminInfo:output_type -> admin.v1.GetAdminInfoResponse
+	8,  // 13: admin.v1.AdminService.CreateAdmin:output_type -> admin.v1.CreateAdminResponse
+	10, // 14: admin.v1.AdminService.GetAdminList:output_type -> admin.v1.GetAdminListResponse
 	10, // [10:15] is the sub-list for method output_type
 	5,  // [5:10] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name

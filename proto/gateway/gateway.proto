@@ -30,7 +30,9 @@ message ForwardResponse {
 
 message GetRoutesRequest {}
 
-message GetRoutesResponse { repeated Route routes = 1; }
+message GetRoutesResponse {
+  repeated Route routes = 1;
+}
 
 message Route {
   string name = 1;
@@ -40,7 +42,9 @@ message Route {
   google.protobuf.Duration timeout = 5;
 }
 
-message HealthCheckRequest { string service = 1; }
+message HealthCheckRequest {
+  string service = 1;
+}
 
 message HealthCheckResponse {
   bool healthy = 1;
