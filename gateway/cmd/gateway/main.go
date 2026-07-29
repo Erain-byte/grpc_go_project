@@ -8,6 +8,8 @@ import (
 )
 
 func main() {
+	//初始化配置文件
+
 	if err := app.Run(); err != nil {
 		log.Printf("gateway stopped: %v", err)
 		os.Exit(1)

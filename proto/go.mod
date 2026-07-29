@@ -1,6 +1,6 @@
-module github.com/Erain-byte/grpc_go_project
+module github.com/Erain-byte/grpc_go_project/proto
 
-go 1.25.0
+go 1.26.2
 
 require (
 	google.golang.org/grpc v1.82.0

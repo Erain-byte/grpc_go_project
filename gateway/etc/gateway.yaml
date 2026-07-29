@@ -1,0 +1,175 @@
+# Gateway Service Configuration
+environment: "development" # development, staging, production
+name: "gateway-service"
+host: "localhost"
+port: 8080
+grpc_port: 9080
+
+# Database Configuration
+database:
+  driver: "mysql"
+  host: "localhost"
+  port: 3306
+  username: "root"
+  password: "123456"
+  dbname: "gateway_db"
+  max_idle_conns: 10
+  max_open_conns: 100
+  conn_max_lifetime: 3600
+
+# Redis Configuration
+# 单节点模式：配置host+port，cluster_addresses留空
+# 集群模式：配置cluster_addresses，host+port将被忽略
+redis:
+  host: "localhost"
+  port: 6379
+  cluster_addresses: []
+  password: ""
+  db: 0
+  pool_size: 100
+  min_idle_conns: 10
+  max_idle_conns: 50
+  conn_max_idle_time: "30m"
+  conn_max_lifetime: "1h"
+  dial_timeout: "5s"
+  read_timeout: "3s"
+  write_timeout: "3s"
+  pool_timeout: "4s"
+  health_required: false # set true in production, or use environment: production
+
+# Gateway Auth Configuration
+# Static token is optional. When set, clients may use:
+# Authorization: Bearer <token>
+auth:
+  token: ""
+
+# JWT Configuration
+jwt:
+  secret: "g0-s3cr3t-k3y-for-jwt-t0k3n-auth3nt1c4t10n-2024"
+  expire: 24h
+
+# Consul Configuration
+# 单节点模式：配置host+port，addresses留空
+# 集群模式：配置addresses，host+port将被忽略
+consul:
+  host: "localhost"
+  port: 8500
+  addresses: []
+  token: ""
+  scheme: "http"
+  check_interval: "10s"
+  check_timeout: "5s"
+  ttl: "30s"
+  deregister_critical_after: "90s"
+  keepalive_interval: "10s"
+
+# Logger Configuration
+logger:
+  level: "info"                     # 日志级别：debug, info, warn, error
+  format: "json"                    # 日志格式：json, console
+  filename: "logs/gateway.log"      # 日志文件路径
+  max_size: 100                     # 单个日志文件最大大小（MB）
+  max_backups: 10                   # 保留的旧日志文件数量
+  max_age: 30                       # 日志文件保留天数
+  compress: true                    # 是否压缩旧日志文件
+
+# Service Configuration
+service:
+  version: "1.0.0"
+  cors_enabled: true
+  tags:
+    - "http"
+    - "gateway"
+  public_apis:
+    - "/health"
+  auth_apis: []
+  cors:
+    allow_origins:
+      - "*"
+    allow_methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "OPTIONS"
+    allow_headers:
+      - "Origin"
+      - "Content-Type"
+      - "Accept"
+      - "Authorization"
+      - "X-Requested-With"
+    expose_headers:
+      - "Content-Length"
+      - "Content-Type"
+    allow_credentials: true
+    max_age: 12
+
+# Route Configuration
+routes:
+  - name: "user-service"
+    path: "/api/v1/user"
+    service: "user-service"
+    strip_path: true
+    timeout: "5s"
+  - name: "admin-service"
+    path: "/api/v1/admin"
+    service: "admin-service"
+    strip_path: true
+    timeout: "5s"
+  - name: "ai-service"
+    path: "/api/v1/ai"
+    service: "ai-service"
+    strip_path: true
+    timeout: "5s"
+
+# Shutdown Configuration
+shutdown:
+  timeout: "5s"
+
+# gRPC Client Configuration
+grpc:
+  use_tls: false                    # 是否启用 TLS（生产环境建议启用）
+  insecure_skip_verify: false       # 跳过证书验证（仅用于开发/测试）
+  cert_file: ""                     # 客户端证书文件路径（默认：/etc/certs/gateway/client.crt）
+  key_file: ""                      # 客户端私钥文件路径（默认：/etc/certs/gateway/client.key）
+  ca_file: ""                       # CA 证书文件路径（默认：/etc/certs/gateway/ca.crt）
+  server_name: "gateway-service"    # TLS Server Name（用于证书验证）
+
+# Rate Limit Configuration (限流配置)
+rate_limit:
+  enabled: true                     # 是否启用限流
+  requests_per_second: 100          # 每秒允许的请求数
+  burst_size: 20                    # 令牌桶容量（允许突发流量）
+  by_ip: true                       # 按 IP 限流
+  by_api: false                     # 按 API 路径限流
+  fallback_to_local: true           # development: true; production: false
+
+# Circuit Breaker Configuration (熔断配置)
+circuit_breaker:
+  enabled: true                     # 是否启用熔断
+  max_failures: 5                   # 最大连续失败次数
+  timeout: "30s"                    # 熔断器打开后的恢复等待时间
+  min_requests: 10                  # 半开状态下的最小请求数
+  interval: "60s"                   # 统计窗口时间
+
+# Tracing Configuration (链路追踪配置)
+tracing:
+  enabled: true                     # 是否启用链路追踪
+  service_name: "gateway-service"   # 服务名称
+  endpoint: "localhost:4317"        # OTLP gRPC Collector 地址（标准端口 4317）
+  sampler_type: "const"             # 采样器类型：const, probabilistic, ratelimiting
+  sampler_param: 1.0                # 采样参数（const: 0/1, probabilistic: 0.0-1.0）
+  use_tls: false                    # 是否启用 TLS（生产环境建议启用）
+  ca_file: ""                       # CA 证书文件路径（默认：/etc/certs/gateway/ca.crt）
+  cert_file: ""                     # 客户端证书文件路径（双向认证时使用）
+  key_file: ""                      # 客户端私钥文件路径（双向认证时使用）
+  server_name: "otel-collector"     # TLS Server Name（用于证书验证）
+
+# Anti-Replay Configuration (防重放配置)
+anti_replay:
+  enabled: false                    # 是否启用防重放（开发环境建议关闭，生产环境启用）
+  secret: ""                        # HMAC signature secret; use GATEWAY_ANTI_REPLAY_SECRET in production
+  timestamp_tolerance: 300          # 时间戳容差（秒），默认5分钟
+  nonce_cache_size: 10000           # Nonce 缓存大小
+  nonce_expire_time: 600            # Nonce 过期时间（秒），默认10分钟
+  fallback_to_local: true           # development: true; production: false
