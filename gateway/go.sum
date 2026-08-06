@@ -1,8 +1,6 @@
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
-github.com/Erain-byte/grpc_go_project/proto v0.1.0 h1:BHzcOptRioOfy8b0J0kktNiTkiVxyZrfRRquQTzvSu8=
-github.com/Erain-byte/grpc_go_project/proto v0.1.0/go.mod h1:Xf3S6L9W6J4RHA2ig9IDwN0Mh/wADC19Nt2uGycxtLc=
-github.com/Erain-byte/grpc_go_project/proto v0.1.1 h1:5P7d7AoEIE2v7fZpWv91GV/JkIXQkJJBbDTknQBcIug=
-github.com/Erain-byte/grpc_go_project/proto v0.1.1/go.mod h1:Xf3S6L9W6J4RHA2ig9IDwN0Mh/wADC19Nt2uGycxtLc=
+github.com/Erain-byte/grpc_go_project/proto v0.2.0 h1:1PGggGZhgNzyv9qIxV2OMxR7L/YGtJlwLHe7cvr+qOA=
+github.com/Erain-byte/grpc_go_project/proto v0.2.0/go.mod h1:Xf3S6L9W6J4RHA2ig9IDwN0Mh/wADC19Nt2uGycxtLc=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
