@@ -12,6 +12,7 @@ service UserService {
   rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse);
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
   rpc GetUserList(GetUserListRequest) returns (GetUserListResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
 }
 
 message LoginRequest {
@@ -22,13 +23,17 @@ message LoginRequest {
 }
 
 message LoginResponse {
-  bool success = 1;
-  string message = 2;
-  string token = 3;
+  string access_token = 1;
+  string refresh_token = 2;
+  string token_type = 3;
+  int64 access_expires_in = 4;
+  int64 refresh_expires_in = 5;
+  string session_id = 6;
+  UserInfo user = 7;
 }
 
 message LogoutRequest {
-  string token = 1;
+  string access_token = 1;
 }
 
 message LogoutResponse {
@@ -37,7 +42,7 @@ message LogoutResponse {
 }
 
 message GetUserInfoRequest {
-  string token = 1;
+  string access_token = 1;
 }
 
 message GetUserInfoResponse {
@@ -88,4 +93,16 @@ message GetUserListResponse {
   int64 total = 4;
   int32 page = 5;
   int32 page_size = 6;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  string token_type = 3;
+  int64 access_expires_in = 4;
+  int64 refresh_expires_in = 5;
 }

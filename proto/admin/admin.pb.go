@@ -123,12 +123,16 @@ func (x *LoginRequest) GetPassword() string {
 }
 
 type LoginResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	Token         string                 `protobuf:"bytes,3,opt,name=token,proto3" json:"token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken      string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RefreshToken     string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	TokenType        string                 `protobuf:"bytes,3,opt,name=token_type,json=tokenType,proto3" json:"token_type,omitempty"`
+	AccessExpiresIn  int64                  `protobuf:"varint,4,opt,name=access_expires_in,json=accessExpiresIn,proto3" json:"access_expires_in,omitempty"`
+	RefreshExpiresIn int64                  `protobuf:"varint,5,opt,name=refresh_expires_in,json=refreshExpiresIn,proto3" json:"refresh_expires_in,omitempty"`
+	SessionId        string                 `protobuf:"bytes,6,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Admin            *Admin                 `protobuf:"bytes,7,opt,name=admin,proto3" json:"admin,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *LoginResponse) Reset() {
@@ -161,30 +165,58 @@ func (*LoginResponse) Descriptor() ([]byte, []int) {
 	return file_admin_admin_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *LoginResponse) GetSuccess() bool {
+func (x *LoginResponse) GetAccessToken() string {
 	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *LoginResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
+		return x.AccessToken
 	}
 	return ""
 }
 
-func (x *LoginResponse) GetToken() string {
+func (x *LoginResponse) GetRefreshToken() string {
 	if x != nil {
-		return x.Token
+		return x.RefreshToken
 	}
 	return ""
+}
+
+func (x *LoginResponse) GetTokenType() string {
+	if x != nil {
+		return x.TokenType
+	}
+	return ""
+}
+
+func (x *LoginResponse) GetAccessExpiresIn() int64 {
+	if x != nil {
+		return x.AccessExpiresIn
+	}
+	return 0
+}
+
+func (x *LoginResponse) GetRefreshExpiresIn() int64 {
+	if x != nil {
+		return x.RefreshExpiresIn
+	}
+	return 0
+}
+
+func (x *LoginResponse) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *LoginResponse) GetAdmin() *Admin {
+	if x != nil {
+		return x.Admin
+	}
+	return nil
 }
 
 type LogoutRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -219,9 +251,9 @@ func (*LogoutRequest) Descriptor() ([]byte, []int) {
 	return file_admin_admin_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *LogoutRequest) GetToken() string {
+func (x *LogoutRequest) GetAccessToken() string {
 	if x != nil {
-		return x.Token
+		return x.AccessToken
 	}
 	return ""
 }
@@ -280,7 +312,7 @@ func (x *LogoutResponse) GetMessage() string {
 
 type GetAdminInfoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -315,9 +347,9 @@ func (*GetAdminInfoRequest) Descriptor() ([]byte, []int) {
 	return file_admin_admin_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *GetAdminInfoRequest) GetToken() string {
+func (x *GetAdminInfoRequest) GetAccessToken() string {
 	if x != nil {
-		return x.Token
+		return x.AccessToken
 	}
 	return ""
 }
@@ -698,6 +730,126 @@ func (x *Admin) GetRole() AdminRole {
 	return AdminRole_ADMIN_ROLE_UNSPECIFIED
 }
 
+type RefreshTokenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefreshTokenRequest) Reset() {
+	*x = RefreshTokenRequest{}
+	mi := &file_admin_admin_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefreshTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefreshTokenRequest) ProtoMessage() {}
+
+func (x *RefreshTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_admin_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefreshTokenRequest.ProtoReflect.Descriptor instead.
+func (*RefreshTokenRequest) Descriptor() ([]byte, []int) {
+	return file_admin_admin_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *RefreshTokenRequest) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+type RefreshTokenResponse struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken      string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RefreshToken     string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	TokenType        string                 `protobuf:"bytes,3,opt,name=token_type,json=tokenType,proto3" json:"token_type,omitempty"`
+	AccessExpiresIn  int64                  `protobuf:"varint,4,opt,name=access_expires_in,json=accessExpiresIn,proto3" json:"access_expires_in,omitempty"`
+	RefreshExpiresIn int64                  `protobuf:"varint,5,opt,name=refresh_expires_in,json=refreshExpiresIn,proto3" json:"refresh_expires_in,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *RefreshTokenResponse) Reset() {
+	*x = RefreshTokenResponse{}
+	mi := &file_admin_admin_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefreshTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefreshTokenResponse) ProtoMessage() {}
+
+func (x *RefreshTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_admin_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefreshTokenResponse.ProtoReflect.Descriptor instead.
+func (*RefreshTokenResponse) Descriptor() ([]byte, []int) {
+	return file_admin_admin_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *RefreshTokenResponse) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *RefreshTokenResponse) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+func (x *RefreshTokenResponse) GetTokenType() string {
+	if x != nil {
+		return x.TokenType
+	}
+	return ""
+}
+
+func (x *RefreshTokenResponse) GetAccessExpiresIn() int64 {
+	if x != nil {
+		return x.AccessExpiresIn
+	}
+	return 0
+}
+
+func (x *RefreshTokenResponse) GetRefreshExpiresIn() int64 {
+	if x != nil {
+		return x.RefreshExpiresIn
+	}
+	return 0
+}
+
 var File_admin_admin_proto protoreflect.FileDescriptor
 
 const file_admin_admin_proto_rawDesc = "" +
@@ -705,18 +857,24 @@ const file_admin_admin_proto_rawDesc = "" +
 	"\x11admin/admin.proto\x12\badmin.v1\"F\n" +
 	"\fLoginRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"Y\n" +
-	"\rLoginResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\x12\x14\n" +
-	"\x05token\x18\x03 \x01(\tR\x05token\"%\n" +
-	"\rLogoutRequest\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\"D\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"\x96\x02\n" +
+	"\rLoginResponse\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
+	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12\x1d\n" +
+	"\n" +
+	"token_type\x18\x03 \x01(\tR\ttokenType\x12*\n" +
+	"\x11access_expires_in\x18\x04 \x01(\x03R\x0faccessExpiresIn\x12,\n" +
+	"\x12refresh_expires_in\x18\x05 \x01(\x03R\x10refreshExpiresIn\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x06 \x01(\tR\tsessionId\x12%\n" +
+	"\x05admin\x18\a \x01(\v2\x0f.admin.v1.AdminR\x05admin\"2\n" +
+	"\rLogoutRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"D\n" +
 	"\x0eLogoutResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"+\n" +
-	"\x13GetAdminInfoRequest\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\"z\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"8\n" +
+	"\x13GetAdminInfoRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"z\n" +
 	"\x14GetAdminInfoResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12.\n" +
@@ -743,17 +901,27 @@ const file_admin_admin_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12'\n" +
-	"\x04role\x18\x04 \x01(\x0e2\x13.admin.v1.AdminRoleR\x04role*Y\n" +
+	"\x04role\x18\x04 \x01(\x0e2\x13.admin.v1.AdminRoleR\x04role\":\n" +
+	"\x13RefreshTokenRequest\x12#\n" +
+	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"\xd7\x01\n" +
+	"\x14RefreshTokenResponse\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
+	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12\x1d\n" +
+	"\n" +
+	"token_type\x18\x03 \x01(\tR\ttokenType\x12*\n" +
+	"\x11access_expires_in\x18\x04 \x01(\x03R\x0faccessExpiresIn\x12,\n" +
+	"\x12refresh_expires_in\x18\x05 \x01(\x03R\x10refreshExpiresIn*Y\n" +
 	"\tAdminRole\x12\x1a\n" +
 	"\x16ADMIN_ROLE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16ADMIN_ROLE_SUPER_ADMIN\x10\x01\x12\x14\n" +
-	"\x10ADMIN_ROLE_ADMIN\x10\x022\xef\x02\n" +
+	"\x10ADMIN_ROLE_ADMIN\x10\x022\xbe\x03\n" +
 	"\fAdminService\x128\n" +
 	"\x05Login\x12\x16.admin.v1.LoginRequest\x1a\x17.admin.v1.LoginResponse\x12;\n" +
 	"\x06Logout\x12\x17.admin.v1.LogoutRequest\x1a\x18.admin.v1.LogoutResponse\x12M\n" +
 	"\fGetAdminInfo\x12\x1d.admin.v1.GetAdminInfoRequest\x1a\x1e.admin.v1.GetAdminInfoResponse\x12J\n" +
 	"\vCreateAdmin\x12\x1c.admin.v1.CreateAdminRequest\x1a\x1d.admin.v1.CreateAdminResponse\x12M\n" +
-	"\fGetAdminList\x12\x1d.admin.v1.GetAdminListRequest\x1a\x1e.admin.v1.GetAdminListResponseB9Z7github.com/Erain-byte/grpc_go_project/proto/admin;adminb\x06proto3"
+	"\fGetAdminList\x12\x1d.admin.v1.GetAdminListRequest\x1a\x1e.admin.v1.GetAdminListResponse\x12M\n" +
+	"\fRefreshToken\x12\x1d.admin.v1.RefreshTokenRequest\x1a\x1e.admin.v1.RefreshTokenResponseB9Z7github.com/Erain-byte/grpc_go_project/proto/admin;adminb\x06proto3"
 
 var (
 	file_admin_admin_proto_rawDescOnce sync.Once
@@ -768,7 +936,7 @@ func file_admin_admin_proto_rawDescGZIP() []byte {
 }
 
 var file_admin_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_admin_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_admin_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_admin_admin_proto_goTypes = []any{
 	(AdminRole)(0),               // 0: admin.v1.AdminRole
 	(*LoginRequest)(nil),         // 1: admin.v1.LoginRequest
@@ -782,28 +950,33 @@ var file_admin_admin_proto_goTypes = []any{
 	(*GetAdminListRequest)(nil),  // 9: admin.v1.GetAdminListRequest
 	(*GetAdminListResponse)(nil), // 10: admin.v1.GetAdminListResponse
 	(*Admin)(nil),                // 11: admin.v1.Admin
+	(*RefreshTokenRequest)(nil),  // 12: admin.v1.RefreshTokenRequest
+	(*RefreshTokenResponse)(nil), // 13: admin.v1.RefreshTokenResponse
 }
 var file_admin_admin_proto_depIdxs = []int32{
-	11, // 0: admin.v1.GetAdminInfoResponse.admin_info:type_name -> admin.v1.Admin
-	0,  // 1: admin.v1.CreateAdminRequest.role:type_name -> admin.v1.AdminRole
-	11, // 2: admin.v1.CreateAdminResponse.admin:type_name -> admin.v1.Admin
-	11, // 3: admin.v1.GetAdminListResponse.admins:type_name -> admin.v1.Admin
-	0,  // 4: admin.v1.Admin.role:type_name -> admin.v1.AdminRole
-	1,  // 5: admin.v1.AdminService.Login:input_type -> admin.v1.LoginRequest
-	3,  // 6: admin.v1.AdminService.Logout:input_type -> admin.v1.LogoutRequest
-	5,  // 7: admin.v1.AdminService.GetAdminInfo:input_type -> admin.v1.GetAdminInfoRequest
-	7,  // 8: admin.v1.AdminService.CreateAdmin:input_type -> admin.v1.CreateAdminRequest
-	9,  // 9: admin.v1.AdminService.GetAdminList:input_type -> admin.v1.GetAdminListRequest
-	2,  // 10: admin.v1.AdminService.Login:output_type -> admin.v1.LoginResponse
-	4,  // 11: admin.v1.AdminService.Logout:output_type -> admin.v1.LogoutResponse
-	6,  // 12: admin.v1.AdminService.GetAdminInfo:output_type -> admin.v1.GetAdminInfoResponse
-	8,  // 13: admin.v1.AdminService.CreateAdmin:output_type -> admin.v1.CreateAdminResponse
-	10, // 14: admin.v1.AdminService.GetAdminList:output_type -> admin.v1.GetAdminListResponse
-	10, // [10:15] is the sub-list for method output_type
-	5,  // [5:10] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	11, // 0: admin.v1.LoginResponse.admin:type_name -> admin.v1.Admin
+	11, // 1: admin.v1.GetAdminInfoResponse.admin_info:type_name -> admin.v1.Admin
+	0,  // 2: admin.v1.CreateAdminRequest.role:type_name -> admin.v1.AdminRole
+	11, // 3: admin.v1.CreateAdminResponse.admin:type_name -> admin.v1.Admin
+	11, // 4: admin.v1.GetAdminListResponse.admins:type_name -> admin.v1.Admin
+	0,  // 5: admin.v1.Admin.role:type_name -> admin.v1.AdminRole
+	1,  // 6: admin.v1.AdminService.Login:input_type -> admin.v1.LoginRequest
+	3,  // 7: admin.v1.AdminService.Logout:input_type -> admin.v1.LogoutRequest
+	5,  // 8: admin.v1.AdminService.GetAdminInfo:input_type -> admin.v1.GetAdminInfoRequest
+	7,  // 9: admin.v1.AdminService.CreateAdmin:input_type -> admin.v1.CreateAdminRequest
+	9,  // 10: admin.v1.AdminService.GetAdminList:input_type -> admin.v1.GetAdminListRequest
+	12, // 11: admin.v1.AdminService.RefreshToken:input_type -> admin.v1.RefreshTokenRequest
+	2,  // 12: admin.v1.AdminService.Login:output_type -> admin.v1.LoginResponse
+	4,  // 13: admin.v1.AdminService.Logout:output_type -> admin.v1.LogoutResponse
+	6,  // 14: admin.v1.AdminService.GetAdminInfo:output_type -> admin.v1.GetAdminInfoResponse
+	8,  // 15: admin.v1.AdminService.CreateAdmin:output_type -> admin.v1.CreateAdminResponse
+	10, // 16: admin.v1.AdminService.GetAdminList:output_type -> admin.v1.GetAdminListResponse
+	13, // 17: admin.v1.AdminService.RefreshToken:output_type -> admin.v1.RefreshTokenResponse
+	12, // [12:18] is the sub-list for method output_type
+	6,  // [6:12] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_admin_admin_proto_init() }
@@ -817,7 +990,7 @@ func file_admin_admin_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_admin_admin_proto_rawDesc), len(file_admin_admin_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

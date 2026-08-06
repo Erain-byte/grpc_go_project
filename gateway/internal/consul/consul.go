@@ -19,14 +19,14 @@ import (
 // \gateway\internal\consul\consul.go
 // 定义结构体
 type ConsulRegistry struct {
-	client          *api.Client
+	client          *api.Client // Consul 客户端
 	config          config.ConsulConfig
 	cacheMu         sync.RWMutex
 	serviceCache    map[string]*serviceCacheEntry //服务缓存
 	watchMu         sync.Mutex
 	watchedServices map[string]struct{}
 	watchCtx        context.Context
-	watchCancel     context.CancelFunc
+	watchCancel     context.CancelFunc //取消函数
 	watchWG         sync.WaitGroup
 	closed          bool
 }
@@ -54,7 +54,7 @@ func NewConsulRegistry(config config.ConsulConfig) (*ConsulRegistry, error) {
 	if err != nil {
 		return nil, apperror.Wrap(err, apperror.CodeInternal, "failed to create Consul client", http.StatusInternalServerError)
 	}
-	watchCtx, watchCancel := context.WithCancel(context.Background())
+	watchCtx, watchCancel := context.WithCancel(context.Background()) //创建取消函数
 	return &ConsulRegistry{
 		client:          cli,
 		config:          config,
@@ -90,7 +90,7 @@ func (r *ConsulRegistry) RegisterHTTP(name string, host string, port int, cfg *c
 	}
 	registration := &api.AgentServiceRegistration{
 		ID:      fmt.Sprintf("%s-http", name),
-		Name:    name,
+		Name:    fmt.Sprintf("%s-http", name),
 		Address: host,
 		Port:    port,
 		Tags:    BuildServiceTags(cfg, ProtocolHTTP),
@@ -130,7 +130,7 @@ func (r *ConsulRegistry) RegisterGRPC(name string, host string, port int, cfg *c
 	}
 	registration := &api.AgentServiceRegistration{
 		ID:      fmt.Sprintf("%s-grpc", name),
-		Name:    name,
+		Name:    fmt.Sprintf("%s-grpc", name),
 		Address: host,
 		Port:    port,
 		Tags:    BuildServiceTags(cfg, ProtocolGRPC),
@@ -188,11 +188,6 @@ func (r *ConsulRegistry) DiscoverHTTPService(ctx context.Context, name string) (
 	return r.discoverService(ctx, name, ProtocolHTTP)
 }
 
-// DiscoverGRPCService 发现 gRPC 服务。
-func (r *ConsulRegistry) DiscoverGRPCService(ctx context.Context, name string) ([]*api.ServiceEntry, error) {
-	return r.discoverService(ctx, name, ProtocolGRPC)
-}
-
 // DiscoverService 发现服务。
 func (r *ConsulRegistry) discoverService(ctx context.Context, name string, protocol string) ([]*api.ServiceEntry, error) {
 	key := serviceCacheKey(name, protocol)
@@ -239,7 +234,10 @@ func (r *ConsulRegistry) updateCache(name string, entries []*api.ServiceEntry, l
 	}
 }
 
-// queryConsul 查询 Consul 服务
+// queryConsul 查询 Consul 服务实例
+// waitIndex: Consul Watch 的 WaitIndex，用于实现 Watch 的增量查询。
+// 如果 waitIndex 为 0，则表示不使用 Watch，直接查询 Consul。
+
 func (r *ConsulRegistry) queryConsul(ctx context.Context, name string, protocol string, waitIndex uint64) ([]*api.ServiceEntry, uint64, error) {
 	if ctx == nil {
 		return nil, waitIndex, apperror.InvalidArgument("query consul: context is nil")
@@ -254,7 +252,7 @@ func (r *ConsulRegistry) queryConsul(ctx context.Context, name string, protocol 
 		return nil, waitIndex, apperror.InvalidArgument("query consul: protocol must be http or grpc")
 	}
 	options := (&api.QueryOptions{
-		WaitIndex: waitIndex,
+		WaitIndex: waitIndex,        //Watch 的 WaitIndex
 		WaitTime:  20 * time.Second, //必须短于当前缓存过期时间
 	}).WithContext(ctx) //添加上下文
 	entries, meta, err := r.client.Health().Service(name, protocol, true, options) //查询服务
@@ -301,8 +299,8 @@ func (r *ConsulRegistry) watchService(ctx context.Context, name string, protocol
 			if ctx.Err() != nil {
 				return
 			}
-			logErrorf("failed to watch %s service %s: %v", protocol, name, err)
-			if !waitRetry(ctx, 5*time.Second) {
+			logger.SugaredLogger.Errorf("failed to query %s service %s: %v", protocol, name, err)
+			if !waitRetry(ctx, 5*time.Second) { //重试
 				return
 			}
 			continue

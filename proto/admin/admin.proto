@@ -10,6 +10,7 @@ service AdminService {
   rpc GetAdminInfo(GetAdminInfoRequest) returns (GetAdminInfoResponse);
   rpc CreateAdmin(CreateAdminRequest) returns (CreateAdminResponse);
   rpc GetAdminList(GetAdminListRequest) returns (GetAdminListResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
 }
 
 message LoginRequest {
@@ -18,13 +19,17 @@ message LoginRequest {
 }
 
 message LoginResponse {
-  bool success = 1;
-  string message = 2;
-  string token = 3;
+  string access_token = 1;
+  string refresh_token = 2;
+  string token_type = 3;
+  int64 access_expires_in = 4;
+  int64 refresh_expires_in = 5;
+  string session_id = 6;
+  Admin admin = 7;
 }
 
 message LogoutRequest {
-  string token = 1;
+  string access_token = 1;
 }
 
 message LogoutResponse {
@@ -33,7 +38,7 @@ message LogoutResponse {
 }
 
 message GetAdminInfoRequest {
-  string token = 1;
+  string access_token = 1;
 }
 
 message GetAdminInfoResponse {
@@ -78,4 +83,16 @@ enum AdminRole {
   ADMIN_ROLE_UNSPECIFIED = 0;
   ADMIN_ROLE_SUPER_ADMIN = 1;
   ADMIN_ROLE_ADMIN = 2;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  string token_type = 3;
+  int64 access_expires_in = 4;
+  int64 refresh_expires_in = 5;
 }
