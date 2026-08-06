@@ -5,7 +5,7 @@ go 1.26.2
 // Local development only. Remove after proto/v0.1.0 is published.
 
 require (
-	github.com/Erain-byte/grpc_go_project/proto v0.1.0
+	github.com/Erain-byte/grpc_go_project/proto v0.1.1
 	github.com/gin-gonic/gin v1.12.0
 	github.com/hashicorp/consul/api v1.34.4
 	github.com/redis/go-redis/v9 v9.21.0

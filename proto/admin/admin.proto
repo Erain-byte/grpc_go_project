@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package admin.v1;
+package admin.v1.1;
 
 option go_package = "github.com/Erain-byte/grpc_go_project/proto/admin;admin";
 

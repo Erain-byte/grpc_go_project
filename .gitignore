@@ -3,3 +3,8 @@
 
 # Visual Studio Code workspace settings
 **/.vscode/
+.gotmp/
+gateway/.gocache/
+# Local Go workspace
+go.work
+go.work.sum
