@@ -4,7 +4,7 @@ import (
 	"gateway/internal/forwarder"
 	"gateway/internal/handler"
 
-	pbLlm "github.com/Erain-byte/grpc_go_project/proto/llm"
+	pbLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
 )
 
 func (s *HTTPServer) registerLLMRoutes() {

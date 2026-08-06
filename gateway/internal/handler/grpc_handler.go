@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	pbLlm "github.com/Erain-byte/grpc_go_project/proto/llm"
+	pbLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

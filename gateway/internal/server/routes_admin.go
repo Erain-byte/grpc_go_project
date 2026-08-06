@@ -4,7 +4,7 @@ import (
 	"gateway/internal/forwarder"
 	"gateway/internal/handler"
 
-	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin"
+	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
 )
 
 func (s *HTTPServer) registerAdminRoutes() {

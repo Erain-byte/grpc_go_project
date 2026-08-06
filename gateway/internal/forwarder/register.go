@@ -6,8 +6,8 @@ import (
 
 	clien "gateway/internal/grpc"
 
-	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin"
-	bpLlm "github.com/Erain-byte/grpc_go_project/proto/llm"
+	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
+	bpLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
 	"google.golang.org/grpc"
 )
 

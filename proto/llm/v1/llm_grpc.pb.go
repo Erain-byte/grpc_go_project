@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             v7.35.0--rc1
-// source: llm/llm.proto
+// source: llm/v1/llm.proto
 
-package llm
+package llmv1
 
 import (
 	context "context"
@@ -273,5 +273,5 @@ var LlmService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "llm/llm.proto",
+	Metadata: "llm/v1/llm.proto",
 }

@@ -5,7 +5,7 @@ package llm.v1;
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/Erain-byte/grpc_go_project/proto/llm;llm";
+option go_package = "github.com/Erain-byte/grpc_go_project/proto/llm/v1;llmv1";
 
 service LlmService {
   rpc Chat(ChatRequest) returns (ChatResponse);

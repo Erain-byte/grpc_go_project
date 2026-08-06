@@ -4,7 +4,7 @@ package gateway.v1;
 
 import "google/protobuf/duration.proto";
 
-option go_package = "github.com/Erain-byte/grpc_go_project/proto/gateway;gateway";
+option go_package = "github.com/Erain-byte/grpc_go_project/proto/gateway/v1;gatewayv1";
 
 service GatewayService {
   rpc Forward(ForwardRequest) returns (ForwardResponse);

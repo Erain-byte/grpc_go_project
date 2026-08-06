@@ -6,7 +6,7 @@ import (
 	"gateway/internal/svc"
 	"gateway/pkg/apperror"
 
-	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin"
+	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
 )
 
 // AdminForwarder 管理服务转发器

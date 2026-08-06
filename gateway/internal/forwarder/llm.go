@@ -8,7 +8,7 @@ import (
 	"gateway/internal/svc"
 	"gateway/pkg/apperror"
 
-	bpLlm "github.com/Erain-byte/grpc_go_project/proto/llm"
+	bpLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
 )
 
 // llmForwarder管理器

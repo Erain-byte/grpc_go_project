@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
-	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin"
-	pbLlm "github.com/Erain-byte/grpc_go_project/proto/llm"
+	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
+	pbLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
 	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/credentials"

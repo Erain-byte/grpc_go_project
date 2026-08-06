@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v7.35.0--rc1
-// source: gateway/gateway.proto
+// source: gateway/v1/gateway.proto
 
-package gateway
+package gatewayv1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -35,7 +35,7 @@ type ForwardRequest struct {
 
 func (x *ForwardRequest) Reset() {
 	*x = ForwardRequest{}
-	mi := &file_gateway_gateway_proto_msgTypes[0]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -47,7 +47,7 @@ func (x *ForwardRequest) String() string {
 func (*ForwardRequest) ProtoMessage() {}
 
 func (x *ForwardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_gateway_proto_msgTypes[0]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -60,7 +60,7 @@ func (x *ForwardRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForwardRequest.ProtoReflect.Descriptor instead.
 func (*ForwardRequest) Descriptor() ([]byte, []int) {
-	return file_gateway_gateway_proto_rawDescGZIP(), []int{0}
+	return file_gateway_v1_gateway_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ForwardRequest) GetService() string {
@@ -111,7 +111,7 @@ type ForwardResponse struct {
 
 func (x *ForwardResponse) Reset() {
 	*x = ForwardResponse{}
-	mi := &file_gateway_gateway_proto_msgTypes[1]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -123,7 +123,7 @@ func (x *ForwardResponse) String() string {
 func (*ForwardResponse) ProtoMessage() {}
 
 func (x *ForwardResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_gateway_proto_msgTypes[1]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -136,7 +136,7 @@ func (x *ForwardResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForwardResponse.ProtoReflect.Descriptor instead.
 func (*ForwardResponse) Descriptor() ([]byte, []int) {
-	return file_gateway_gateway_proto_rawDescGZIP(), []int{1}
+	return file_gateway_v1_gateway_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ForwardResponse) GetSuccess() bool {
@@ -182,7 +182,7 @@ type GetRoutesRequest struct {
 
 func (x *GetRoutesRequest) Reset() {
 	*x = GetRoutesRequest{}
-	mi := &file_gateway_gateway_proto_msgTypes[2]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -194,7 +194,7 @@ func (x *GetRoutesRequest) String() string {
 func (*GetRoutesRequest) ProtoMessage() {}
 
 func (x *GetRoutesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_gateway_proto_msgTypes[2]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -207,7 +207,7 @@ func (x *GetRoutesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoutesRequest.ProtoReflect.Descriptor instead.
 func (*GetRoutesRequest) Descriptor() ([]byte, []int) {
-	return file_gateway_gateway_proto_rawDescGZIP(), []int{2}
+	return file_gateway_v1_gateway_proto_rawDescGZIP(), []int{2}
 }
 
 type GetRoutesResponse struct {
@@ -219,7 +219,7 @@ type GetRoutesResponse struct {
 
 func (x *GetRoutesResponse) Reset() {
 	*x = GetRoutesResponse{}
-	mi := &file_gateway_gateway_proto_msgTypes[3]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -231,7 +231,7 @@ func (x *GetRoutesResponse) String() string {
 func (*GetRoutesResponse) ProtoMessage() {}
 
 func (x *GetRoutesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_gateway_proto_msgTypes[3]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -244,7 +244,7 @@ func (x *GetRoutesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoutesResponse.ProtoReflect.Descriptor instead.
 func (*GetRoutesResponse) Descriptor() ([]byte, []int) {
-	return file_gateway_gateway_proto_rawDescGZIP(), []int{3}
+	return file_gateway_v1_gateway_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetRoutesResponse) GetRoutes() []*Route {
@@ -267,7 +267,7 @@ type Route struct {
 
 func (x *Route) Reset() {
 	*x = Route{}
-	mi := &file_gateway_gateway_proto_msgTypes[4]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -279,7 +279,7 @@ func (x *Route) String() string {
 func (*Route) ProtoMessage() {}
 
 func (x *Route) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_gateway_proto_msgTypes[4]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -292,7 +292,7 @@ func (x *Route) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Route.ProtoReflect.Descriptor instead.
 func (*Route) Descriptor() ([]byte, []int) {
-	return file_gateway_gateway_proto_rawDescGZIP(), []int{4}
+	return file_gateway_v1_gateway_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Route) GetName() string {
@@ -339,7 +339,7 @@ type HealthCheckRequest struct {
 
 func (x *HealthCheckRequest) Reset() {
 	*x = HealthCheckRequest{}
-	mi := &file_gateway_gateway_proto_msgTypes[5]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -351,7 +351,7 @@ func (x *HealthCheckRequest) String() string {
 func (*HealthCheckRequest) ProtoMessage() {}
 
 func (x *HealthCheckRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_gateway_proto_msgTypes[5]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -364,7 +364,7 @@ func (x *HealthCheckRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthCheckRequest.ProtoReflect.Descriptor instead.
 func (*HealthCheckRequest) Descriptor() ([]byte, []int) {
-	return file_gateway_gateway_proto_rawDescGZIP(), []int{5}
+	return file_gateway_v1_gateway_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *HealthCheckRequest) GetService() string {
@@ -385,7 +385,7 @@ type HealthCheckResponse struct {
 
 func (x *HealthCheckResponse) Reset() {
 	*x = HealthCheckResponse{}
-	mi := &file_gateway_gateway_proto_msgTypes[6]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -397,7 +397,7 @@ func (x *HealthCheckResponse) String() string {
 func (*HealthCheckResponse) ProtoMessage() {}
 
 func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_gateway_proto_msgTypes[6]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -410,7 +410,7 @@ func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthCheckResponse.ProtoReflect.Descriptor instead.
 func (*HealthCheckResponse) Descriptor() ([]byte, []int) {
-	return file_gateway_gateway_proto_rawDescGZIP(), []int{6}
+	return file_gateway_v1_gateway_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *HealthCheckResponse) GetHealthy() bool {
@@ -445,7 +445,7 @@ type ServiceHealth struct {
 
 func (x *ServiceHealth) Reset() {
 	*x = ServiceHealth{}
-	mi := &file_gateway_gateway_proto_msgTypes[7]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -457,7 +457,7 @@ func (x *ServiceHealth) String() string {
 func (*ServiceHealth) ProtoMessage() {}
 
 func (x *ServiceHealth) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_gateway_proto_msgTypes[7]
+	mi := &file_gateway_v1_gateway_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -470,7 +470,7 @@ func (x *ServiceHealth) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceHealth.ProtoReflect.Descriptor instead.
 func (*ServiceHealth) Descriptor() ([]byte, []int) {
-	return file_gateway_gateway_proto_rawDescGZIP(), []int{7}
+	return file_gateway_v1_gateway_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ServiceHealth) GetHealthy() bool {
@@ -494,11 +494,11 @@ func (x *ServiceHealth) GetLatency() *durationpb.Duration {
 	return nil
 }
 
-var File_gateway_gateway_proto protoreflect.FileDescriptor
+var File_gateway_v1_gateway_proto protoreflect.FileDescriptor
 
-const file_gateway_gateway_proto_rawDesc = "" +
+const file_gateway_v1_gateway_proto_rawDesc = "" +
 	"\n" +
-	"\x15gateway/gateway.proto\x12\n" +
+	"\x18gateway/v1/gateway.proto\x12\n" +
 	"gateway.v1\x1a\x1egoogle/protobuf/duration.proto\"\xe9\x01\n" +
 	"\x0eForwardRequest\x12\x18\n" +
 	"\aservice\x18\x01 \x01(\tR\aservice\x12\x12\n" +
@@ -544,22 +544,22 @@ const file_gateway_gateway_proto_rawDesc = "" +
 	"\x0eGatewayService\x12B\n" +
 	"\aForward\x12\x1a.gateway.v1.ForwardRequest\x1a\x1b.gateway.v1.ForwardResponse\x12H\n" +
 	"\tGetRoutes\x12\x1c.gateway.v1.GetRoutesRequest\x1a\x1d.gateway.v1.GetRoutesResponse\x12N\n" +
-	"\vHealthCheck\x12\x1e.gateway.v1.HealthCheckRequest\x1a\x1f.gateway.v1.HealthCheckResponseB=Z;github.com/Erain-byte/grpc_go_project/proto/gateway;gatewayb\x06proto3"
+	"\vHealthCheck\x12\x1e.gateway.v1.HealthCheckRequest\x1a\x1f.gateway.v1.HealthCheckResponseBBZ@github.com/Erain-byte/grpc_go_project/proto/gateway/v1;gatewayv1b\x06proto3"
 
 var (
-	file_gateway_gateway_proto_rawDescOnce sync.Once
-	file_gateway_gateway_proto_rawDescData []byte
+	file_gateway_v1_gateway_proto_rawDescOnce sync.Once
+	file_gateway_v1_gateway_proto_rawDescData []byte
 )
 
-func file_gateway_gateway_proto_rawDescGZIP() []byte {
-	file_gateway_gateway_proto_rawDescOnce.Do(func() {
-		file_gateway_gateway_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_gateway_gateway_proto_rawDesc), len(file_gateway_gateway_proto_rawDesc)))
+func file_gateway_v1_gateway_proto_rawDescGZIP() []byte {
+	file_gateway_v1_gateway_proto_rawDescOnce.Do(func() {
+		file_gateway_v1_gateway_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_gateway_v1_gateway_proto_rawDesc), len(file_gateway_v1_gateway_proto_rawDesc)))
 	})
-	return file_gateway_gateway_proto_rawDescData
+	return file_gateway_v1_gateway_proto_rawDescData
 }
 
-var file_gateway_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
-var file_gateway_gateway_proto_goTypes = []any{
+var file_gateway_v1_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_gateway_v1_gateway_proto_goTypes = []any{
 	(*ForwardRequest)(nil),      // 0: gateway.v1.ForwardRequest
 	(*ForwardResponse)(nil),     // 1: gateway.v1.ForwardResponse
 	(*GetRoutesRequest)(nil),    // 2: gateway.v1.GetRoutesRequest
@@ -573,7 +573,7 @@ var file_gateway_gateway_proto_goTypes = []any{
 	nil,                         // 10: gateway.v1.HealthCheckResponse.ServicesEntry
 	(*durationpb.Duration)(nil), // 11: google.protobuf.Duration
 }
-var file_gateway_gateway_proto_depIdxs = []int32{
+var file_gateway_v1_gateway_proto_depIdxs = []int32{
 	8,  // 0: gateway.v1.ForwardRequest.headers:type_name -> gateway.v1.ForwardRequest.HeadersEntry
 	9,  // 1: gateway.v1.ForwardResponse.headers:type_name -> gateway.v1.ForwardResponse.HeadersEntry
 	4,  // 2: gateway.v1.GetRoutesResponse.routes:type_name -> gateway.v1.Route
@@ -594,26 +594,26 @@ var file_gateway_gateway_proto_depIdxs = []int32{
 	0,  // [0:7] is the sub-list for field type_name
 }
 
-func init() { file_gateway_gateway_proto_init() }
-func file_gateway_gateway_proto_init() {
-	if File_gateway_gateway_proto != nil {
+func init() { file_gateway_v1_gateway_proto_init() }
+func file_gateway_v1_gateway_proto_init() {
+	if File_gateway_v1_gateway_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gateway_gateway_proto_rawDesc), len(file_gateway_gateway_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gateway_v1_gateway_proto_rawDesc), len(file_gateway_v1_gateway_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_gateway_gateway_proto_goTypes,
-		DependencyIndexes: file_gateway_gateway_proto_depIdxs,
-		MessageInfos:      file_gateway_gateway_proto_msgTypes,
+		GoTypes:           file_gateway_v1_gateway_proto_goTypes,
+		DependencyIndexes: file_gateway_v1_gateway_proto_depIdxs,
+		MessageInfos:      file_gateway_v1_gateway_proto_msgTypes,
 	}.Build()
-	File_gateway_gateway_proto = out.File
-	file_gateway_gateway_proto_goTypes = nil
-	file_gateway_gateway_proto_depIdxs = nil
+	File_gateway_v1_gateway_proto = out.File
+	file_gateway_v1_gateway_proto_goTypes = nil
+	file_gateway_v1_gateway_proto_depIdxs = nil
 }
