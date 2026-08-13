@@ -37,17 +37,21 @@ redis:
   pool_timeout: "4s"
   health_required: false # set true in production, or use environment: production
 
-# Gateway Auth Configuration
-# Static token is optional. When set, clients may use:
-# Authorization: Bearer <token>
+# Gateway authentication configuration. Token values are never stored here.
+# Set the JWT verification secret through GATEWAY_ACCESS_TOKEN_SECRET.
 auth:
-  token: ""
-
-# JWT Configuration
-jwt:
-  secret: "g0-s3cr3t-k3y-for-jwt-t0k3n-auth3nt1c4t10n-2024"
-  expire: 24h
-
+  access_token:
+    issuers:
+      - "admin-service"
+      - "user-service"
+    audience: "gateway"
+    algorithm: "HS256"
+    expire: "15m"
+  refresh_token:
+    expire: "168h"
+    rotate: true
+    reuse_detection: true
+    redis_key_prefix: "auth:refresh:"
 # Consul Configuration
 # 单节点模式：配置host+port，addresses留空
 # 集群模式：配置addresses，host+port将被忽略

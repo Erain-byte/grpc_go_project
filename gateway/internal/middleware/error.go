@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-const requestIDHeader = "X-Request-ID"
+const requestIDHeader = RequestIDHeader
 
 // Fail 将业务错误交给统一错误中间件，并停止执行后续处理函数。
 func Fail(c *gin.Context, err error) { // nolint: revive

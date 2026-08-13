@@ -30,7 +30,7 @@ func TestRegisterHTTPUsesHTTPTagAndHealthCheck(t *testing.T) {
 	if err := registry.RegisterHTTP("gateway", "127.0.0.1", 8080, validServiceConfig()); err != nil {
 		t.Fatalf("RegisterHTTP() error = %v", err)
 	}
-	if got.ID != "gateway-http" || got.Port != 8080 || !slices.Contains(got.Tags, ProtocolHTTP) || slices.Contains(got.Tags, ProtocolGRPC) {
+	if got.ID != "gateway-http-127.0.0.1-8080" || got.Name != "gateway-http" || got.Port != 8080 || !slices.Contains(got.Tags, ProtocolHTTP) || slices.Contains(got.Tags, ProtocolGRPC) {
 		t.Fatalf("HTTP registration = %+v", got)
 	}
 	if got.Check == nil || got.Check.HTTP != "http://127.0.0.1:8080/health" {
@@ -52,7 +52,7 @@ func TestRegisterGRPCUsesGRPCTagAndHealthCheck(t *testing.T) {
 	if err := registry.RegisterGRPC("llm-service", "127.0.0.1", 9080, validServiceConfig()); err != nil {
 		t.Fatalf("RegisterGRPC() error = %v", err)
 	}
-	if got.ID != "llm-service-grpc" || got.Port != 9080 || !slices.Contains(got.Tags, ProtocolGRPC) || slices.Contains(got.Tags, ProtocolHTTP) {
+	if got.ID != "llm-service-grpc-127.0.0.1-9080" || got.Name != "llm-service-grpc" || got.Port != 9080 || !slices.Contains(got.Tags, ProtocolGRPC) || slices.Contains(got.Tags, ProtocolHTTP) {
 		t.Fatalf("gRPC registration = %+v", got)
 	}
 	if got.Check == nil || got.Check.GRPC != "127.0.0.1:9080" {

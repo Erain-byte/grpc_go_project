@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"gateway/internal/consul"
 	"gateway/internal/logger"
+	"gateway/internal/middleware"
 	"gateway/pkg/apperror"
 	"os"
 	"strings"
@@ -15,6 +16,7 @@ import (
 
 	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
 	pbLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/credentials"
@@ -22,7 +24,7 @@ import (
 )
 
 const (
-	certificateWarnAfter = 7 * 24 * time.Hour
+	certificateWarnAfter = 1 * 24 * time.Hour
 )
 
 const roundRobinServiceConfig = `{"loadBalancingConfig":[{"round_robin":{}}]}` // 配置负载均衡策略为轮询
@@ -147,9 +149,10 @@ func (cm *ClientManager) newClient(serviceName string) (*grpc.ClientConn, error)
 	target := fmt.Sprintf("%s:///%s-grpc", resolverBuilder.Scheme(), serviceName)
 	conn, err := grpc.NewClient(
 		target,
-		grpc.WithTransportCredentials(creds), // 使用TLS证书
-		grpc.WithResolvers(resolverBuilder),  // 使用自定义的consul resolver
-		grpc.WithDefaultServiceConfig(roundRobinServiceConfig), // 配置负载均衡策略为轮询
+		grpc.WithStatsHandler(middleware.NewClientStatsHandler()), // 添加gRPC统计处理程序
+		grpc.WithTransportCredentials(creds),                      // 使用TLS证书
+		grpc.WithResolvers(resolverBuilder),                       // 使用自定义的consul resolver
+		grpc.WithDefaultServiceConfig(roundRobinServiceConfig),    // 配置负载均衡策略为轮询
 	)
 	if err != nil {
 		return nil, fmt.Errorf("create gRPC client for %q: %w", serviceName, err)
@@ -254,9 +257,36 @@ func (cm *ClientManager) CheckCertificateExpiry(ctx context.Context, _ string) e
 		return apperror.ToGRPC(apperror.InvalidArgument("client certificate has expired"))
 	}
 	if remaining < certificateWarnAfter {
-		return apperror.ToGRPC(apperror.InvalidArgument("client certificate will expire in less than 7 days"))
+		return apperror.ToGRPC(apperror.InvalidArgument("client certificate will expire in less than 1 day"))
 	}
 	return nil
+}
+
+// 证书定期预警
+func (cm *ClientManager) MonitorCertificate(
+	ctx context.Context,
+	interval time.Duration,
+	log *zap.Logger,
+) {
+	if cm == nil || cm.config == nil || !cm.config.UseTLS {
+		return
+	}
+	check := func() {
+		if err := cm.CheckCertificateExpiry(ctx, ""); err != nil {
+			log.Error("certificate check failed", zap.Error(err))
+		}
+	}
+	//启动立即检查一次
+	check()
+	ticker := time.NewTicker(interval)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			check()
+		}
+	}
 }
 
 // 泛型定义通用客户端工厂函数类型

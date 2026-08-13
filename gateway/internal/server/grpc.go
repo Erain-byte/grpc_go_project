@@ -14,17 +14,19 @@ import (
 	"gateway/pkg/apperror"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
-// GRPCServer owns the Gateway gRPC server and its TCP listener.
+// GRPC服务器
 type GRPCServer struct {
 	server   *grpc.Server
+	health   *health.Server
 	listener net.Listener
 	address  string
 }
 
-// NewGRPCServer creates the listener, configures middleware and registers all
-// Gateway gRPC services. It does not start serving until Start is called.
+// 构造gRPC服务器
 func NewGRPCServer(
 	address string,
 	svcCtx *svc.ServiceContext,
@@ -43,16 +45,22 @@ func NewGRPCServer(
 	grpcServer := grpc.NewServer(
 		grpc.StatsHandler(middleware.NewServerStatsHandler()),
 	)
+	// 注册健康检查服务
+	healthServer := health.NewServer()
+	healthpb.RegisterHealthServer(grpcServer, healthServer)
+	// 空字符串代表整个 gRPC Server，而不是某一个具体业务服务。
+	healthServer.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
 	forwarder.RegisterAllGRPCServices(grpcServer, svcCtx, clientManager)
 
 	return &GRPCServer{
 		server:   grpcServer,
+		health:   healthServer,
 		listener: listener,
 		address:  address,
 	}, nil
 }
 
-// Start serves gRPC requests until Shutdown is called or serving fails.
+// 启动gRPC服务器
 func (s *GRPCServer) Start() error {
 	logger.SugaredLogger.Infof("Gateway gRPC Server starting at %s", s.address)
 	if err := s.server.Serve(s.listener); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
@@ -66,9 +74,11 @@ func (s *GRPCServer) Start() error {
 	return nil
 }
 
-// Shutdown waits for active RPCs and streams. When ctx expires, Stop forces
-// the remaining connections to close.
+// 关闭gRPC服务器
 func (s *GRPCServer) Shutdown(ctx context.Context) error {
+	// 先告诉 Consul/调用方该实例不再接收新流量，再等待现有 RPC 完成。
+	s.health.SetServingStatus("", healthpb.HealthCheckResponse_NOT_SERVING)
+
 	done := make(chan struct{})
 	go func() {
 		s.server.GracefulStop()

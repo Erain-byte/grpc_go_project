@@ -17,7 +17,6 @@ type Config struct {
 	Database       DbConfig             `yaml:"database"`
 	Redis          RedisConfig          `yaml:"redis"`
 	Auth           AuthConfig           `yaml:"auth"`
-	JWT            JwtConfig            `yaml:"jwt"`
 	Consul         ConsulConfig         `yaml:"consul"`
 	Logger         LoggerConfig         `yaml:"logger"`
 	Service        ServiceConfig        `yaml:"service"`
@@ -28,6 +27,7 @@ type Config struct {
 	CircuitBreaker CircuitBreakerConfig `yaml:"circuit_breaker"` // 熔断配置
 	Tracing        TracingConfig        `yaml:"tracing"`         // 链路追踪配置
 	AntiReplay     AntiReplayConfig     `yaml:"anti_replay"`     // 防重放配置
+	Cors           CORSConfig           `yaml:"cors"`            // 跨域配置
 }
 
 type DbConfig struct {
@@ -78,13 +78,28 @@ func (c *Config) IsProduction() bool {
 }
 
 // JWT配置
-type JwtConfig struct {
-	Secret string `yaml:"secret"`
-	Expire string `yaml:"expire" default:"24h"`
+type AuthConfig struct {
+	AccessToken  AccessTokenConfig  `yaml:"access_token" mapstructure:"access_token"`
+	RefreshToken RefreshTokenConfig `yaml:"refresh_token" mapstructure:"refresh_token"`
 }
 
-type AuthConfig struct {
-	Token string `yaml:"token" default:""`
+// AccessTokenConfig controls how the gateway validates short-lived JWTs.
+// Secret is intentionally loaded from the environment rather than YAML.
+type AccessTokenConfig struct {
+	Issuers   []string `yaml:"issuers" mapstructure:"issuers"`
+	Audience  string   `yaml:"audience" mapstructure:"audience"`
+	Algorithm string   `yaml:"algorithm" mapstructure:"algorithm"`
+	Expire    string   `yaml:"expire" mapstructure:"expire"`
+	Secret    string   `yaml:"-" mapstructure:"-"`
+}
+
+// RefreshTokenConfig describes the refresh-token policy. Refresh-token values
+// themselves must never be stored in configuration files.
+type RefreshTokenConfig struct {
+	Expire         string `yaml:"expire" mapstructure:"expire"`
+	Rotate         bool   `yaml:"rotate" mapstructure:"rotate"`
+	ReuseDetection bool   `yaml:"reuse_detection" mapstructure:"reuse_detection"`
+	RedisKeyPrefix string `yaml:"redis_key_prefix" mapstructure:"redis_key_prefix"`
 }
 
 // conusl配置
@@ -124,8 +139,8 @@ type LoggerConfig struct {
 type ServiceConfig struct {
 	Version     string     `yaml:"version"`
 	CTags       []string   `yaml:"tags"`
-	PublicAPIs  []string   `yaml:"public_apis"`
-	AuthAPIs    []string   `yaml:"auth_apis"`
+	PublicAPIs  []string   `yaml:"public_apis"` // 公共APIs
+	AuthAPIs    []string   `yaml:"auth_apis"`   // 需要鉴权的APIs
 	CorsEnabled bool       `yaml:"cors_enabled"`
 	CORS        CORSConfig `yaml:"cors"`
 }
@@ -251,11 +266,11 @@ func applyEnvOverrides(cfg *Config) {
 	if v := os.Getenv("GATEWAY_REDIS_PASSWORD"); v != "" {
 		cfg.Redis.Password = v
 	}
-	if v := os.Getenv("GATEWAY_JWT_SECRET"); v != "" {
-		cfg.JWT.Secret = v
-	}
-	if v := os.Getenv("GATEWAY_AUTH_TOKEN"); v != "" {
-		cfg.Auth.Token = v
+	if v := os.Getenv("GATEWAY_ACCESS_TOKEN_SECRET"); v != "" {
+		cfg.Auth.AccessToken.Secret = v
+	} else if v := os.Getenv("GATEWAY_JWT_SECRET"); v != "" {
+		// Backward-compatible fallback for existing deployments.
+		cfg.Auth.AccessToken.Secret = v
 	}
 	if v := os.Getenv("GATEWAY_ANTI_REPLAY_SECRET"); v != "" {
 		cfg.AntiReplay.Secret = v

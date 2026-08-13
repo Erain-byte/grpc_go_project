@@ -10,7 +10,9 @@ import (
 func (s *HTTPServer) registerLLMRoutes() {
 	llmForwarder := forwarder.NewLlmForwarder(s.svcCtx, s.clientManager)
 	llmHTTPHandler := handler.NewLlmHTTPHandler(s.clientManager)
+	// LLM 路由全部需要登录，统一挂载 JWT 中间件。
 	llm := s.engine.Group("/llm")
+	llm.Use(s.jwtMiddleware.Handle)
 
 	llm.POST("/chat", handler.NewGrpcHandler[
 		pbLlm.ChatRequest,

@@ -1,0 +1,95 @@
+# Admin service configuration. Secrets are supplied through ADMIN_* environment variables.
+environment: "development"
+name: "admin-service"
+version: "1.0.0"
+host: "127.0.0.1"
+grpc_port: 9081
+
+database:
+  driver: "mysql"
+  host: "127.0.0.1"
+  port: 3306
+  username: "root"
+  dbname: "admin_db"
+  charset: "utf8mb4"
+  parse_time: true
+  location: "Local"
+  # false: all reads and writes use the primary database above.
+  # true: writes use the primary database; reads may use the replicas below.
+  read_write_split_enabled: false
+  replica_addresses:
+    # - "10.0.0.11:3306"
+    # - "10.0.0.12:3306"
+  max_idle_conns: 10
+  max_open_conns: 100
+  conn_max_idle_time: "10m"
+  conn_max_lifetime: "1h"
+
+redis:
+  host: "127.0.0.1"
+  port: 6379
+  cluster_addresses: []
+  db: 0
+  pool_size: 100
+  min_idle_conns: 10
+  max_idle_conns: 50
+  conn_max_idle_time: "30m"
+  conn_max_lifetime: "1h"
+  dial_timeout: "5s"
+  read_timeout: "3s"
+  write_timeout: "3s"
+  pool_timeout: "4s"
+  health_required: false
+
+# ADMIN_ACCESS_TOKEN_SECRET must match the Gateway verification secret.
+auth:
+  access_token:
+    issuer: "admin-service"
+    audience: "gateway"
+    algorithm: "HS256"
+    expire: "15m"
+  refresh_token:
+    expire: "168h"
+    rotate: true
+    reuse_detection: true
+    redis_key_prefix: "admin:auth:refresh:"
+
+consul:
+  host: "127.0.0.1"
+  port: 8500
+  addresses: []
+  scheme: "http"
+  check_interval: "10s"
+  check_timeout: "5s"
+  deregister_critical_after: "90s"
+
+logger:
+  level: "info"
+  format: "json"
+  filename: "logs/admin.log"
+  max_size: 100
+  max_backups: 10
+  max_age: 30
+  compress: true
+
+shutdown:
+  timeout: "10s"
+
+# Inbound Admin gRPC transport security.
+grpc:
+  use_tls: false
+  cert_file: ""
+  key_file: ""
+  client_ca_file: ""
+
+tracing:
+  enabled: true
+  service_name: "admin-service"
+  endpoint: "127.0.0.1:4317"
+  sampler_type: "const"
+  sampler_param: 1.0
+  use_tls: false
+  ca_file: ""
+  cert_file: ""
+  key_file: ""
+  server_name: "otel-collector"

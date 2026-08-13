@@ -21,25 +21,40 @@ type HTTPServer struct {
 	svcCtx        *svc.ServiceContext
 	httpServer    *http.Server
 	clientManager *grpcclient.ClientManager
+	jwtMiddleware *middleware.JWTMiddleware
 }
 
 // NewHTTPServer 创建并配置 Gateway 的 HTTP 入口服务。
-func NewHTTPServer(svcCtx *svc.ServiceContext, clientManager *grpcclient.ClientManager) *HTTPServer {
+func NewHTTPServer(svcCtx *svc.ServiceContext, clientManager *grpcclient.ClientManager) (*HTTPServer, error) {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
 	engine.Use(middleware.ErrorHandler(slog.Default()))
-
+	engine.Use(middleware.RequestID())
+	engine.Use(middleware.Tracing(svcCtx.Config.Tracing.ServiceName))
+	engine.Use(middleware.LoggerMiddleware(svcCtx.Config.Name))
+	CorsMiddelware := middleware.NewCorsMiddleware(svcCtx.Config.Cors)
+	engine.Use(CorsMiddelware.Handle)
+	jwtMiddleware, err := middleware.NewJWTMiddleware(svcCtx.Config.Auth)
+	if err != nil {
+		return nil, apperror.Wrap(
+			err,
+			apperror.CodeInternal,
+			"failed to create JWT middleware",
+			http.StatusInternalServerError,
+		)
+	}
 	server := &HTTPServer{
 		engine:        engine,
 		svcCtx:        svcCtx,
 		clientManager: clientManager,
+		jwtMiddleware: jwtMiddleware,
 		httpServer: &http.Server{
 			Addr:    fmt.Sprintf("%s:%d", svcCtx.Config.Host, svcCtx.Config.Port),
 			Handler: engine,
 		},
 	}
 	server.registerRoutes()
-	return server
+	return server, nil
 }
 
 func (s *HTTPServer) Start() error {

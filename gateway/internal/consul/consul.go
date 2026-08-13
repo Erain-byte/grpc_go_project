@@ -89,7 +89,7 @@ func (r *ConsulRegistry) RegisterHTTP(name string, host string, port int, cfg *c
 		return err
 	}
 	registration := &api.AgentServiceRegistration{
-		ID:      fmt.Sprintf("%s-http", name),
+		ID:      buildServiceID(name, ProtocolHTTP, host, port),
 		Name:    fmt.Sprintf("%s-http", name),
 		Address: host,
 		Port:    port,
@@ -129,7 +129,7 @@ func (r *ConsulRegistry) RegisterGRPC(name string, host string, port int, cfg *c
 		return err
 	}
 	registration := &api.AgentServiceRegistration{
-		ID:      fmt.Sprintf("%s-grpc", name),
+		ID:      buildServiceID(name, ProtocolGRPC, host, port),
 		Name:    fmt.Sprintf("%s-grpc", name),
 		Address: host,
 		Port:    port,
@@ -388,27 +388,38 @@ func (r *ConsulRegistry) GetPublicEndpoints(ctx context.Context, name string) ([
 }
 
 // DeregisterHTTPService 删除HTTP服务
-func (r *ConsulRegistry) DeregisterHTTPService(name string) error {
-	return r.deregisterService(name, ProtocolHTTP)
+func (r *ConsulRegistry) DeregisterHTTPService(name, host string, port int) error {
+	return r.deregisterService(name, ProtocolHTTP, host, port)
 }
 
 // DeregisterGRPCService 删除GRPC服务
-func (r *ConsulRegistry) DeregisterGRPCService(name string) error {
-	return r.deregisterService(name, ProtocolGRPC)
+func (r *ConsulRegistry) DeregisterGRPCService(name, host string, port int) error {
+	return r.deregisterService(name, ProtocolGRPC, host, port)
 }
 
 // deregisterService 删除服务
-func (r *ConsulRegistry) deregisterService(name string, protocol string) error {
+func (r *ConsulRegistry) deregisterService(name string, protocol string, host string, port int) error {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		return apperror.InvalidArgument("service name is empty")
 	}
-	serviceID := fmt.Sprintf("%s-%s", name, protocol)
+	host = strings.TrimSpace(host)
+	if host == "" {
+		return apperror.InvalidArgument("service host is empty")
+	}
+	if port <= 0 || port > 65535 {
+		return apperror.InvalidArgument("service port must be between 1 and 65535")
+	}
+	serviceID := buildServiceID(name, protocol, host, port)
 	if err := r.client.Agent().ServiceDeregister(serviceID); err != nil {
 		return apperror.Wrap(err, apperror.CodeUnavailable, "failed to deregister service from Consul", http.StatusServiceUnavailable)
 	}
 	logInfof("deregistered service %q", serviceID)
 	return nil
+}
+
+func buildServiceID(name, protocol, host string, port int) string {
+	return fmt.Sprintf("%s-%s-%s-%d", name, protocol, host, port)
 }
 
 // logInfo

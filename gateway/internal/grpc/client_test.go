@@ -107,7 +107,7 @@ func TestCheckCertificateExpiry(t *testing.T) {
 		wantCode codes.Code
 	}{
 		{name: "valid", notAfter: time.Now().Add(30 * 24 * time.Hour), wantCode: codes.OK},
-		{name: "expiring", notAfter: time.Now().Add(24 * time.Hour), wantCode: codes.InvalidArgument},
+		{name: "expiring", notAfter: time.Now().Add(12 * time.Hour), wantCode: codes.InvalidArgument},
 		{name: "expired", notAfter: time.Now().Add(-time.Hour), wantCode: codes.InvalidArgument},
 	}
 
