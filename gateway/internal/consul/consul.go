@@ -252,9 +252,9 @@ func (r *ConsulRegistry) queryConsul(ctx context.Context, name string, protocol 
 		return nil, waitIndex, apperror.InvalidArgument("query consul: protocol must be http or grpc")
 	}
 	options := (&api.QueryOptions{
-		WaitIndex: waitIndex,        //Watch 的 WaitIndex
-		WaitTime:  20 * time.Second, //必须短于当前缓存过期时间
-	}).WithContext(ctx) //添加上下文
+		WaitIndex: waitIndex,
+		WaitTime:  20 * time.Second,
+	}).WithContext(ctx)
 	entries, meta, err := r.client.Health().Service(name, protocol, true, options) //查询服务
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
@@ -300,7 +300,7 @@ func (r *ConsulRegistry) watchService(ctx context.Context, name string, protocol
 				return
 			}
 			logger.SugaredLogger.Errorf("failed to query %s service %s: %v", protocol, name, err)
-			if !waitRetry(ctx, 5*time.Second) { //重试
+			if !waitRetry(ctx, 5*time.Second) {
 				return
 			}
 			continue
@@ -319,6 +319,30 @@ func (r *ConsulRegistry) watchService(ctx context.Context, name string, protocol
 	}
 }
 
+// ping
+func (r *ConsulRegistry) Ping(ctx context.Context) error {
+	if r.client == nil {
+		return errors.New("conusl client is nil")
+	}
+	options := new(api.QueryOptions).WithContext(ctx)
+
+	leader, err := r.client.Status().LeaderWithQueryOptions(options)
+	if err != nil {
+		return apperror.Wrap(
+			err,
+			apperror.CodeUnavailable,
+			"Consul is unavailable",
+			http.StatusServiceUnavailable,
+		)
+	}
+
+	if strings.TrimSpace(leader) == "" {
+		return apperror.Unavailable(
+			"Consul cluster has no leader",
+		)
+	}
+	return nil
+}
 func waitRetry(ctx context.Context, delay time.Duration) bool {
 	timer := time.NewTimer(delay)
 	defer timer.Stop()
@@ -375,7 +399,7 @@ func (r *ConsulRegistry) GetPublicEndpoints(ctx context.Context, name string) ([
 	if err != nil {
 		return nil, err
 	}
-	if publicAPIs, ok := metadata["public_apis"]; ok { //获取公开接口列表
+	if publicAPIs, ok := metadata["public_apis"]; ok {
 		//return strings.Split(publicAPIs, ","), nil
 		var listAPIs []string
 		apiList := strings.Split(publicAPIs, ",")

@@ -22,7 +22,7 @@ func (s *CorsMiddleware) Handle(c *gin.Context) {
 
 	origin := c.Request.Header.Get("Origin")
 	if origin != "" {
-		c.Header("Vary", "Origin") // 添加Vary头，以便代理服务器正确缓存响应
+		c.Header("Vary", "Origin")
 	}
 	if allowedOrigin := resolveAllowedOrigin(origin, s.cfg); allowedOrigin != "" {
 		c.Header("Access-Control-Allow-Origin", allowedOrigin)

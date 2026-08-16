@@ -7,6 +7,7 @@
 package adminv1
 
 import (
+	_ "github.com/Erain-byte/grpc_go_project/proto/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -216,7 +217,6 @@ func (x *LoginResponse) GetAdmin() *Admin {
 
 type LogoutRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -249,13 +249,6 @@ func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
 func (*LogoutRequest) Descriptor() ([]byte, []int) {
 	return file_admin_v1_admin_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *LogoutRequest) GetAccessToken() string {
-	if x != nil {
-		return x.AccessToken
-	}
-	return ""
 }
 
 type LogoutResponse struct {
@@ -312,7 +305,6 @@ func (x *LogoutResponse) GetMessage() string {
 
 type GetAdminInfoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -345,13 +337,6 @@ func (x *GetAdminInfoRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetAdminInfoRequest.ProtoReflect.Descriptor instead.
 func (*GetAdminInfoRequest) Descriptor() ([]byte, []int) {
 	return file_admin_v1_admin_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *GetAdminInfoRequest) GetAccessToken() string {
-	if x != nil {
-		return x.AccessToken
-	}
-	return ""
 }
 
 type GetAdminInfoResponse struct {
@@ -854,7 +839,7 @@ var File_admin_v1_admin_proto protoreflect.FileDescriptor
 
 const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
-	"\x14admin/v1/admin.proto\x12\badmin.v1\"F\n" +
+	"\x14admin/v1/admin.proto\x12\badmin.v1\x1a\x18common/v1/security.proto\"F\n" +
 	"\fLoginRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"\x96\x02\n" +
@@ -867,14 +852,12 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x12refresh_expires_in\x18\x05 \x01(\x03R\x10refreshExpiresIn\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x06 \x01(\tR\tsessionId\x12%\n" +
-	"\x05admin\x18\a \x01(\v2\x0f.admin.v1.AdminR\x05admin\"2\n" +
-	"\rLogoutRequest\x12!\n" +
-	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"D\n" +
+	"\x05admin\x18\a \x01(\v2\x0f.admin.v1.AdminR\x05admin\"#\n" +
+	"\rLogoutRequestJ\x04\b\x01\x10\x02R\faccess_token\"D\n" +
 	"\x0eLogoutResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"8\n" +
-	"\x13GetAdminInfoRequest\x12!\n" +
-	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"z\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\")\n" +
+	"\x13GetAdminInfoRequestJ\x04\b\x01\x10\x02R\faccess_token\"z\n" +
 	"\x14GetAdminInfoResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12.\n" +
@@ -914,14 +897,14 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\tAdminRole\x12\x1a\n" +
 	"\x16ADMIN_ROLE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16ADMIN_ROLE_SUPER_ADMIN\x10\x01\x12\x14\n" +
-	"\x10ADMIN_ROLE_ADMIN\x10\x022\xbe\x03\n" +
-	"\fAdminService\x128\n" +
-	"\x05Login\x12\x16.admin.v1.LoginRequest\x1a\x17.admin.v1.LoginResponse\x12;\n" +
-	"\x06Logout\x12\x17.admin.v1.LogoutRequest\x1a\x18.admin.v1.LogoutResponse\x12M\n" +
-	"\fGetAdminInfo\x12\x1d.admin.v1.GetAdminInfoRequest\x1a\x1e.admin.v1.GetAdminInfoResponse\x12J\n" +
-	"\vCreateAdmin\x12\x1c.admin.v1.CreateAdminRequest\x1a\x1d.admin.v1.CreateAdminResponse\x12M\n" +
-	"\fGetAdminList\x12\x1d.admin.v1.GetAdminListRequest\x1a\x1e.admin.v1.GetAdminListResponse\x12M\n" +
-	"\fRefreshToken\x12\x1d.admin.v1.RefreshTokenRequest\x1a\x1e.admin.v1.RefreshTokenResponseB>Z<github.com/Erain-byte/grpc_go_project/proto/admin/v1;adminv1b\x06proto3"
+	"\x10ADMIN_ROLE_ADMIN\x10\x022\x95\x04\n" +
+	"\fAdminService\x12@\n" +
+	"\x05Login\x12\x16.admin.v1.LoginRequest\x1a\x17.admin.v1.LoginResponse\"\x06\x82\xb5\x18\x02\b\x01\x12;\n" +
+	"\x06Logout\x12\x17.admin.v1.LogoutRequest\x1a\x18.admin.v1.LogoutResponse\x12g\n" +
+	"\fGetAdminInfo\x12\x1d.admin.v1.GetAdminInfoRequest\x1a\x1e.admin.v1.GetAdminInfoResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper_admin\x12]\n" +
+	"\vCreateAdmin\x12\x1c.admin.v1.CreateAdminRequest\x1a\x1d.admin.v1.CreateAdminResponse\"\x11\x82\xb5\x18\r\x12\vsuper_admin\x12g\n" +
+	"\fGetAdminList\x12\x1d.admin.v1.GetAdminListRequest\x1a\x1e.admin.v1.GetAdminListResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper_admin\x12U\n" +
+	"\fRefreshToken\x12\x1d.admin.v1.RefreshTokenRequest\x1a\x1e.admin.v1.RefreshTokenResponse\"\x06\x82\xb5\x18\x02\b\x01B>Z<github.com/Erain-byte/grpc_go_project/proto/admin/v1;adminv1b\x06proto3"
 
 var (
 	file_admin_v1_admin_proto_rawDescOnce sync.Once

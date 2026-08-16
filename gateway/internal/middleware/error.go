@@ -61,7 +61,7 @@ func ErrorHandler(logger *slog.Logger) gin.HandlerFunc {
 			}
 		}()
 
-		c.Next() // process next middleware
+		c.Next()
 
 		ginErr := c.Errors.Last()
 		if ginErr == nil {

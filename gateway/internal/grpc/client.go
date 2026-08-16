@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"gateway/internal/consul"
 	"gateway/internal/logger"
@@ -27,7 +28,8 @@ const (
 	certificateWarnAfter = 1 * 24 * time.Hour
 )
 
-const roundRobinServiceConfig = `{"loadBalancingConfig":[{"round_robin":{}}]}` // 配置负载均衡策略为轮询
+// 配置负载均衡策略为轮询
+const roundRobinServiceConfig = `{"loadBalancingConfig":[{"round_robin":{}}]}`
 
 // GrpcConfig configures gRPC client transport security.
 type GrpcConfig struct {
@@ -48,11 +50,11 @@ type pendingConnection struct {
 
 // 创建gRPC客户端管理器
 type ClientManager struct {
-	registry consul.GRPCServiceDiscoverer // 服务发现器
-	config   *GrpcConfig                  // gRPC配置
+	registry consul.GRPCServiceDiscoverer
+	config   *GrpcConfig
 
 	mu      sync.RWMutex
-	conns   map[string]*grpc.ClientConn //缓存已建立的连接
+	conns   map[string]*grpc.ClientConn
 	pending map[string]*pendingConnection
 	closed  bool
 }
@@ -60,7 +62,7 @@ type ClientManager struct {
 func NewClientManager(registry consul.GRPCServiceDiscoverer, config *GrpcConfig) *ClientManager {
 	cfg := GrpcConfig{}
 	if config != nil {
-		cfg = *config // Do not mutate configuration owned by the caller.
+		cfg = *config
 	}
 	return &ClientManager{
 		registry: registry,
@@ -95,7 +97,7 @@ func (cm *ClientManager) GetClient(ctx context.Context, serviceName string) (*gr
 		return conn, nil
 	}
 
-	cm.mu.Lock() // 加锁
+	cm.mu.Lock()
 	if cm.closed {
 		cm.mu.Unlock()
 		return nil, apperror.ToGRPC(apperror.Unavailable("gRPC client manager is closed"))
@@ -104,7 +106,8 @@ func (cm *ClientManager) GetClient(ctx context.Context, serviceName string) (*gr
 		cm.mu.Unlock()
 		return conn, nil
 	}
-	if pending := cm.pending[serviceName]; pending != nil { // 如果有其他goroutine正在创建连接，则等待
+	// 如果有其他goroutine正在创建连接，则等待
+	if pending := cm.pending[serviceName]; pending != nil {
 		cm.mu.Unlock()
 		select {
 		case <-pending.done: // 等待连接创建完成
@@ -113,11 +116,12 @@ func (cm *ClientManager) GetClient(ctx context.Context, serviceName string) (*gr
 			return nil, apperror.ToGRPC(ctx.Err())
 		}
 	}
-	pending := &pendingConnection{done: make(chan struct{})} // 创建一个等待连接创建完成的channel
+	// 创建一个等待连接创建完成的channel
+	pending := &pendingConnection{done: make(chan struct{})}
 	cm.pending[serviceName] = pending
 	cm.mu.Unlock()
-
-	conn, err := cm.newClient(serviceName) // 创建新的连接
+	// 创建新的连接
+	conn, err := cm.newClient(serviceName)
 	if err != nil {
 		err = apperror.ToGRPC(err)
 	}
@@ -133,7 +137,7 @@ func (cm *ClientManager) GetClient(ctx context.Context, serviceName string) (*gr
 	}
 	pending.conn = conn
 	pending.err = err
-	close(pending.done) //关闭后，其他等待的goroutine会收到通知
+	close(pending.done)
 	cm.mu.Unlock()
 
 	return conn, err
@@ -149,10 +153,14 @@ func (cm *ClientManager) newClient(serviceName string) (*grpc.ClientConn, error)
 	target := fmt.Sprintf("%s:///%s-grpc", resolverBuilder.Scheme(), serviceName)
 	conn, err := grpc.NewClient(
 		target,
-		grpc.WithStatsHandler(middleware.NewClientStatsHandler()), // 添加gRPC统计处理程序
-		grpc.WithTransportCredentials(creds),                      // 使用TLS证书
-		grpc.WithResolvers(resolverBuilder),                       // 使用自定义的consul resolver
-		grpc.WithDefaultServiceConfig(roundRobinServiceConfig),    // 配置负载均衡策略为轮询
+		// 添加gRPC统计处理程序
+		grpc.WithStatsHandler(middleware.NewClientStatsHandler()),
+		// 使用TLS证书
+		grpc.WithTransportCredentials(creds),
+		// 使用自定义的consul resolver
+		grpc.WithResolvers(resolverBuilder),
+		// 配置负载均衡策略为轮询
+		grpc.WithDefaultServiceConfig(roundRobinServiceConfig),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("create gRPC client for %q: %w", serviceName, err)
@@ -178,7 +186,7 @@ func (cm *ClientManager) createTransportCredentials() (credentials.TransportCred
 	tlsConfig := &tls.Config{
 		MinVersion:         tls.VersionTLS12,
 		ServerName:         strings.TrimSpace(cm.config.ServerName),
-		InsecureSkipVerify: cm.config.InsecureSkipVerify, //nolint:gosec -- explicit development option
+		InsecureSkipVerify: cm.config.InsecureSkipVerify,
 	}
 	if cm.config.InsecureSkipVerify {
 		if logger.SugaredLogger != nil {
@@ -221,45 +229,101 @@ func loadCertPool(path string) (*x509.CertPool, error) {
  * 检查客户端证书是否即将过期
 **/
 func (cm *ClientManager) CheckCertificateExpiry(ctx context.Context, _ string) error {
+	if _, _, err := cm.clientCertificateValidity(ctx); err != nil {
+		return err
+	}
+	_, _, err := cm.caCertificateValidity(ctx)
+	return err
+}
+
+// clientCertificateValidity 返回客户端证书的剩余有效期。
+// configured=false 表示 TLS 未开启或没有配置双向 TLS 客户端证书。
+func (cm *ClientManager) clientCertificateValidity(ctx context.Context) (remaining time.Duration, configured bool, err error) {
 	if ctx == nil {
-		return apperror.ToGRPC(apperror.InvalidArgument("context is nil"))
+		return 0, false, apperror.ToGRPC(apperror.InvalidArgument("context is nil"))
 	}
 	if err := ctx.Err(); err != nil {
-		return apperror.ToGRPC(err)
+		return 0, false, apperror.ToGRPC(err)
 	}
 	if cm.config == nil || !cm.config.UseTLS {
-		return nil
+		return 0, false, nil
 	}
 
 	hasCert := strings.TrimSpace(cm.config.CertFile) != ""
 	hasKey := strings.TrimSpace(cm.config.KeyFile) != ""
 	if !hasCert && !hasKey {
-		return nil
+		return 0, false, nil
 	}
 	if hasCert != hasKey {
-		return apperror.ToGRPC(apperror.InvalidArgument("client certificate and private key must be configured together"))
+		return 0, false, apperror.ToGRPC(apperror.InvalidArgument("client certificate and private key must be configured together"))
 	}
 
 	cert, err := tls.LoadX509KeyPair(cm.config.CertFile, cm.config.KeyFile)
 	if err != nil {
-		return apperror.ToGRPC(fmt.Errorf("load client certificate: %w", err))
+		return 0, true, apperror.ToGRPC(fmt.Errorf("load client certificate: %w", err))
 	}
 	if len(cert.Certificate) == 0 {
-		return apperror.ToGRPC(apperror.InvalidArgument("client certificate chain is empty"))
+		return 0, true, apperror.ToGRPC(apperror.InvalidArgument("client certificate chain is empty"))
 	}
 	x509Cert, err := x509.ParseCertificate(cert.Certificate[0])
 	if err != nil {
-		return apperror.ToGRPC(fmt.Errorf("parse client certificate: %w", err))
+		return 0, true, apperror.ToGRPC(fmt.Errorf("parse client certificate: %w", err))
+	}
+	now := time.Now()
+	if now.Before(x509Cert.NotBefore) {
+		return 0, true, apperror.ToGRPC(apperror.InvalidArgument("client certificate is not valid yet"))
+	}
+	remaining = x509Cert.NotAfter.Sub(now)
+	if remaining <= 0 {
+		return remaining, true, apperror.ToGRPC(apperror.InvalidArgument("client certificate has expired"))
+	}
+	return remaining, true, nil
+}
+
+// caCertificateValidity 检查 Gateway 本地用于验证服务端的 CA 证书。
+func (cm *ClientManager) caCertificateValidity(ctx context.Context) (remaining time.Duration, configured bool, err error) {
+	if ctx == nil {
+		return 0, false, apperror.ToGRPC(apperror.InvalidArgument("context is nil"))
+	}
+	if err := ctx.Err(); err != nil {
+		return 0, false, apperror.ToGRPC(err)
+	}
+	if cm.config == nil || !cm.config.UseTLS {
+		return 0, false, nil
+	}
+	path := strings.TrimSpace(cm.config.CaFile)
+	if path == "" {
+		return 0, false, nil
 	}
 
-	remaining := time.Until(x509Cert.NotAfter) //转换为剩余时间
-	if remaining <= 0 {
-		return apperror.ToGRPC(apperror.InvalidArgument("client certificate has expired"))
+	pemData, err := os.ReadFile(path)
+	if err != nil {
+		return 0, true, apperror.ToGRPC(fmt.Errorf("read CA certificate: %w", err))
 	}
-	if remaining < certificateWarnAfter {
-		return apperror.ToGRPC(apperror.InvalidArgument("client certificate will expire in less than 1 day"))
+	for len(pemData) > 0 {
+		block, rest := pem.Decode(pemData)
+		pemData = rest
+		if block == nil {
+			break
+		}
+		if block.Type != "CERTIFICATE" {
+			continue
+		}
+		certificate, parseErr := x509.ParseCertificate(block.Bytes)
+		if parseErr != nil {
+			return 0, true, apperror.ToGRPC(fmt.Errorf("parse CA certificate: %w", parseErr))
+		}
+		now := time.Now()
+		if now.Before(certificate.NotBefore) {
+			return 0, true, apperror.ToGRPC(apperror.InvalidArgument("CA certificate is not valid yet"))
+		}
+		remaining = certificate.NotAfter.Sub(now)
+		if remaining <= 0 {
+			return remaining, true, apperror.ToGRPC(apperror.InvalidArgument("CA certificate has expired"))
+		}
+		return remaining, true, nil
 	}
-	return nil
+	return 0, true, apperror.ToGRPC(apperror.InvalidArgument("CA file contains no valid certificate"))
 }
 
 // 证书定期预警
@@ -268,17 +332,35 @@ func (cm *ClientManager) MonitorCertificate(
 	interval time.Duration,
 	log *zap.Logger,
 ) {
-	if cm == nil || cm.config == nil || !cm.config.UseTLS {
+	if cm == nil || cm.config == nil || !cm.config.UseTLS || log == nil || interval <= 0 {
 		return
 	}
 	check := func() {
-		if err := cm.CheckCertificateExpiry(ctx, ""); err != nil {
-			log.Error("certificate check failed", zap.Error(err))
+		checks := []struct {
+			name  string
+			check func(context.Context) (time.Duration, bool, error)
+		}{
+			{name: "client", check: cm.clientCertificateValidity},
+			{name: "CA", check: cm.caCertificateValidity},
+		}
+		for _, item := range checks {
+			remaining, configured, err := item.check(ctx)
+			if err != nil {
+				log.Error(item.name+" certificate check failed", zap.Error(err))
+				continue
+			}
+			if configured && remaining < certificateWarnAfter {
+				log.Warn(
+					item.name+" certificate will expire soon",
+					zap.Duration("remaining", remaining),
+				)
+			}
 		}
 	}
 	//启动立即检查一次
 	check()
 	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():

@@ -25,7 +25,7 @@ import (
 // Run 启动网关应用。
 func Run() error {
 	//初始化
-	var configFlie string //文件路径
+	var configFlie string
 	flag.StringVar(&configFlie, "f", "etc/gateway.yaml", "config file path")
 	flag.Parse() //
 	cfg, err := config.InitConfig(configFlie)
@@ -98,7 +98,17 @@ func Run() error {
 		)
 	}
 	defer consulRegistry.Close()
-
+	healthCtxConusul, cancelHealthConsul := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancelHealthConsul()
+	healthErrConsul := consulRegistry.Ping(healthCtxConusul)
+	if healthErrConsul != nil {
+		return apperror.Wrap(
+			healthErrConsul,
+			apperror.CodeUnavailable,
+			"Consul health check failed",
+			http.StatusServiceUnavailable,
+		)
+	}
 	serviceContext := svc.NewServiceContext(*cfg, redisClient, consulRegistry)
 	//依赖注入ClientManager
 	grpcClientManager := grpcclient.NewClientManager(
@@ -117,7 +127,7 @@ func Run() error {
 	// 创建 HTTP 和 gRPC 两个入站服务，它们共享同一个 ClientManager。
 	httpServer, err := server.NewHTTPServer(
 		serviceContext,
-		grpcClientManager, // 注入 grpcClientManager，供服务调用使用
+		grpcClientManager,
 	)
 	if err != nil {
 		return err

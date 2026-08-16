@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package common.v1;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/Erain-byte/grpc_go_project/proto/common/v1;commonv1";
+
+// AuthRule describes the trusted caller identity required by an RPC.
+// Internal services may obtain that identity from Gateway metadata protected
+// by mTLS; this option does not require every service to re-parse external JWTs.
+// Methods without this option are protected by default.
+message AuthRule {
+  // Public methods do not require an authenticated end-user identity.
+  bool public = 1;
+
+  // 允许访问该方法的角色。
+  repeated string roles = 2;
+}
+
+extend google.protobuf.MethodOptions {
+  AuthRule auth = 50000;
+}

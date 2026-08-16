@@ -23,11 +23,11 @@ type Config struct {
 	Routes         []RouteConfig        `yaml:"routes"`
 	Shutdown       ShutdownConfig       `yaml:"shutdown"`
 	Grpc           GrpcConfig           `yaml:"grpc"`
-	RateLimit      RateLimitConfig      `yaml:"rate_limit"`      // 限流配置
-	CircuitBreaker CircuitBreakerConfig `yaml:"circuit_breaker"` // 熔断配置
-	Tracing        TracingConfig        `yaml:"tracing"`         // 链路追踪配置
-	AntiReplay     AntiReplayConfig     `yaml:"anti_replay"`     // 防重放配置
-	Cors           CORSConfig           `yaml:"cors"`            // 跨域配置
+	RateLimit      RateLimitConfig      `yaml:"rate_limit"`
+	CircuitBreaker CircuitBreakerConfig `yaml:"circuit_breaker"`
+	Tracing        TracingConfig        `yaml:"tracing"`
+	AntiReplay     AntiReplayConfig     `yaml:"anti_replay"`
+	Cors           CORSConfig           `yaml:"cors"`
 }
 
 type DbConfig struct {
@@ -44,9 +44,9 @@ type DbConfig struct {
 
 // RedisConfig represents the configuration for Redis.
 type RedisConfig struct {
-	Host             string   `yaml:"host" default:"localhost"` // 单节点地址（cluster_addresses为空时使用）
-	Port             int      `yaml:"port" default:"6379"`      // 单节点端口（cluster_addresses为空时使用）
-	ClusterAddresses []string `yaml:"cluster_addresses"`        // 集群地址列表，如 ["192.168.1.1:6379", "192.168.1.2:6379"]
+	Host             string   `yaml:"host" default:"localhost"`
+	Port             int      `yaml:"port" default:"6379"`
+	ClusterAddresses []string `yaml:"cluster_addresses"`
 	Password         string   `yaml:"password" default:""`
 	DB               int      `yaml:"db" default:"0"`
 	PoolSize         int      `yaml:"pool_size" default:"100"`
@@ -104,11 +104,11 @@ type RefreshTokenConfig struct {
 
 // conusl配置
 type ConsulConfig struct {
-	Address                 []string `yaml:"address"`                  // Consul地址列表，如 ["192.168.1.1:8500"]
-	Host                    string   `yaml:"host" default:"localhost"` // 单节点地址（addresses为空时使用）
-	Port                    int      `yaml:"port" default:"8500"`      // 单节点端口（addresses为空时使用）
-	Token                   string   `yaml:"token" default:""`         // 访问凭证
-	Scheme                  string   `yaml:"scheme" default:"http"`    // 访问协议
+	Address                 []string `yaml:"address"`
+	Host                    string   `yaml:"host" default:"localhost"`
+	Port                    int      `yaml:"port" default:"8500"`
+	Token                   string   `yaml:"token" default:""`
+	Scheme                  string   `yaml:"scheme" default:"http"`
 	CheckInterval           string   `yaml:"check_interval" default:"10s"`
 	CheckTimeout            string   `yaml:"check_timeout" default:"5s"`
 	TTL                     string   `yaml:"ttl" default:"30s"`
@@ -126,21 +126,21 @@ func (c *ConsulConfig) GetAddresses() []string {
 
 // LoggerConfig 日志配置
 type LoggerConfig struct {
-	Level      string `yaml:"level" default:"info"`                // 日志级别：debug, info, warn, error
-	Format     string `yaml:"format" default:"json"`               // 日志格式：json, console
-	Filename   string `yaml:"filename" default:"logs/gateway.log"` // 日志文件路径
-	MaxSize    int    `yaml:"max_size" default:"100"`              // 单个日志文件最大大小（MB）
-	MaxBackups int    `yaml:"max_backups" default:"10"`            // 保留的旧日志文件数量
-	MaxAge     int    `yaml:"max_age" default:"30"`                // 日志文件保留天数
-	Compress   bool   `yaml:"compress" default:"true"`             // 是否压缩旧日志文件
+	Level      string `yaml:"level" default:"info"`
+	Format     string `yaml:"format" default:"json"`
+	Filename   string `yaml:"filename" default:"logs/gateway.log"`
+	MaxSize    int    `yaml:"max_size" default:"100"`
+	MaxBackups int    `yaml:"max_backups" default:"10"`
+	MaxAge     int    `yaml:"max_age" default:"30"`
+	Compress   bool   `yaml:"compress" default:"true"`
 }
 
 // ServiceConfig 服务配置
 type ServiceConfig struct {
 	Version     string     `yaml:"version"`
 	CTags       []string   `yaml:"tags"`
-	PublicAPIs  []string   `yaml:"public_apis"` // 公共APIs
-	AuthAPIs    []string   `yaml:"auth_apis"`   // 需要鉴权的APIs
+	PublicAPIs  []string   `yaml:"public_apis"`
+	AuthAPIs    []string   `yaml:"auth_apis"`
 	CorsEnabled bool       `yaml:"cors_enabled"`
 	CORS        CORSConfig `yaml:"cors"`
 }
@@ -171,63 +171,63 @@ type ShutdownConfig struct {
 
 // GrpcConfig gRPC 客户端配置
 type GrpcConfig struct {
-	UseTLS             bool   `yaml:"use_tls" default:"false"`              // 是否启用 TLS
-	InsecureSkipVerify bool   `yaml:"insecure_skip_verify" default:"false"` // 跳过证书验证（仅用于开发/测试）
-	CertFile           string `yaml:"cert_file" default:""`                 // 客户端证书文件路径
-	KeyFile            string `yaml:"key_file" default:""`                  // 客户端私钥文件路径
-	CaFile             string `yaml:"ca_file" default:""`                   // CA 证书文件路径
-	ServerName         string `yaml:"server_name" default:""`               // TLS Server Name（可选）
+	UseTLS             bool   `yaml:"use_tls" default:"false"`
+	InsecureSkipVerify bool   `yaml:"insecure_skip_verify" default:"false"`
+	CertFile           string `yaml:"cert_file" default:""`
+	KeyFile            string `yaml:"key_file" default:""`
+	CaFile             string `yaml:"ca_file" default:""`
+	ServerName         string `yaml:"server_name" default:""`
 }
 
 // RateLimitConfig 限流配置
 type RateLimitConfig struct {
-	Enabled           bool    `yaml:"enabled" default:"false"`           // 是否启用限流
-	RequestsPerSecond float64 `yaml:"requests_per_second" default:"100"` // 每秒请求数
-	BurstSize         int     `yaml:"burst_size" default:"20"`           // 令牌桶容量（突发流量）
-	ByIP              bool    `yaml:"by_ip" default:"true"`              // 是否按 IP 限流
-	ByAPI             bool    `yaml:"by_api" default:"false"`            // 是否按 API 路径限流
-	FallbackToLocal   bool    `yaml:"fallback_to_local" default:"true"`  // Redis unavailable fallback, disable in production.
+	Enabled           bool    `yaml:"enabled" default:"false"`
+	RequestsPerSecond float64 `yaml:"requests_per_second" default:"100"`
+	BurstSize         int     `yaml:"burst_size" default:"20"`
+	ByIP              bool    `yaml:"by_ip" default:"true"`
+	ByAPI             bool    `yaml:"by_api" default:"false"`
+	FallbackToLocal   bool    `yaml:"fallback_to_local" default:"true"`
 }
 
 // CircuitBreakerConfig 熔断器配置
 type CircuitBreakerConfig struct {
-	Enabled     bool   `yaml:"enabled" default:"false"`   // 是否启用熔断
-	MaxFailures uint32 `yaml:"max_failures" default:"5"`  // 最大失败次数
-	Timeout     string `yaml:"timeout" default:"30s"`     // 熔断器打开后的恢复等待时间
-	MinRequests uint32 `yaml:"min_requests" default:"10"` // 半开状态下的最小请求数
-	Interval    string `yaml:"interval" default:"60s"`    // 统计窗口时间
+	Enabled     bool   `yaml:"enabled" default:"false"`
+	MaxFailures uint32 `yaml:"max_failures" default:"5"`
+	Timeout     string `yaml:"timeout" default:"30s"`
+	MinRequests uint32 `yaml:"min_requests" default:"10"`
+	Interval    string `yaml:"interval" default:"60s"`
 }
 
 // TracingConfig 链路追踪配置
 type TracingConfig struct {
-	Enabled      bool    `yaml:"enabled" default:"false"`                // 是否启用链路追踪
-	ServiceName  string  `yaml:"service_name" default:"gateway-service"` // 服务名称
-	Endpoint     string  `yaml:"endpoint" default:"localhost:4317"`      // OTLP gRPC Collector 地址（标准端口 4317）
-	SamplerType  string  `yaml:"sampler_type" default:"const"`           // 采样器类型：const, probabilistic, ratelimiting
-	SamplerParam float64 `yaml:"sampler_param" default:"1.0"`            // 采样参数（const: 0/1, probabilistic: 0.0-1.0）
-	UseTLS       bool    `yaml:"use_tls" default:"false"`                // 是否启用 TLS（生产环境建议启用）
-	CaFile       string  `yaml:"ca_file" default:""`                     // CA 证书文件路径（默认：/etc/certs/gateway/ca.crt）
-	CertFile     string  `yaml:"cert_file" default:""`                   // 客户端证书文件路径（双向认证时使用）
-	KeyFile      string  `yaml:"key_file" default:""`                    // 客户端私钥文件路径（双向认证时使用）
-	ServerName   string  `yaml:"server_name" default:"otel-collector"`   // TLS Server Name（用于证书验证）
+	Enabled      bool    `yaml:"enabled" default:"false"`
+	ServiceName  string  `yaml:"service_name" default:"gateway-service"`
+	Endpoint     string  `yaml:"endpoint" default:"localhost:4317"`
+	SamplerType  string  `yaml:"sampler_type" default:"const"`
+	SamplerParam float64 `yaml:"sampler_param" default:"1.0"`
+	UseTLS       bool    `yaml:"use_tls" default:"false"`
+	CaFile       string  `yaml:"ca_file" default:""`
+	CertFile     string  `yaml:"cert_file" default:""`
+	KeyFile      string  `yaml:"key_file" default:""`
+	ServerName   string  `yaml:"server_name" default:"otel-collector"`
 }
 
 // AntiReplayConfig 防重放配置
 type AntiReplayConfig struct {
 	Secret             string `yaml:"secret" default:""`
-	Enabled            bool   `yaml:"enabled" default:"false"`           // 是否启用防重放（开发环境建议关闭）
-	TimestampTolerance int    `yaml:"timestamp_tolerance" default:"300"` // 时间戳容差（秒），默认5分钟
-	NonceCacheSize     int    `yaml:"nonce_cache_size" default:"10000"`  // Nonce 缓存大小
-	NonceExpireTime    int    `yaml:"nonce_expire_time" default:"600"`   // Nonce 过期时间（秒），默认10分钟
-	FallbackToLocal    bool   `yaml:"fallback_to_local" default:"true"`  // Redis unavailable fallback, disable in production.
+	Enabled            bool   `yaml:"enabled" default:"false"`
+	TimestampTolerance int    `yaml:"timestamp_tolerance" default:"300"`
+	NonceCacheSize     int    `yaml:"nonce_cache_size" default:"10000"`
+	NonceExpireTime    int    `yaml:"nonce_expire_time" default:"600"`
+	FallbackToLocal    bool   `yaml:"fallback_to_local" default:"true"`
 }
 
 //初始化配置
 
 func InitConfig(configPath string) (*Config, error) {
-	v := viper.New() // 创建一个新的viper实例
+	v := viper.New()
 	if configPath != "" {
-		v.SetConfigFile(configPath) // 设置配置文件路径
+		v.SetConfigFile(configPath)
 	} else {
 		v.SetConfigName("gateway")
 		v.SetConfigType("yaml")
@@ -248,7 +248,7 @@ func InitConfig(configPath string) (*Config, error) {
 	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
-	applyEnvOverrides(&cfg) // 处理环境变量覆盖
+	applyEnvOverrides(&cfg)
 
 	return &cfg, nil
 
@@ -269,7 +269,7 @@ func applyEnvOverrides(cfg *Config) {
 	if v := os.Getenv("GATEWAY_ACCESS_TOKEN_SECRET"); v != "" {
 		cfg.Auth.AccessToken.Secret = v
 	} else if v := os.Getenv("GATEWAY_JWT_SECRET"); v != "" {
-		// Backward-compatible fallback for existing deployments.
+
 		cfg.Auth.AccessToken.Secret = v
 	}
 	if v := os.Getenv("GATEWAY_ANTI_REPLAY_SECRET"); v != "" {

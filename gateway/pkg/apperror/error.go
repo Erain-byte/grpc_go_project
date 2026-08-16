@@ -42,9 +42,9 @@ func (e *Error) Error() string {
 		return "<nil>"
 	}
 	if e.Cause != nil {
-		return fmt.Sprintf("%s: %s: %v", e.Code, e.Message, e.Cause) // 500 + 内部错误
+		return fmt.Sprintf("%s: %s: %v", e.Code, e.Message, e.Cause)
 	}
-	return fmt.Sprintf("%s: %s", e.Code, e.Message) // 500
+	return fmt.Sprintf("%s: %s", e.Code, e.Message)
 }
 
 // Unwrap implements the errors.Unwrap interface.
@@ -52,12 +52,12 @@ func (e *Error) Unwrap() error {
 	if e == nil {
 		return nil
 	}
-	return e.Cause // 返回内部错误
+	return e.Cause
 }
 
 // New creates an application error. Prefer the named constructors below.
 func New(code Code, message string, status int) *Error {
-	return &Error{Code: code, Message: message, HTTPStatus: status} // 500
+	return &Error{Code: code, Message: message, HTTPStatus: status}
 }
 
 // Wrap attaches an internal cause without exposing it to clients.
@@ -65,33 +65,33 @@ func Wrap(err error, code Code, message string, status int) *Error {
 	if err == nil {
 		return nil
 	}
-	return &Error{Code: code, Message: message, HTTPStatus: status, Cause: err} // 500
+	return &Error{Code: code, Message: message, HTTPStatus: status, Cause: err}
 }
 
 // Named constructors
 func InvalidArgument(message string) *Error {
-	return New(CodeInvalidArgument, message, http.StatusBadRequest) // 400
+	return New(CodeInvalidArgument, message, http.StatusBadRequest)
 }
 func Unauthorized(message string) *Error {
-	return New(CodeUnauthorized, message, http.StatusUnauthorized) // 401
+	return New(CodeUnauthorized, message, http.StatusUnauthorized)
 }
 func Forbidden(message string) *Error {
-	return New(CodeForbidden, message, http.StatusForbidden) // 403
+	return New(CodeForbidden, message, http.StatusForbidden)
 }
 func NotFound(message string) *Error {
-	return New(CodeNotFound, message, http.StatusNotFound) // 404
+	return New(CodeNotFound, message, http.StatusNotFound)
 }
 func Conflict(message string) *Error {
-	return New(CodeConflict, message, http.StatusConflict) // 409
+	return New(CodeConflict, message, http.StatusConflict)
 }
 func TooManyRequests(message string) *Error {
-	return New(CodeTooManyRequests, message, http.StatusTooManyRequests) // 429
+	return New(CodeTooManyRequests, message, http.StatusTooManyRequests)
 }
 func Unavailable(message string) *Error {
-	return New(CodeUnavailable, message, http.StatusServiceUnavailable) // 503
+	return New(CodeUnavailable, message, http.StatusServiceUnavailable)
 }
 func Timeout(message string) *Error {
-	return New(CodeTimeout, message, http.StatusGatewayTimeout) // 504
+	return New(CodeTimeout, message, http.StatusGatewayTimeout)
 }
 
 // As returns err as an application error, or a safe internal error otherwise.

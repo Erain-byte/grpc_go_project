@@ -141,8 +141,8 @@ func (h *UploadedFileHandler[Req, Resp]) Handle(c *gin.Context) {
 		return
 	}
 	defer file.Close()
-
-	data, err := io.ReadAll(file) //读取文件内容
+	//读取文件内容
+	data, err := io.ReadAll(file)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -152,7 +152,8 @@ func (h *UploadedFileHandler[Req, Resp]) Handle(c *gin.Context) {
 		ContentType: fileHeader.Header.Get("Content-Type"),
 		Data:        data,
 	}
-	req := h.buildRequest(uploadedFile) //构建请求
+	//构建请求
+	req := h.buildRequest(uploadedFile)
 	resp, err := h.call(c.Request.Context(), req)
 	if err != nil {
 		writeGrpcError(c, err)

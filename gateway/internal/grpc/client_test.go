@@ -107,7 +107,7 @@ func TestCheckCertificateExpiry(t *testing.T) {
 		wantCode codes.Code
 	}{
 		{name: "valid", notAfter: time.Now().Add(30 * 24 * time.Hour), wantCode: codes.OK},
-		{name: "expiring", notAfter: time.Now().Add(12 * time.Hour), wantCode: codes.InvalidArgument},
+		{name: "expiring", notAfter: time.Now().Add(12 * time.Hour), wantCode: codes.OK},
 		{name: "expired", notAfter: time.Now().Add(-time.Hour), wantCode: codes.InvalidArgument},
 	}
 
@@ -118,6 +118,32 @@ func TestCheckCertificateExpiry(t *testing.T) {
 				UseTLS:   true,
 				CertFile: certFile,
 				KeyFile:  keyFile,
+			})
+			err := manager.CheckCertificateExpiry(context.Background(), "")
+			if status.Code(err) != test.wantCode {
+				t.Fatalf("CheckCertificateExpiry() code = %v, want %v (err=%v)", status.Code(err), test.wantCode, err)
+			}
+		})
+	}
+}
+
+func TestCheckCACertificateExpiry(t *testing.T) {
+	tests := []struct {
+		name     string
+		notAfter time.Time
+		wantCode codes.Code
+	}{
+		{name: "valid", notAfter: time.Now().Add(30 * 24 * time.Hour), wantCode: codes.OK},
+		{name: "expiring", notAfter: time.Now().Add(12 * time.Hour), wantCode: codes.OK},
+		{name: "expired", notAfter: time.Now().Add(-time.Hour), wantCode: codes.InvalidArgument},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			certFile, _ := writeTestCertificate(t, test.notAfter)
+			manager := NewClientManager(&fakeRegistry{}, &GrpcConfig{
+				UseTLS: true,
+				CaFile: certFile,
 			})
 			err := manager.CheckCertificateExpiry(context.Background(), "")
 			if status.Code(err) != test.wantCode {

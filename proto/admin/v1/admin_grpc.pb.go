@@ -32,6 +32,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AdminServiceClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	// 未声明public，默认要求Gateway传递可信用户身份。
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
 	GetAdminInfo(ctx context.Context, in *GetAdminInfoRequest, opts ...grpc.CallOption) (*GetAdminInfoResponse, error)
 	CreateAdmin(ctx context.Context, in *CreateAdminRequest, opts ...grpc.CallOption) (*CreateAdminResponse, error)
@@ -112,6 +113,7 @@ func (c *adminServiceClient) RefreshToken(ctx context.Context, in *RefreshTokenR
 // for forward compatibility.
 type AdminServiceServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
+	// 未声明public，默认要求Gateway传递可信用户身份。
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	GetAdminInfo(context.Context, *GetAdminInfoRequest) (*GetAdminInfoResponse, error)
 	CreateAdmin(context.Context, *CreateAdminRequest) (*CreateAdminResponse, error)

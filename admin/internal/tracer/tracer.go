@@ -37,7 +37,8 @@ func NewTracerProvider(ctx context.Context, cfg config.TracingConfig) (*Manager,
 		}, nil
 	}
 	opts := []otlptracegrpc.Option{
-		otlptracegrpc.WithEndpoint(cfg.Endpoint), //设置OTLP exporter的地址
+		//设置OTLP exporter的地址
+		otlptracegrpc.WithEndpoint(cfg.Endpoint),
 	}
 	if cfg.UseTLS {
 		tlsConfig, err := createTLSConfig(cfg)
@@ -46,9 +47,11 @@ func NewTracerProvider(ctx context.Context, cfg config.TracingConfig) (*Manager,
 		}
 		opts = append(opts, otlptracegrpc.WithTLSCredentials(credentials.NewTLS(tlsConfig))) //使用TLS
 	} else {
-		opts = append(opts, otlptracegrpc.WithInsecure()) //不使用TLS
+		//不使用TLS
+		opts = append(opts, otlptracegrpc.WithInsecure())
 	}
-	exporter, err := otlptracegrpc.New(ctx, opts...) //创建OTLP exporter
+	//创建OTLP exporter
+	exporter, err := otlptracegrpc.New(ctx, opts...)
 	if err != nil {
 		return nil, apperror.Wrap(
 			err,
@@ -72,7 +75,8 @@ func NewTracerProvider(ctx context.Context, cfg config.TracingConfig) (*Manager,
 		sdktrace.WithResource(res),
 		sdktrace.WithSampler(createSampler(cfg)),
 	)
-	otel.SetTracerProvider(provider) //设置全局的tracer provider
+	//设置全局的tracer provider
+	otel.SetTracerProvider(provider)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{},
 		propagation.Baggage{},
@@ -102,9 +106,9 @@ func createSampler(cfg config.TracingConfig) sdktrace.Sampler {
 func createTLSConfig(cfg config.TracingConfig) (*tls.Config, error) {
 	caFile := cfg.CAFile
 	if caFile == "" {
-		caFile = "/etc/certs/admin/ca.crt" //默认路径
+		caFile = "/etc/certs/admin/ca.crt"
 	}
-	caCert, err := os.ReadFile(caFile) //读取CA证书
+	caCert, err := os.ReadFile(caFile)
 	if err != nil {
 		return nil, apperror.Wrap(
 			err,

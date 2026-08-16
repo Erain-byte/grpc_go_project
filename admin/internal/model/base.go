@@ -11,5 +11,5 @@ type BaseModel struct {
 	ID        uint           `gorm:"primaryKey;autoIncrement" json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"` // 软删除，前端不返回
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }

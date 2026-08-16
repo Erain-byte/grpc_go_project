@@ -77,7 +77,7 @@ func newClusterClient(cfg config.RedisConfig) RedisClient {
 	raw := goredis.NewClusterClient(&goredis.ClusterOptions{
 		Addrs:        cfg.GetRedisAddress(),
 		Password:     cfg.Password,
-		PoolSize:     positiveOrDefault(cfg.PoolSize, 100), // 连接池大小
+		PoolSize:     positiveOrDefault(cfg.PoolSize, 100),
 		MinIdleConns: nonNegative(cfg.MinIdleConns),
 		MaxIdleConns: nonNegative(cfg.MaxIdleConns),
 		ConnMaxIdleTime: parseDuration(

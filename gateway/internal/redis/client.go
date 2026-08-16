@@ -28,7 +28,8 @@ type redisClient struct {
 	raw goredis.UniversalClient
 }
 
-var _ RedisClient = (*redisClient)(nil) //检查编译接口
+// 检查编译接口
+var _ RedisClient = (*redisClient)(nil)
 
 func NewRedisClient(cfg config.RedisConfig) RedisClient {
 	if cfg.IsClusterMode() {
@@ -41,7 +42,7 @@ func newClusterClient(cfg config.RedisConfig) RedisClient {
 	raw := goredis.NewClusterClient(&goredis.ClusterOptions{
 		Addrs:        cfg.ClusterAddresses,
 		Password:     cfg.Password,
-		PoolSize:     positiveOrDefault(cfg.PoolSize, 100), // 连接池大小
+		PoolSize:     positiveOrDefault(cfg.PoolSize, 100),
 		MinIdleConns: nonNegative(cfg.MinIdleConns),
 		MaxIdleConns: nonNegative(cfg.MaxIdleConns),
 		ConnMaxIdleTime: parseDuration(
@@ -83,27 +84,27 @@ func newSingleClient(cfg config.RedisConfig) RedisClient {
 		ConnMaxIdleTime: parseDuration(
 			cfg.ConnMaxIdleTime,
 			30*time.Minute,
-		), // 连接最大空闲时间
+		),
 		ConnMaxLifetime: parseDuration(
 			cfg.ConnMaxLifetime,
 			time.Hour,
-		), // 连接最大生命周期
+		),
 		DialTimeout: parseDuration(
 			cfg.DialTimeout,
 			5*time.Second,
-		), // 连接超时时间
+		),
 		ReadTimeout: parseDuration(
 			cfg.ReadTimeout,
 			3*time.Second,
-		), // 读取超时时间
+		),
 		WriteTimeout: parseDuration(
 			cfg.WriteTimeout,
 			3*time.Second,
-		), // 写入超时时间
+		),
 		PoolTimeout: parseDuration(
 			cfg.PoolTimeout,
 			5*time.Second,
-		), // 连接池超时时间
+		),
 	})
 	return &redisClient{raw: raw}
 }

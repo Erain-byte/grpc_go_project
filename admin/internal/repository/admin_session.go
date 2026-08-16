@@ -4,12 +4,12 @@ import (
 	"admin/internal/model"
 	"admin/internal/svc"
 	"context"
+	"errors"
 	"time"
 
 	"gorm.io/gorm"
 )
 
-// AdminSessionRepository persists administrator login sessions.
 type AdminSessionRepository struct {
 	svcCtx *svc.ServiceContext
 }
@@ -18,7 +18,6 @@ func NewAdminSessionRepository(svcCtx *svc.ServiceContext) *AdminSessionReposito
 	return &AdminSessionRepository{svcCtx: svcCtx}
 }
 
-// Revoke marks an active session as revoked.
 func (r *AdminSessionRepository) Revoke(
 	ctx context.Context,
 	sessionID string,
@@ -39,4 +38,12 @@ func (r *AdminSessionRepository) Revoke(
 	}
 
 	return nil
+}
+
+func (r *AdminSessionRepository) Create(ctx context.Context, session *model.AdminSessionModel) error {
+
+	if session == nil {
+		return errors.New("session is nil")
+	}
+	return r.svcCtx.DB.Gorm().WithContext(ctx).Create(session).Error
 }

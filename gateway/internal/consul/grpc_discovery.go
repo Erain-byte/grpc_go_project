@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	grpcResolverScheme   = "consul"        // 自定义 resolver 的协议名，例如 consul:///admin-service-grpc。
-	grpcRefreshPeriod    = 5 * time.Second // 定期把 Consul 中的最新实例同步给 grpc.ClientConn。
-	grpcDiscoveryTimeout = 5 * time.Second // 单次服务发现请求的最长执行时间。
+	grpcResolverScheme   = "consul"
+	grpcRefreshPeriod    = 5 * time.Second
+	grpcDiscoveryTimeout = 5 * time.Second
 )
 
 // GRPCServiceDiscoverer 定义 gRPC resolver 所需的最小服务发现能力。
@@ -73,7 +73,7 @@ func (b *GRPCResolverBuilder) Build(target resolver.Target, cc resolver.ClientCo
 		cancel()
 		return nil, err
 	}
-	go r.watch() // 初始发现成功后，启动后台刷新。
+	go r.watch()
 	return r, nil
 }
 
@@ -102,7 +102,7 @@ func (r *grpcResolver) Close() { r.cancel() }
 // watch 持续把 Consul 中的最新实例同步给 grpc.ClientConn。
 // 刷新由定时器或 grpc-go 的 ResolveNow 请求触发。
 func (r *grpcResolver) watch() {
-	ticker := time.NewTicker(grpcRefreshPeriod) //定时通道
+	ticker := time.NewTicker(grpcRefreshPeriod)
 	defer ticker.Stop()
 	for {
 		select {

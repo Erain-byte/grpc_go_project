@@ -2,15 +2,45 @@ syntax = "proto3";
 
 package admin.v1;
 
+import "common/v1/security.proto";
+
 option go_package = "github.com/Erain-byte/grpc_go_project/proto/admin/v1;adminv1";
 
 service AdminService {
-  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (common.v1.auth) = {
+      public: true
+    };
+  }
+
+  // 未声明public，默认要求Gateway传递可信用户身份。
   rpc Logout(LogoutRequest) returns (LogoutResponse);
-  rpc GetAdminInfo(GetAdminInfoRequest) returns (GetAdminInfoResponse);
-  rpc CreateAdmin(CreateAdminRequest) returns (CreateAdminResponse);
-  rpc GetAdminList(GetAdminListRequest) returns (GetAdminListResponse);
-  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+
+  rpc GetAdminInfo(GetAdminInfoRequest) returns (GetAdminInfoResponse) {
+    option (common.v1.auth) = {
+      roles: "admin"
+      roles: "super_admin"
+    };
+  }
+
+  rpc CreateAdmin(CreateAdminRequest) returns (CreateAdminResponse) {
+    option (common.v1.auth) = {
+      roles: "super_admin"
+    };
+  }
+
+  rpc GetAdminList(GetAdminListRequest) returns (GetAdminListResponse) {
+    option (common.v1.auth) = {
+      roles: "admin"
+      roles: "super_admin"
+    };
+  }
+
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
+    option (common.v1.auth) = {
+      public: true
+    };
+  }
 }
 
 message LoginRequest {
@@ -29,7 +59,9 @@ message LoginResponse {
 }
 
 message LogoutRequest {
-  string access_token = 1;
+  // Access Token改由Gateway通过受mTLS保护的gRPC metadata传递。
+  reserved 1;
+  reserved "access_token";
 }
 
 message LogoutResponse {
@@ -38,7 +70,9 @@ message LogoutResponse {
 }
 
 message GetAdminInfoRequest {
-  string access_token = 1;
+  // 当前管理员身份由认证中间件写入context，不再放入业务请求体。
+  reserved 1;
+  reserved "access_token";
 }
 
 message GetAdminInfoResponse {

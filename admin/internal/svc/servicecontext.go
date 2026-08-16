@@ -9,26 +9,31 @@ import (
 	"go.uber.org/zap"
 )
 
+// ServiceContext 是 Admin 服务的依赖容器。
+//
+// 这些对象由 app.Run 统一实例化并保存到这里，Handler、Service、Repository
+// 可以按需引用同一份依赖，不需要在各自包中重复创建数据库或 Redis 客户端。
 type ServiceContext struct {
-	Config config.Config
+	Config *config.Config
 	Redis  redis.RedisClient
 	DB     *database.GormClient
 	Logger *zap.Logger
-	Conusl consul.ConsulRegistry
+	Consul *consul.ConsulRegistry
 }
 
 func NewServiceContext(
-	c config.Config,
-	r redis.RedisClient,
-	g *database.GormClient,
+	cfg *config.Config,
+	redisClient redis.RedisClient,
+	db *database.GormClient,
 	log *zap.Logger,
-	consul consul.ConsulRegistry,
+	consulRegistry *consul.ConsulRegistry,
 ) *ServiceContext {
+	// 这里没有创建新连接，只是把外部已经创建好的对象地址保存起来。
 	return &ServiceContext{
-		Config: c,
-		Redis:  r,
-		DB:     g,
+		Config: cfg,
+		Redis:  redisClient,
+		DB:     db,
 		Logger: log,
-		Conusl: consul,
+		Consul: consulRegistry,
 	}
 }

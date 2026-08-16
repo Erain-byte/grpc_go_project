@@ -2,6 +2,7 @@ package consul
 
 import (
 	"admin/internal/config"
+	"context"
 	"fmt"
 	"gateway/pkg/apperror"
 	"net"
@@ -17,38 +18,49 @@ const (
 )
 
 type ConsulRegistry struct {
-	client *api.Client
-	config config.Config
+	client     *api.Client
+	httpClient *http.Client
+	config     config.ConsulConfig
 }
 
 // 构造函数
-func NewConsulRegistry(config config.Config) (*ConsulRegistry, error) {
+func NewConsulRegistry(config config.ConsulConfig) (*ConsulRegistry, error) {
 	// 创建consul配置文件
-	consulConfig := api.DefaultConfig()       // 创建consul客户端
-	addresess := config.Consul.GetAddresses() // 获取consul地址
+	consulConfig := api.DefaultConfig()
+	addresess := config.GetAddresses()
 	if len(addresess) > 0 {
-		consulConfig.Address = addresess[0] // 设置consul地址
+		consulConfig.Address = addresess[0]
 	}
-	if config.Consul.Scheme != "" {
-		consulConfig.Scheme = config.Consul.Scheme // 设置consul协议
+	if config.Scheme != "" {
+		consulConfig.Scheme = config.Scheme
 	}
-	if config.Consul.Token != "" {
-		consulConfig.Token = config.Consul.Token
+	if config.Token != "" {
+		consulConfig.Token = config.Token
 	} // 设置consul token
-	client, err := api.NewClient(consulConfig) // 创建consul客户端
+	client, err := api.NewClient(consulConfig)
 	if err != nil {
 		return nil, apperror.Wrap(err, apperror.CodeInternal, "failed to create Consul client", http.StatusInternalServerError)
-	} // 创建consul客户端
+	}
 	// 创建consul注册中心
 	return &ConsulRegistry{
-		client: client,
-		config: config,
+		client:     client,
+		httpClient: consulConfig.HttpClient,
+		config:     config,
 	}, nil
 }
 
 // 设置关闭
 
 // RegisterGRPC 注册 gRPC 服务实例。
+// Close 释放 Consul HTTP 客户端维护的空闲连接。
+// 它不会从 Consul 注销当前服务，退出前仍然需要调用 DeregisterGRPC。
+func (c *ConsulRegistry) Close() {
+	if c == nil || c.httpClient == nil {
+		return
+	}
+	c.httpClient.CloseIdleConnections()
+}
+
 func (c *ConsulRegistry) RegisterGRPC(name string, host string, port int, userTls bool) error {
 	name = strings.TrimSpace(name)
 	host = strings.TrimSpace(host)
@@ -72,9 +84,9 @@ func (c *ConsulRegistry) RegisterGRPC(name string, host string, port int, userTl
 		Check: &api.AgentServiceCheck{
 			GRPC:                           net.JoinHostPort(host, strconv.Itoa(port)),
 			GRPCUseTLS:                     userTls,
-			Interval:                       c.config.Consul.CheckInterval,
-			Timeout:                        c.config.Consul.CheckTimeout,
-			DeregisterCriticalServiceAfter: c.config.Consul.DeregisterCriticalAfter,
+			Interval:                       c.config.CheckInterval,
+			Timeout:                        c.config.CheckTimeout,
+			DeregisterCriticalServiceAfter: c.config.DeregisterCriticalAfter,
 		},
 	}
 	// 注册服务实例
@@ -107,6 +119,22 @@ func (c *ConsulRegistry) DeregisterGRPC(name, host string, port int) error {
 
 	if err := c.client.Agent().ServiceDeregister(grpcServiceID(name, host, port)); err != nil {
 		return apperror.Wrap(err, apperror.CodeUnavailable, "failed to deregister gRPC service from Consul", http.StatusServiceUnavailable)
+	}
+	return nil
+}
+
+// ping
+func (c *ConsulRegistry) Ping(ctx context.Context) error {
+	if c == nil || c.client == nil {
+		return apperror.InvalidArgument("consul client is nil")
+	}
+	options := new(api.QueryOptions).WithContext(ctx)
+	leader, err := c.client.Status().LeaderWithQueryOptions(options)
+	if err != nil {
+		return apperror.Wrap(err, apperror.CodeInternal, "failed to get Consul leader", http.StatusInternalServerError)
+	}
+	if strings.TrimSpace(leader) == "" {
+		return apperror.Unavailable("consul leader is empty")
 	}
 	return nil
 }

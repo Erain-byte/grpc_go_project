@@ -55,7 +55,7 @@ func NewGormClient(cfg config.DatabaseConfig) (*GormClient, error) {
 	if err != nil {
 		return nil, apperror.Wrap(err, apperror.CodeInvalidArgument, "database connect error", http.StatusServiceUnavailable)
 	}
-	sqlDB.SetConnMaxLifetime(connMaxLifetime) //设置最大连接时间
+	sqlDB.SetConnMaxLifetime(connMaxLifetime)
 	//设置最大空闲时间
 	connIdleTimeout, err := time.ParseDuration(cfg.ConnMaxIdleTime)
 	if err != nil {
@@ -97,8 +97,11 @@ func getDSN(cfg config.DatabaseConfig, address string) string {
 func (g *GormClient) Gorm() *gorm.DB {
 	return g.db
 }
-func (g *GormClient) Close() {
-	g.DB.Close()
+func (g *GormClient) Close() error {
+	if g == nil || g.DB == nil {
+		return nil
+	}
+	return g.DB.Close()
 }
 
 func (g *GormClient) Ping(ctx context.Context) error {

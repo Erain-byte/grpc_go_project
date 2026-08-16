@@ -4,9 +4,9 @@ type OperationLogModel struct {
 	BaseModel
 	AdminID    uint   `gorm:"index;not null;comment:操作管理员ID" json:"admin_id"`
 	AdminName  string `gorm:"size:64;not null;comment:操作人账号" json:"admin_name"`
-	Module     string `gorm:"size:64;comment:操作模块" json:"module"`     // system、user、goods
-	OperType   string `gorm:"size:32;comment:操作类型" json:"oper_type"`  // login/add/edit/delete/export
-	OperDesc   string `gorm:"size:512;comment:操作描述" json:"oper_desc"` // 新增管理员、修改商品
+	Module     string `gorm:"size:64;comment:操作模块" json:"module"`
+	OperType   string `gorm:"size:32;comment:操作类型" json:"oper_type"`
+	OperDesc   string `gorm:"size:512;comment:操作描述" json:"oper_desc"`
 	RequestURL string `gorm:"size:255;comment:请求接口地址" json:"request_url"`
 	Method     string `gorm:"size:16;comment:请求方式 GET/POST/PUT/DELETE" json:"method"`
 	IP         string `gorm:"size:64;comment:操作IP地址" json:"ip"`
