@@ -3,7 +3,8 @@ module admin
 go 1.26.2
 
 require (
-	github.com/Erain-byte/grpc_go_project/proto v0.2.0
+	github.com/Erain-byte/grpc_go_project/proto v0.2.1
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/consul/api v1.34.4
 	github.com/redis/go-redis/v9 v9.22.0
@@ -15,6 +16,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.45.0
 	go.uber.org/zap v1.28.0
 	google.golang.org/grpc v1.83.0
+	google.golang.org/protobuf v1.36.11
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gorm v1.30.0
@@ -67,5 +69,4 @@ require (
 	golang.org/x/text v0.40.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260803160001-6ac0973c030d // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260803160001-6ac0973c030d // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
 )
