@@ -1,6 +1,9 @@
 # Local agent configuration
 **/.agents/
 
+# Temporary browser profiles used for local PDF generation
+.edge-pdf-profile*/
+
 # Visual Studio Code workspace settings
 **/.vscode/
 .gotmp/

@@ -10,7 +10,7 @@ type RoleModel struct {
 	// 多对多：角色关联权限
 	Permissions []PermissionsModel `gorm:"many2many:role_permission;" json:"permissions,omitempty"`
 	// 多对多：角色关联管理员
-	Admins []AdminModel `gorm:"many2many:admin_role;" json:"admins,omitempty"`
+	Admins []AdminModel `gorm:"many2many:admin_roles;" json:"admins,omitempty"`
 }
 
 func (RoleModel) TableName() string {

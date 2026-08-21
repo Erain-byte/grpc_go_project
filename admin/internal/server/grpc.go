@@ -80,7 +80,12 @@ func NewGRPCServer(cfg *config.Config, svcCtx *svc.ServiceContext) (*GRPCServer,
 	// 注册标准 gRPC Health 服务后，Consul 才能通过 gRPC 健康检查判断实例状态。
 	healthServer := health.NewServer()
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
-	adminv1.RegisterAdminServiceServer(grpcServer, handler.NewAdminHandler(svcCtx))
+	adminHandler, err := handler.NewAdminHandler(svcCtx)
+	if err != nil {
+		_ = listener.Close()
+		return nil, err
+	}
+	adminv1.RegisterAdminServiceServer(grpcServer, adminHandler)
 
 	return &GRPCServer{
 		server:   grpcServer,

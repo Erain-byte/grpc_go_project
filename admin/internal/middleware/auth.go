@@ -25,7 +25,6 @@ const (
 )
 
 // AuthInterceptor 校验可信 Gateway 通过 gRPC metadata 传递的用户身份。
-// 这些 metadata 只有在 Gateway 与内部服务之间启用 mTLS（或同等网络隔离）时才可信。
 type AuthInterceptor struct{}
 
 func NewAuthInterceptor() *AuthInterceptor {
@@ -33,21 +32,21 @@ func NewAuthInterceptor() *AuthInterceptor {
 }
 
 func (m *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-		// Health 服务来自 gRPC 官方 Proto，无法添加项目自定义的 auth Option。
-		// Consul 会调用该方法判断实例是否健康，因此这里明确放行。
+
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		// Health 服务来自 gRPC 官方 Proto，无法添加项目自定义的 auth Option
 		if info.FullMethod == healthpb.Health_Check_FullMethodName {
 			return handler(ctx, req)
 		}
-
+		// 校验业务方法是否需要登录
 		rule, err := authRuleForMethod(info.FullMethod)
 		if err != nil {
 			return nil, err
 		}
+		// 如果是公开接口，则无需校验用户身份
 		if rule.GetPublic() {
 			return handler(ctx, req)
 		}
-
 		authInfo, err := authInfoFromMetadata(ctx)
 		if err != nil {
 			return nil, err
@@ -55,13 +54,11 @@ func (m *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		if !roleAllowed(authInfo.Role, rule.GetRoles()) {
 			return nil, apperorr.Forbidden("the current role cannot access this method")
 		}
-
 		return handler(auth.NewContext(ctx, authInfo), req)
 	}
 }
 
 // authRuleForMethod 从编译后的 Proto 方法描述符中读取自定义 auth Option。
-// 未配置 auth Option 的业务方法默认需要登录，遵循 fail closed 原则。
 func authRuleForMethod(fullMethod string) (*commonv1.AuthRule, error) {
 	descriptorName, err := grpcMethodDescriptorName(fullMethod)
 	if err != nil {
@@ -69,15 +66,17 @@ func authRuleForMethod(fullMethod string) (*commonv1.AuthRule, error) {
 	}
 	descriptor, err := protoregistry.GlobalFiles.FindDescriptorByName(descriptorName)
 	if err != nil {
-		return nil, fmt.Errorf("find protobuf method descriptor %q: %w", descriptorName, err)
+		return nil, err
 	}
+	//判断是否是方法
 	method, ok := descriptor.(protoreflect.MethodDescriptor)
+
 	if !ok {
-		return nil, fmt.Errorf("protobuf descriptor %q is not a method", descriptorName)
+		return nil, fmt.Errorf("descriptor %q is not a method", descriptorName)
 	}
 	options, ok := method.Options().(*descriptorpb.MethodOptions)
 	if !ok {
-		return nil, fmt.Errorf("protobuf method %q has invalid options", descriptorName)
+		return nil, fmt.Errorf("descriptor %q has no options", descriptorName)
 	}
 	if !proto.HasExtension(options, commonv1.E_Auth) {
 		return &commonv1.AuthRule{}, nil
@@ -89,6 +88,7 @@ func authRuleForMethod(fullMethod string) (*commonv1.AuthRule, error) {
 	return rule, nil
 }
 
+// grpcMethodDescriptorName
 func grpcMethodDescriptorName(fullMethod string) (protoreflect.FullName, error) {
 	parts := strings.Split(strings.TrimPrefix(fullMethod, "/"), "/")
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
@@ -97,7 +97,9 @@ func grpcMethodDescriptorName(fullMethod string) (protoreflect.FullName, error) 
 	return protoreflect.FullName(parts[0] + "." + parts[1]), nil
 }
 
+// authInfoFromMetadata
 func authInfoFromMetadata(ctx context.Context) (auth.AuthInfo, error) {
+	// 从 gRPC metadata 中提取用户身份信息
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return auth.AuthInfo{}, apperorr.Unauthorized("caller identity metadata is missing")

@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	clien "gateway/internal/grpc"
+	"gateway/internal/middleware"
 	"io"
 	"net/http"
 
 	pbLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -33,8 +35,9 @@ func (h *GrpcHandlerFunc[Req, Resp]) Handle(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	resp, err := h.call(c.Request.Context(), req)
+	grpcCtx := WithMetadata(c)
+	// 2. 调用 gRPC 方法
+	resp, err := h.call(grpcCtx, req)
 	if err != nil {
 		writeGrpcError(c, err)
 		return
@@ -67,8 +70,9 @@ func (h *LlmHTTPHandler) StreamChat(c *gin.Context) {
 		writeGrpcError(c, err)
 		return
 	}
+	grpcCtx := WithMetadata(c)
 	stream, err := client.StreamChat(
-		c.Request.Context(),
+		grpcCtx,
 		&req,
 	)
 	if err != nil {
@@ -152,15 +156,34 @@ func (h *UploadedFileHandler[Req, Resp]) Handle(c *gin.Context) {
 		ContentType: fileHeader.Header.Get("Content-Type"),
 		Data:        data,
 	}
+	grpcCtx := WithMetadata(c)
 	//构建请求
 	req := h.buildRequest(uploadedFile)
-	resp, err := h.call(c.Request.Context(), req)
+	resp, err := h.call(grpcCtx, req)
 	if err != nil {
 		writeGrpcError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, resp)
 }
+
+// 获取用户信息处理
+func WithMetadata(c *gin.Context) context.Context {
+	ctx := c.Request.Context()
+	userID := c.GetString(middleware.ContextUserID)
+	role := c.GetString(middleware.ContextRole)
+	sessionID := c.GetString(middleware.ContextSessionID)
+	if userID != "" {
+		return ctx
+	}
+	return metadata.AppendToOutgoingContext(
+		ctx,
+		"x-user-id", userID,
+		"x-user-role", role,
+		"x-session-id", sessionID,
+	)
+}
+
 func writeGrpcError(c *gin.Context, err error) {
 	grpcStatus, ok := status.FromError(err)
 	if !ok {

@@ -153,6 +153,11 @@ type TracingConfig struct {
 	ServerName   string  `yaml:"server_name" mapstructure:"server_name"`
 }
 
+type Auth struct {
+	AccessSecret string `yaml:"access_secret" mapstructure:"access_secret"`
+	AccessExpire string `yaml:"access_secret_file" mapstructure:"access_secret_file"`
+}
+
 func (c Config) IsProduction() bool {
 	environment := strings.ToLower(strings.TrimSpace(c.Environment))
 	return environment == "prod" || environment == "production"

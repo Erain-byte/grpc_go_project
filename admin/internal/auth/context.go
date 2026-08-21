@@ -1,6 +1,11 @@
 package auth
 
-import "context"
+import (
+	"admin/internal/config"
+	"context"
+	"fmt"
+	"strings"
+)
 
 type AuthInfo struct {
 	AdminID   string
@@ -9,6 +14,10 @@ type AuthInfo struct {
 	TokenID   string
 }
 type contextKey struct{}
+
+const (
+	defaultSessionKeyPrefix = "admin:session:"
+)
 
 func NewContext(ctx context.Context, authInfo AuthInfo) context.Context {
 	return context.WithValue(ctx, contextKey{}, authInfo)
@@ -20,4 +29,13 @@ func FromContext(ctx context.Context) (AuthInfo, bool) {
 		return AuthInfo{}, false
 	}
 	return authInfo, ok
+}
+
+// 设置sessionKey
+func SetSessionKey(sessionID string, cfg config.AuthConfig) string {
+	prefix := strings.TrimSpace(cfg.RefreshToken.RedisKeyPrefix)
+	if prefix == "" {
+		prefix = defaultSessionKeyPrefix
+	}
+	return fmt.Sprintf("%s%s", prefix, sessionID)
 }

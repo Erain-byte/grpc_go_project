@@ -106,7 +106,9 @@ func createSampler(cfg config.TracingConfig) sdktrace.Sampler {
 func createTLSConfig(cfg config.TracingConfig) (*tls.Config, error) {
 	caFile := cfg.CAFile
 	if caFile == "" {
-		caFile = "/etc/certs/admin/ca.crt"
+		return nil, apperror.InvalidArgument(
+			"tracing CA certificate file is required when TLS is enabled",
+		)
 	}
 	caCert, err := os.ReadFile(caFile)
 	if err != nil {

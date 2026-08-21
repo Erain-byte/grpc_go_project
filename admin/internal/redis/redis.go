@@ -3,6 +3,7 @@ package redis
 import (
 	"admin/internal/config"
 	"context"
+	"errors"
 	"gateway/pkg/apperror"
 	"net/http"
 	"time"
@@ -141,6 +142,10 @@ func nonNegative(value int) int {
 // 接口实现
 func (c *redisClient) Get(ctx context.Context, key string) (string, error) {
 	value, err := c.raw.Get(ctx, key).Result()
+	if errors.Is(err, goredis.Nil) {
+		// Key 不存在是正常的缓存未命中，不代表 Redis 服务不可用。
+		return "", nil
+	}
 	if err != nil {
 		return "", apperror.Wrap(err, apperror.CodeUnavailable, "failed to get value from Redis", http.StatusServiceUnavailable)
 	}

@@ -127,7 +127,9 @@ func (m *Manager) Shutdown(ctx context.Context) error {
 func createTLSConfig(cfg config.TracingConfig) (*tls.Config, error) {
 	caFile := cfg.CaFile
 	if caFile == "" {
-		caFile = "/etc/certs/gateway/ca.crt" //默认路径
+		return nil, apperror.InvalidArgument(
+			"tracing CA certificate file is required when TLS is enabled",
+		)
 	}
 	caCert, err := os.ReadFile(caFile) //读取CA证书
 	if err != nil {
