@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package auth.v1;
+
+import "common/v1/security.proto";
+
+option go_package = "github.com/Erain-byte/grpc_go_project/proto/auth/v1;authv1";
+
+service AuthService {
+  rpc ValidateSession(ValidateSessionRequest) returns (ValidateSessionResponse) {
+    option (common.v1.auth) = {public: true};
+  }
+}
+
+message ValidateSessionRequest {
+  // Identity category, such as "admin" or "user".
+  string subject_type = 1;
+
+  // Identity ID
+  string subject_id = 2;
+
+  // Server-side
+  string session_id = 3;
+
+  // JWT ID.
+  string token_id = 4;
+}
+
+message ValidateSessionResponse {
+  bool valid = 1;
+
+  string subject_type = 2;
+  string subject_id = 3;
+  string role = 4;
+  string session_id = 5;
+
+  string reason = 6;
+}
