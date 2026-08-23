@@ -14,13 +14,11 @@ type Config struct {
 	Host           string               `yaml:"host" default:"localhost"`
 	Port           int                  `yaml:"port" default:"8080"`
 	GRPCPort       int                  `yaml:"grpc_port" default:"9080"`
-	Database       DbConfig             `yaml:"database"`
 	Redis          RedisConfig          `yaml:"redis"`
 	Auth           AuthConfig           `yaml:"auth"`
 	Consul         ConsulConfig         `yaml:"consul"`
 	Logger         LoggerConfig         `yaml:"logger"`
 	Service        ServiceConfig        `yaml:"service"`
-	Routes         []RouteConfig        `yaml:"routes"`
 	Shutdown       ShutdownConfig       `yaml:"shutdown"`
 	Grpc           GrpcConfig           `yaml:"grpc"`
 	RateLimit      RateLimitConfig      `yaml:"rate_limit"`
@@ -28,18 +26,7 @@ type Config struct {
 	Tracing        TracingConfig        `yaml:"tracing"`
 	AntiReplay     AntiReplayConfig     `yaml:"anti_replay"`
 	Cors           CORSConfig           `yaml:"cors"`
-}
-
-type DbConfig struct {
-	Driver          string `yaml:"driver" default:"mysql"`
-	Host            string `yaml:"host" default:"localhost"`
-	Port            int    `yaml:"port" default:"3306"`
-	Username        string `yaml:"username" default:"root"`
-	Password        string `yaml:"password" default:"123456"`
-	DBName          string `yaml:"dbname" default:"gateway_db"`
-	MaxIdleConns    int    `yaml:"max_idle_conns" default:"10"`
-	MaxOpenConns    int    `yaml:"max_open_conns" default:"100"`
-	ConnMaxLifetime int    `yaml:"conn_max_lifetime" default:"3600"`
+	Pprof          PprofConfig          `yaml:"pprof"`
 }
 
 // RedisConfig represents the configuration for Redis.
@@ -155,15 +142,6 @@ type CORSConfig struct {
 	MaxAge           int      `yaml:"max_age"`
 }
 
-// RouteConfig 路由配置
-type RouteConfig struct {
-	Name      string `yaml:"name"`
-	Path      string `yaml:"path"`
-	Service   string `yaml:"service"`
-	StripPath bool   `yaml:"strip_path"`
-	Timeout   string `yaml:"timeout"`
-}
-
 // ShutdownConfig 关闭配置
 type ShutdownConfig struct {
 	Timeout string `yaml:"timeout" default:"5s"`
@@ -222,6 +200,13 @@ type AntiReplayConfig struct {
 	FallbackToLocal    bool   `yaml:"fallback_to_local" default:"true"`
 }
 
+// pprof配置
+type PprofConfig struct {
+	Enabled bool   `yaml:"enabled" default:"false"`
+	Host    string `yaml:"host" default:"localhost"`
+	Port    int    `yaml:"port" default:"6060"`
+}
+
 //初始化配置
 
 func InitConfig(configPath string) (*Config, error) {
@@ -259,9 +244,6 @@ func applyEnvOverrides(cfg *Config) {
 
 	if v := os.Getenv("GATEWAY_ENVIRONMENT"); v != "" {
 		cfg.Environment = v
-	}
-	if v := os.Getenv("GATEWAY_DB_PASSWORD"); v != "" {
-		cfg.Database.Password = v
 	}
 	if v := os.Getenv("GATEWAY_REDIS_PASSWORD"); v != "" {
 		cfg.Redis.Password = v

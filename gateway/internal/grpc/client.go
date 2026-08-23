@@ -16,6 +16,7 @@ import (
 	"time"
 
 	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
+	pbAuth "github.com/Erain-byte/grpc_go_project/proto/auth/v1"
 	pbLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -393,6 +394,12 @@ func CreateClient[T any](ctx context.Context, manager *ClientManager, serviceNam
 // admin	service
 func (cm *ClientManager) AdminClient(ctx context.Context) (pbAdmin.AdminServiceClient, error) {
 	return CreateClient(ctx, cm, "admin-service", pbAdmin.NewAdminServiceClient)
+}
+
+// AuthClient 创建 AuthService 客户端。
+// 当前 AuthService 注册在 admin-service；以后拆成独立服务时只需调整服务名。
+func (cm *ClientManager) AuthClient(ctx context.Context) (pbAuth.AuthServiceClient, error) {
+	return CreateClient(ctx, cm, "admin-service", pbAuth.NewAuthServiceClient)
 }
 
 // LLM service

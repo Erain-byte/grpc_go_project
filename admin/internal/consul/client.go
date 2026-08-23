@@ -2,9 +2,9 @@ package consul
 
 import (
 	"admin/internal/config"
+	apperror "admin/pkg/apperorr"
 	"context"
 	"fmt"
-	"gateway/pkg/apperror"
 	"net"
 	"net/http"
 	"strconv"

@@ -2,10 +2,10 @@ package database
 
 import (
 	"admin/internal/config"
+	apperror "admin/pkg/apperorr"
 	"context"
 	"database/sql"
 	"fmt"
-	"gateway/pkg/apperror"
 	"net"
 	"net/http"
 	"net/url"

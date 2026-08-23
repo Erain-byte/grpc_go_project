@@ -2,11 +2,11 @@ package tracer
 
 import (
 	"admin/internal/config"
+	apperror "admin/pkg/apperorr"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"gateway/pkg/apperror"
 	"net/http"
 	"os"
 

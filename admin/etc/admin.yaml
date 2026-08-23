@@ -3,14 +3,15 @@ environment: "development"
 name: "admin-service"
 version: "1.0.0"
 host: "127.0.0.1"
-grpc_port: 9081
+grpc_port: 9082
 
 database:
   driver: "mysql"
   host: "127.0.0.1"
   port: 3306
-  username: "root"
-  dbname: "admin_db"
+  username: "admindb"
+  password: "r7Zxys52GGST4k8k"
+  dbname: "admindb"
   charset: "utf8mb4"
   parse_time: true
   location: "Local"

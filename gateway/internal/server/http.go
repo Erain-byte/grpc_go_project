@@ -17,11 +17,12 @@ import (
 )
 
 type HTTPServer struct {
-	engine        *gin.Engine
-	svcCtx        *svc.ServiceContext
-	httpServer    *http.Server
-	clientManager *grpcclient.ClientManager
-	jwtMiddleware *middleware.JWTMiddleware
+	engine            *gin.Engine
+	svcCtx            *svc.ServiceContext
+	httpServer        *http.Server
+	clientManager     *grpcclient.ClientManager
+	jwtMiddleware     *middleware.JWTMiddleware
+	sessionMiddleware *middleware.SessionMiddleware
 }
 
 // NewHTTPServer 创建并配置 Gateway 的 HTTP 入口服务。
@@ -34,20 +35,41 @@ func NewHTTPServer(svcCtx *svc.ServiceContext, clientManager *grpcclient.ClientM
 	engine.Use(middleware.LoggerMiddleware(svcCtx.Config.Name))
 	CorsMiddelware := middleware.NewCorsMiddleware(svcCtx.Config.Cors)
 	engine.Use(CorsMiddelware.Handle)
-	jwtMiddleware, err := middleware.NewJWTMiddleware(svcCtx.Config.Auth)
+	// AuthService 当前由 Admin 进程实现，ClientManager 通过 Consul 找到其实例。
+	authClient, err := clientManager.AuthClient(context.Background())
 	if err != nil {
 		return nil, apperror.Wrap(
 			err,
+			apperror.CodeUnavailable,
+			"failed to create authentication client",
+			http.StatusServiceUnavailable,
+		)
+	}
+	// JWT 中间件只验证 Token；Session 中间件单独调用 AuthService 检查登录状态。
+	jwtMiddleware, jwtErr := middleware.NewJWTMiddleware(svcCtx.Config.Auth)
+	if jwtErr != nil {
+		return nil, apperror.Wrap(
+			jwtErr,
 			apperror.CodeInternal,
 			"failed to create JWT middleware",
 			http.StatusInternalServerError,
 		)
 	}
+	sessionMiddleware, sessionErr := middleware.NewSessionMiddleware(authClient)
+	if sessionErr != nil {
+		return nil, apperror.Wrap(
+			sessionErr,
+			apperror.CodeInternal,
+			"failed to create session middleware",
+			http.StatusInternalServerError,
+		)
+	}
 	server := &HTTPServer{
-		engine:        engine,
-		svcCtx:        svcCtx,
-		clientManager: clientManager,
-		jwtMiddleware: jwtMiddleware,
+		engine:            engine,
+		svcCtx:            svcCtx,
+		clientManager:     clientManager,
+		jwtMiddleware:     jwtMiddleware,
+		sessionMiddleware: sessionMiddleware,
 		httpServer: &http.Server{
 			Addr:    fmt.Sprintf("%s:%d", svcCtx.Config.Host, svcCtx.Config.Port),
 			Handler: engine,

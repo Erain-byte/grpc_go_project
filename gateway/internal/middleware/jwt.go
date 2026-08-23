@@ -55,7 +55,6 @@ func NewJWTMiddleware(cfg config.AuthConfig) (*JWTMiddleware, error) {
 	if len(allowedIssuers) == 0 {
 		return nil, fmt.Errorf("access token issuers are empty")
 	}
-
 	return &JWTMiddleware{
 		secret:         []byte(accessConfig.Secret),
 		algorithm:      accessConfig.Algorithm,

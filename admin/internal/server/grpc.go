@@ -18,6 +18,7 @@ import (
 	"time"
 
 	adminv1 "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
+	authv1 "github.com/Erain-byte/grpc_go_project/proto/auth/v1"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -86,6 +87,13 @@ func NewGRPCServer(cfg *config.Config, svcCtx *svc.ServiceContext) (*GRPCServer,
 		return nil, err
 	}
 	adminv1.RegisterAdminServiceServer(grpcServer, adminHandler)
+	// AuthService 暂时和 AdminService 运行在同一个 gRPC Server 上，共用端口和生命周期。
+	authHandler, err := handler.NewAuthHandler(svcCtx)
+	if err != nil {
+		_ = listener.Close()
+		return nil, err
+	}
+	authv1.RegisterAuthServiceServer(grpcServer, authHandler)
 
 	return &GRPCServer{
 		server:   grpcServer,

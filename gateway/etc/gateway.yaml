@@ -1,30 +1,22 @@
 # Gateway Service Configuration
 environment: "development" # development, staging, production
 name: "gateway-service"
-host: "localhost"
-port: 8080
-grpc_port: 9080
-
-# Database Configuration
-database:
-  driver: "mysql"
-  host: "localhost"
-  port: 3306
-  username: "root"
-  password: "123456"
-  dbname: "gateway_db"
-  max_idle_conns: 10
-  max_open_conns: 100
-  conn_max_lifetime: 3600
-
+host: "127.0.0.1"
+port: 9080
+grpc_port: 9081
+#pprof configuration
+pprof:
+  enabled: false
+  port: 6060
+  host: "127.0.0.1"
 # Redis Configuration
 # 单节点模式：配置host+port，cluster_addresses留空
 # 集群模式：配置cluster_addresses，host+port将被忽略
 redis:
-  host: "localhost"
+  host: "127.0.0.1"
   port: 6379
   cluster_addresses: []
-  password: ""
+  password: "123123"
   db: 0
   pool_size: 100
   min_idle_conns: 10
@@ -87,44 +79,34 @@ service:
   public_apis:
     - "/health"
   auth_apis: []
-  cors:
-    allow_origins:
-      - "*"
-    allow_methods:
-      - "GET"
-      - "POST"
-      - "PUT"
-      - "DELETE"
-      - "OPTIONS"
-    allow_headers:
-      - "Origin"
-      - "Content-Type"
-      - "Accept"
-      - "Authorization"
-      - "X-Requested-With"
-    expose_headers:
-      - "Content-Length"
-      - "Content-Type"
-    allow_credentials: true
-    max_age: 12
 
-# Route Configuration
-routes:
-  - name: "user-service"
-    path: "/api/v1/user"
-    service: "user-service"
-    strip_path: true
-    timeout: "5s"
-  - name: "admin-service"
-    path: "/api/v1/admin"
-    service: "admin-service"
-    strip_path: true
-    timeout: "5s"
-  - name: "ai-service"
-    path: "/api/v1/ai"
-    service: "ai-service"
-    strip_path: true
-    timeout: "5s"
+# HTTP CORS Configuration
+# NewHTTPServer 读取的是顶层 cors，而不是 service.cors。
+cors:
+  allow_origins:
+    - "http://127.0.0.1:3000"
+    - "http://localhost:3000"
+  allow_methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+    - "OPTIONS"
+  allow_headers:
+    - "Origin"
+    - "Content-Type"
+    - "Accept"
+    - "Authorization"
+    - "X-Request-ID"
+  expose_headers:
+    - "Content-Length"
+    - "Content-Type"
+    - "X-Request-ID"
+  allow_credentials: true
+  max_age: 12
+
+# HTTP 路由不从配置文件动态生成。
+# 请在 internal/server/routes_*.go 中按业务模块注册路由。
 
 # Shutdown Configuration
 shutdown:
@@ -137,7 +119,7 @@ grpc:
   cert_file: ""                     # 客户端证书文件路径（默认：/etc/certs/gateway/client.crt）
   key_file: ""                      # 客户端私钥文件路径（默认：/etc/certs/gateway/client.key）
   ca_file: ""                       # CA 证书文件路径（默认：/etc/certs/gateway/ca.crt）
-  server_name: "gateway-service"    # TLS Server Name（用于证书验证）
+  server_name: "admin-service"      # 验证 Admin gRPC 服务端证书中的名称
 
 # Rate Limit Configuration (限流配置)
 rate_limit:
@@ -160,7 +142,7 @@ circuit_breaker:
 tracing:
   enabled: true                     # 是否启用链路追踪
   service_name: "gateway-service"   # 服务名称
-  endpoint: "localhost:4317"        # OTLP gRPC Collector 地址（标准端口 4317）
+  endpoint: "127.0.0.1:4317"        # OTLP gRPC Collector 地址（标准端口 4317）
   sampler_type: "const"             # 采样器类型：const, probabilistic, ratelimiting
   sampler_param: 1.0                # 采样参数（const: 0/1, probabilistic: 0.0-1.0）
   use_tls: false                    # 是否启用 TLS（生产环境建议启用）

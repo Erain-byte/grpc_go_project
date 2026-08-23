@@ -141,7 +141,15 @@ func Run() error {
 	if err != nil {
 		return err
 	}
-
+	pprofServer, err := server.NewPprofServer(cfg.Pprof)
+	if err != nil {
+		return apperror.Wrap(
+			err,
+			apperror.CodeInternal,
+			"failed to create pprof server",
+			http.StatusInternalServerError,
+		)
+	}
 	// 将 HTTP 实例和 /health 检查地址注册到 Consul。
 	// 注册成功后不是 Gateway 主动循环检查，而是 Consul Agent 按
 	// check_interval 定期请求 http://host:port/health。
@@ -188,7 +196,13 @@ func Run() error {
 		name string
 		err  error
 	}
-	serverErrors := make(chan serverResult, 2)
+	serverCount := 2
+	if pprofServer != nil {
+		serverCount++
+
+	}
+
+	serverErrors := make(chan serverResult, serverCount)
 
 	go func() {
 		serverErrors <- serverResult{name: "HTTP", err: httpServer.Start()}
@@ -196,6 +210,11 @@ func Run() error {
 	go func() {
 		serverErrors <- serverResult{name: "gRPC", err: grpcServer.Start()}
 	}()
+	if pprofServer != nil {
+		go func() {
+			serverErrors <- serverResult{name: "pprof", err: pprofServer.Run()}
+		}()
+	}
 
 	var runErr error
 	select {
@@ -220,16 +239,23 @@ func Run() error {
 		parseShutdownTimeout(cfg.Shutdown.Timeout),
 	)
 	defer cancelShutdown()
+	//統一關閉
+	shutdownTasks := []func(context.Context) error{
+		httpServer.Shutdown,
+		grpcServer.Shutdown,
+	}
+	if pprofServer != nil {
+		shutdownTasks = append(shutdownTasks, pprofServer.Shutdown)
+	}
 
-	shutdownErrors := make(chan error, 2)
-	go func() {
-		shutdownErrors <- httpServer.Shutdown(shutdownCtx)
-	}()
-	go func() {
-		shutdownErrors <- grpcServer.Shutdown(shutdownCtx)
-	}()
+	shutdownErrors := make(chan error, len(shutdownTasks))
+	for _, task := range shutdownTasks {
+		go func(shutdown func(context.Context) error) {
+			shutdownErrors <- shutdown(shutdownCtx)
+		}(task)
+	}
 
-	for range 2 {
+	for range shutdownTasks {
 		if err := <-shutdownErrors; err != nil {
 			runErr = errors.Join(runErr, err)
 		}
