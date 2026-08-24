@@ -10,7 +10,7 @@ database:
   host: "127.0.0.1"
   port: 3306
   username: "admindb"
-  password: "r7Zxys52GGST4k8k"
+ 
   dbname: "admindb"
   charset: "utf8mb4"
   parse_time: true
@@ -93,4 +93,4 @@ tracing:
   ca_file: ""
   cert_file: ""
   key_file: ""
-  server_name: "otel-collector"
+  server_name: "jaeger" # 仅启用 TLS 时参与服务端证书名称验证

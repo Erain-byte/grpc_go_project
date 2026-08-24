@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/spf13/viper"
 )
 
@@ -91,7 +92,7 @@ type RefreshTokenConfig struct {
 
 // conusl配置
 type ConsulConfig struct {
-	Address                 []string `yaml:"address"`
+	Addresses               []string `yaml:"addresses"`
 	Host                    string   `yaml:"host" default:"localhost"`
 	Port                    int      `yaml:"port" default:"8500"`
 	Token                   string   `yaml:"token" default:""`
@@ -105,8 +106,8 @@ type ConsulConfig struct {
 
 // GetAddresses 获取Consul地址列表，优先使用集群地址
 func (c *ConsulConfig) GetAddresses() []string {
-	if len(c.Address) > 0 {
-		return c.Address
+	if len(c.Addresses) > 0 {
+		return c.Addresses
 	}
 	return []string{fmt.Sprintf("%s:%d", c.Host, c.Port)}
 }
@@ -219,18 +220,17 @@ func InitConfig(configPath string) (*Config, error) {
 		v.AddConfigPath(".")
 		v.AddConfigPath("./etc")
 	}
-	// 设置默认值
-	var cfg Config
-	if err := v.Unmarshal(&cfg); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
-	}
-
 	// 读取配置文件
 	if err := v.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 	// 解析配置文件
-	if err := v.Unmarshal(&cfg); err != nil {
+	var cfg Config
+	if err := v.Unmarshal(&cfg, func(decoderConfig *mapstructure.DecoderConfig) {
+		// 结构体统一使用 yaml 标签。否则 check_interval 等蛇形字段
+		// 无法映射到 CheckInterval，最终会以空字符串传给 Consul。
+		decoderConfig.TagName = "yaml"
+	}); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 	applyEnvOverrides(&cfg)

@@ -1,0 +1,30 @@
+services:
+  consul:
+    image: hashicorp/consul:latest
+    container_name: grpc-go-consul
+    command:
+      - agent
+      - -dev
+      - -client=0.0.0.0
+      - -ui
+    ports:
+      # Consul HTTP API 和管理页面：http://127.0.0.1:8500
+      - "8500:8500"
+      # Consul DNS 接口，当前项目暂未使用。
+      - "8600:8600/tcp"
+      - "8600:8600/udp"
+    restart: unless-stopped
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: grpc-go-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      # Gateway 和 Admin 使用的 OTLP gRPC 接收端口。
+      - "4317:4317"
+      # OTLP HTTP 接收端口，当前 Go 服务暂未使用。
+      - "4318:4318"
+      # Jaeger 查询页面：http://127.0.0.1:16686
+      - "16686:16686"
+    restart: unless-stopped

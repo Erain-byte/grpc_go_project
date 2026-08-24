@@ -16,7 +16,7 @@ redis:
   host: "127.0.0.1"
   port: 6379
   cluster_addresses: []
-  password: "123123"
+  
   db: 0
   pool_size: 100
   min_idle_conns: 10
@@ -142,14 +142,14 @@ circuit_breaker:
 tracing:
   enabled: true                     # 是否启用链路追踪
   service_name: "gateway-service"   # 服务名称
-  endpoint: "127.0.0.1:4317"        # OTLP gRPC Collector 地址（标准端口 4317）
+  endpoint: "127.0.0.1:4317"        # 本地 Jaeger OTLP gRPC 接收地址
   sampler_type: "const"             # 采样器类型：const, probabilistic, ratelimiting
   sampler_param: 1.0                # 采样参数（const: 0/1, probabilistic: 0.0-1.0）
   use_tls: false                    # 是否启用 TLS（生产环境建议启用）
   ca_file: ""                       # CA 证书文件路径（默认：/etc/certs/gateway/ca.crt）
   cert_file: ""                     # 客户端证书文件路径（双向认证时使用）
   key_file: ""                      # 客户端私钥文件路径（双向认证时使用）
-  server_name: "otel-collector"     # TLS Server Name（用于证书验证）
+  server_name: "jaeger"             # 仅启用 TLS 时参与服务端证书名称验证
 
 # Anti-Replay Configuration (防重放配置)
 anti_replay:

@@ -29,6 +29,21 @@ func TestInitConfigLoadsAuthConfiguration(t *testing.T) {
 	if !cfg.Auth.RefreshToken.ReuseDetection {
 		t.Error("refresh token reuse detection should be enabled")
 	}
+	if got := cfg.Consul.CheckInterval; got != "10s" {
+		t.Errorf("Consul check interval = %q, want 10s", got)
+	}
+	if got := cfg.Consul.CheckTimeout; got != "5s" {
+		t.Errorf("Consul check timeout = %q, want 5s", got)
+	}
+	if got := cfg.Redis.MinIdleConns; got != 10 {
+		t.Errorf("Redis min idle connections = %d, want 10", got)
+	}
+	if got := cfg.Tracing.ServiceName; got != "gateway-service" {
+		t.Errorf("tracing service name = %q, want gateway-service", got)
+	}
+	if got := len(cfg.Cors.AllowOrigins); got != 2 {
+		t.Errorf("CORS allow origin count = %d, want 2", got)
+	}
 }
 
 func TestInitConfigSupportsLegacyJWTSecretEnvironment(t *testing.T) {
