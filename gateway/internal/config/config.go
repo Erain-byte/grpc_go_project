@@ -97,6 +97,7 @@ type ConsulConfig struct {
 	Port                    int      `yaml:"port" default:"8500"`
 	Token                   string   `yaml:"token" default:""`
 	Scheme                  string   `yaml:"scheme" default:"http"`
+	CheckHost               string   `yaml:"check_host" default:""`
 	CheckInterval           string   `yaml:"check_interval" default:"10s"`
 	CheckTimeout            string   `yaml:"check_timeout" default:"5s"`
 	TTL                     string   `yaml:"ttl" default:"30s"`

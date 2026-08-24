@@ -60,6 +60,7 @@ consul:
   port: 8500
   addresses: []
   scheme: "http"
+  check_host: "host.docker.internal" # Docker Consul 通过该地址访问 Windows 上的 Admin
   check_interval: "10s"
   check_timeout: "5s"
   deregister_critical_after: "90s"

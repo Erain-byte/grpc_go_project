@@ -11,3 +11,8 @@
 # Local Go workspace
 go.work
 go.work.sum
+.env
+
+# Runtime logs are local artifacts and must not be committed.
+**/logs/
+*.log

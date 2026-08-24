@@ -6,7 +6,7 @@ port: 9080
 grpc_port: 9081
 #pprof configuration
 pprof:
-  enabled: false
+  enabled: true
   port: 6060
   host: "127.0.0.1"
 # Redis Configuration
@@ -53,6 +53,7 @@ consul:
   addresses: []
   token: ""
   scheme: "http"
+  check_host: "host.docker.internal" # Docker Consul 通过该地址访问 Windows 上的 Gateway
   check_interval: "10s"
   check_timeout: "5s"
   ttl: "30s"

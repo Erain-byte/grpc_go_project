@@ -28,3 +28,30 @@ services:
       # Jaeger 查询页面：http://127.0.0.1:16686
       - "16686:16686"
     restart: unless-stopped
+  
+  rabbitmq:
+    image: rabbitmq:4.3.5-management
+    container_name: grpc-go-rabbitmq
+    env_file:
+      - .env
+    environment:
+      RABBITMQ_DEFAULT_USER: "grpc_app"
+      RABBITMQ_DEFAULT_VHOST: "/grpc-go"
+    ports:
+      # Go 服务使用的 AMQP 端口。
+      - "5672:5672"
+      # RabbitMQ 管理页面：http://127.0.0.1:15672
+      - "15672:15672"
+    volumes:
+      # 保存队列、交换机和持久化消息。
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:

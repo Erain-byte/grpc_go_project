@@ -74,6 +74,10 @@ func (c *ConsulRegistry) RegisterGRPC(name string, host string, port int, userTl
 	}
 	serviceName := name + "-grpc"
 	serviceID := grpcServiceID(name, host, port)
+	checkHost := strings.TrimSpace(c.config.CheckHost)
+	if checkHost == "" {
+		checkHost = host
+	}
 	// 创建服务实例
 	registerGrpc := &api.AgentServiceRegistration{
 		ID:      serviceID,
@@ -82,7 +86,7 @@ func (c *ConsulRegistry) RegisterGRPC(name string, host string, port int, userTl
 		Port:    port,
 		Tags:    []string{protocolGRPC, name},
 		Check: &api.AgentServiceCheck{
-			GRPC:                           net.JoinHostPort(host, strconv.Itoa(port)),
+			GRPC:                           net.JoinHostPort(checkHost, strconv.Itoa(port)),
 			GRPCUseTLS:                     userTls,
 			Interval:                       c.config.CheckInterval,
 			Timeout:                        c.config.CheckTimeout,

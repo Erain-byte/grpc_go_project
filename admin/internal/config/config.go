@@ -106,6 +106,7 @@ type ConsulConfig struct {
 	Addresses               []string `yaml:"addresses" mapstructure:"addresses"`
 	Token                   string   `yaml:"-" mapstructure:"-"`
 	Scheme                  string   `yaml:"scheme" mapstructure:"scheme"`
+	CheckHost               string   `yaml:"check_host" mapstructure:"check_host"`
 	CheckInterval           string   `yaml:"check_interval" mapstructure:"check_interval"`
 	CheckTimeout            string   `yaml:"check_timeout" mapstructure:"check_timeout"`
 	DeregisterCriticalAfter string   `yaml:"deregister_critical_after" mapstructure:"deregister_critical_after"`

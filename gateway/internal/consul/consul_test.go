@@ -26,14 +26,14 @@ func TestRegisterHTTPUsesHTTPTagAndHealthCheck(t *testing.T) {
 	defer server.Close()
 
 	registry := newTestRegistry(t, server.URL)
-	registry.config = config.ConsulConfig{Scheme: "http", CheckInterval: "10s", CheckTimeout: "5s"}
+	registry.config = config.ConsulConfig{Scheme: "http", CheckHost: "host.docker.internal", CheckInterval: "10s", CheckTimeout: "5s"}
 	if err := registry.RegisterHTTP("gateway", "127.0.0.1", 8080, validServiceConfig()); err != nil {
 		t.Fatalf("RegisterHTTP() error = %v", err)
 	}
 	if got.ID != "gateway-http-127.0.0.1-8080" || got.Name != "gateway-http" || got.Port != 8080 || !slices.Contains(got.Tags, ProtocolHTTP) || slices.Contains(got.Tags, ProtocolGRPC) {
 		t.Fatalf("HTTP registration = %+v", got)
 	}
-	if got.Check == nil || got.Check.HTTP != "http://127.0.0.1:8080/health" {
+	if got.Check == nil || got.Check.HTTP != "http://host.docker.internal:8080/health" {
 		t.Fatalf("HTTP health check = %+v", got.Check)
 	}
 }
@@ -48,14 +48,14 @@ func TestRegisterGRPCUsesGRPCTagAndHealthCheck(t *testing.T) {
 	defer server.Close()
 
 	registry := newTestRegistry(t, server.URL)
-	registry.config = config.ConsulConfig{CheckInterval: "10s", CheckTimeout: "5s"}
+	registry.config = config.ConsulConfig{CheckHost: "host.docker.internal", CheckInterval: "10s", CheckTimeout: "5s"}
 	if err := registry.RegisterGRPC("llm-service", "127.0.0.1", 9080, validServiceConfig()); err != nil {
 		t.Fatalf("RegisterGRPC() error = %v", err)
 	}
 	if got.ID != "llm-service-grpc-127.0.0.1-9080" || got.Name != "llm-service-grpc" || got.Port != 9080 || !slices.Contains(got.Tags, ProtocolGRPC) || slices.Contains(got.Tags, ProtocolHTTP) {
 		t.Fatalf("gRPC registration = %+v", got)
 	}
-	if got.Check == nil || got.Check.GRPC != "127.0.0.1:9080" {
+	if got.Check == nil || got.Check.GRPC != "host.docker.internal:9080" {
 		t.Fatalf("gRPC health check = %+v", got.Check)
 	}
 }

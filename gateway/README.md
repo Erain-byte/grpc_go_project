@@ -1,5 +1,81 @@
 # Gateway
 
+## 本地启动
+
+Gateway 对外提供 HTTP 服务，同时运行入站 gRPC Server，并作为 gRPC Client 调用 Admin 等内部服务。当前本地端口为：
+
+```text
+HTTP: 127.0.0.1:9080
+gRPC: 127.0.0.1:9081
+```
+
+先在项目根目录启动 Consul 和 Jaeger：
+
+```powershell
+cd D:\grpc_go_project
+docker compose -f deploy\observability\compose.yaml up -d
+```
+
+然后在新的 PowerShell 中启动 Gateway：
+
+```powershell
+cd D:\grpc_go_project\gateway
+$env:GATEWAY_ACCESS_TOKEN_SECRET = "请替换为本地测试密钥"
+$env:GATEWAY_REDIS_PASSWORD = "123123"
+go run ./cmd/gateway
+```
+
+`GATEWAY_ACCESS_TOKEN_SECRET` 必须与 Admin 的 `ADMIN_ACCESS_TOKEN_SECRET` 完全一致，否则 Admin 生成的 JWT 无法通过 Gateway 验证。
+
+健康检查和日志：
+
+```powershell
+Invoke-WebRequest http://127.0.0.1:9080/health -UseBasicParsing
+Get-Content D:\grpc_go_project\gateway\logs\gateway.log -Tail 100 -Wait
+```
+
+配置文件中的日志路径是相对于启动工作目录的路径。推荐始终先进入 `gateway` 目录再运行程序，这样日志固定生成到 `gateway/logs/gateway.log`。
+
+### Docker Consul 健康检查
+
+Gateway 注册两个 Consul 实例：
+
+```text
+gateway-service-http → HTTP /health 检查
+gateway-service-grpc → grpc.health.v1.Health/Check 检查
+```
+
+本地配置必须区分注册地址和检查地址：
+
+```yaml
+consul:
+  host: "127.0.0.1"
+  port: 8500
+  check_host: "host.docker.internal"
+  check_interval: "10s"
+  check_timeout: "5s"
+  deregister_critical_after: "90s"
+```
+
+- 服务实例的 `Address` 仍是 `127.0.0.1`，供 Windows 上的 Gateway gRPC Client 使用。
+- 健康检查使用 `host.docker.internal`，让 Docker 中的 Consul 能访问 Windows 上的 Gateway。
+- 连续不健康超过 90 秒后，Consul 会移除实例；这不是 Consul 进程停止。
+- 修改这些字段后必须重启 Gateway，使其重新注册；不需要重启 Docker。
+
+### 本地链路追踪
+
+Gateway 将 Trace 发送到 Jaeger：
+
+```yaml
+tracing:
+  enabled: true
+  service_name: "gateway-service"
+  endpoint: "127.0.0.1:4317"
+  use_tls: false
+```
+
+调用接口后访问 `http://127.0.0.1:16686`，选择 `gateway-service` 查询 Trace。如果 Jaeger 没启动，会出现 `dial tcp 127.0.0.1:4317: connection refused`，业务服务不一定因此停止，但 Trace 无法导出。
+
 ## Gateway 在系统中的角色
 
 Gateway 同时承担两种角色：

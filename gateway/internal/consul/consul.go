@@ -88,6 +88,7 @@ func (r *ConsulRegistry) RegisterHTTP(name string, host string, port int, cfg *c
 	if err != nil {
 		return err
 	}
+	checkHost := r.healthCheckHost(host)
 	registration := &api.AgentServiceRegistration{
 		ID:      buildServiceID(name, ProtocolHTTP, host, port),
 		Name:    fmt.Sprintf("%s-http", name),
@@ -96,7 +97,7 @@ func (r *ConsulRegistry) RegisterHTTP(name string, host string, port int, cfg *c
 		Tags:    BuildServiceTags(cfg, ProtocolHTTP),
 		Meta:    metadata,
 		Check: &api.AgentServiceCheck{
-			HTTP:                           fmt.Sprintf("%s://%s:%d/health", r.config.Scheme, host, port),
+			HTTP:                           fmt.Sprintf("%s://%s:%d/health", r.config.Scheme, checkHost, port),
 			Interval:                       r.config.CheckInterval,
 			Timeout:                        r.config.CheckTimeout, //服务检查间隔
 			DeregisterCriticalServiceAfter: r.config.DeregisterCriticalAfter,
@@ -128,6 +129,7 @@ func (r *ConsulRegistry) RegisterGRPC(name string, host string, port int, cfg *c
 	if err != nil {
 		return err
 	}
+	checkHost := r.healthCheckHost(host)
 	registration := &api.AgentServiceRegistration{
 		ID:      buildServiceID(name, ProtocolGRPC, host, port),
 		Name:    fmt.Sprintf("%s-grpc", name),
@@ -136,7 +138,7 @@ func (r *ConsulRegistry) RegisterGRPC(name string, host string, port int, cfg *c
 		Tags:    BuildServiceTags(cfg, ProtocolGRPC),
 		Meta:    metadata,
 		Check: &api.AgentServiceCheck{
-			GRPC:                           fmt.Sprintf("%s:%d", host, port),
+			GRPC:                           fmt.Sprintf("%s:%d", checkHost, port),
 			Interval:                       r.config.CheckInterval,
 			Timeout:                        r.config.CheckTimeout, //服务检查间隔
 			DeregisterCriticalServiceAfter: r.config.DeregisterCriticalAfter,
@@ -148,6 +150,16 @@ func (r *ConsulRegistry) RegisterGRPC(name string, host string, port int, cfg *c
 	}
 	logInfof("registered gRPC service %s with Consul", name)
 	return nil
+}
+
+// healthCheckHost 返回 Consul Agent 执行健康检查时使用的主机名。
+// Consul 在 Docker 中运行时，127.0.0.1 指向容器自身，需要通过
+// host.docker.internal 访问运行在 Windows 主机上的 Go 服务。
+func (r *ConsulRegistry) healthCheckHost(serviceHost string) string {
+	if checkHost := strings.TrimSpace(r.config.CheckHost); checkHost != "" {
+		return checkHost
+	}
+	return serviceHost
 }
 
 // BuildServiceMetadata 构建Gateway服务元数据
