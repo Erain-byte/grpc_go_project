@@ -96,13 +96,17 @@ func (r *ConsulRegistry) RegisterHTTP(name string, host string, port int, cfg *c
 		Port:    port,
 		Tags:    BuildServiceTags(cfg, ProtocolHTTP),
 		Meta:    metadata,
+		//服务检查
 		Check: &api.AgentServiceCheck{
-			HTTP:                           fmt.Sprintf("%s://%s:%d/health", r.config.Scheme, checkHost, port),
-			Interval:                       r.config.CheckInterval,
-			Timeout:                        r.config.CheckTimeout, //服务检查间隔
+			//實際檢查地址
+			HTTP:     fmt.Sprintf("%s://%s:%d/health", r.config.Scheme, checkHost, port),
+			Interval: r.config.CheckInterval,
+			//服务检查间隔
+			Timeout:                        r.config.CheckTimeout,
 			DeregisterCriticalServiceAfter: r.config.DeregisterCriticalAfter,
-			TLSSkipVerify:                  true, //跳过TLS验证
-		}, //服务检查
+			//跳过TLS验证
+			TLSSkipVerify: true,
+		},
 	}
 
 	if err := r.client.Agent().ServiceRegister(registration); err != nil {
@@ -138,9 +142,10 @@ func (r *ConsulRegistry) RegisterGRPC(name string, host string, port int, cfg *c
 		Tags:    BuildServiceTags(cfg, ProtocolGRPC),
 		Meta:    metadata,
 		Check: &api.AgentServiceCheck{
-			GRPC:                           fmt.Sprintf("%s:%d", checkHost, port),
-			Interval:                       r.config.CheckInterval,
-			Timeout:                        r.config.CheckTimeout, //服务检查间隔
+			GRPC:     fmt.Sprintf("%s:%d", checkHost, port),
+			Interval: r.config.CheckInterval,
+			//服务检查间隔
+			Timeout:                        r.config.CheckTimeout,
 			DeregisterCriticalServiceAfter: r.config.DeregisterCriticalAfter,
 		},
 	}
