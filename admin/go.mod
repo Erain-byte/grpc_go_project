@@ -3,7 +3,7 @@ module admin
 go 1.26.2
 
 require (
-	github.com/Erain-byte/grpc_go_project/proto v0.2.2
+	github.com/Erain-byte/grpc_go_project/proto v0.2.3
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/consul/api v1.34.4
