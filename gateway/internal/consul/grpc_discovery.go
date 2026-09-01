@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"slices"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -14,32 +16,30 @@ import (
 )
 
 const (
-	grpcResolverScheme   = "consul"
-	grpcRefreshPeriod    = 5 * time.Second
-	grpcDiscoveryTimeout = 5 * time.Second
+	grpcResolverScheme = "consul"
 )
 
-// GRPCServiceDiscoverer 定义 gRPC resolver 所需的最小服务发现能力。
-// 使用接口后，ClientManager 和 resolver 不必依赖具体的 ConsulRegistry，测试时也可以传入假实现。
-type GRPCServiceDiscoverer interface {
-	DiscoverGRPCService(context.Context, string) ([]*api.ServiceEntry, error)
-}
+var _ GRPCServiceWatcher = (*ConsulRegistry)(nil)
+var _ resolver.Builder = (*GRPCResolverBuilder)(nil)
+var _ resolver.Resolver = (*grpcResolver)(nil)
 
-// DiscoverGRPCService 查询通过健康检查的 gRPC 服务实例。
-// 底层复用通用 discoverService，并通过 ProtocolGRPC 限定协议类型。
-func (r *ConsulRegistry) DiscoverGRPCService(ctx context.Context, name string) ([]*api.ServiceEntry, error) {
-	return r.discoverService(ctx, name, ProtocolGRPC)
+// GRPCServiceWatcher 定义 resolver 所需的最小 Consul 监听能力。
+// ClientManager 因此不依赖具体 Registry，测试时可以传入假实现。
+type GRPCServiceWatcher interface {
+	WatchGRPCService(ctx context.Context,
+		serviceName string,
+		onUpdate func([]*api.ServiceEntry) error,
+	) error
 }
 
 // GRPCResolverBuilder 是 Consul 服务发现与 grpc-go resolver 之间的适配器。
 // grpc.NewClient 会根据 Scheme 找到它，再调用 Build 创建一个服务专用的 resolver。
 type GRPCResolverBuilder struct {
-	discoverer GRPCServiceDiscoverer
+	watcher GRPCServiceWatcher
 }
 
-// NewGRPCResolverBuilder 创建 Consul gRPC resolver 构建器。
-func NewGRPCResolverBuilder(discoverer GRPCServiceDiscoverer) *GRPCResolverBuilder {
-	return &GRPCResolverBuilder{discoverer: discoverer}
+func NewGRPCResolverBuilder(watcher GRPCServiceWatcher) *GRPCResolverBuilder {
+	return &GRPCResolverBuilder{watcher: watcher}
 }
 
 // Scheme 返回 resolver 的协议名，对应 target 中的 consul:// 前缀。
@@ -49,8 +49,8 @@ func (b *GRPCResolverBuilder) Scheme() string { return grpcResolverScheme }
 // target.Endpoint() 从 consul:///admin-service-grpc 中得到 admin-service-grpc；
 // cc 是 grpc-go 提供的回调接口，resolver 通过它把最新地址列表交还给 grpc.ClientConn。
 func (b *GRPCResolverBuilder) Build(target resolver.Target, cc resolver.ClientConn, _ resolver.BuildOptions) (resolver.Resolver, error) {
-	if b.discoverer == nil {
-		return nil, fmt.Errorf("Consul service discoverer is nil")
+	if b.watcher == nil {
+		return nil, fmt.Errorf("Consul service watcher is nil")
 	}
 	serviceName := strings.TrimSpace(target.Endpoint())
 	if serviceName == "" {
@@ -60,18 +60,11 @@ func (b *GRPCResolverBuilder) Build(target resolver.Target, cc resolver.ClientCo
 	// 该 context 控制 resolver 的完整生命周期，Close 会调用 cancel 结束后台 watch。
 	ctx, cancel := context.WithCancel(context.Background())
 	r := &grpcResolver{
-		discoverer:  b.discoverer,
+		watcher:     b.watcher,
 		clientConn:  cc,
 		serviceName: serviceName,
 		ctx:         ctx,
 		cancel:      cancel,
-		// 容量为 1，用于合并短时间内重复到达的立即刷新请求。
-		resolveNow: make(chan struct{}, 1),
-	}
-	// 第一次发现同步执行，确保 resolver 创建成功时已经向 gRPC 提供了初始地址。
-	if err := r.resolve(); err != nil {
-		cancel()
-		return nil, err
 	}
 	go r.watch()
 	return r, nil
@@ -79,67 +72,70 @@ func (b *GRPCResolverBuilder) Build(target resolver.Target, cc resolver.ClientCo
 
 // grpcResolver 负责一个逻辑 gRPC 服务的持续地址解析。
 type grpcResolver struct {
-	discoverer  GRPCServiceDiscoverer // 从 Consul 获取健康实例。
-	clientConn  resolver.ClientConn   // 把地址或错误通知给 grpc-go。
-	serviceName string                // 例如 admin-service-grpc。
-	ctx         context.Context       // resolver 生命周期 context。
-	cancel      context.CancelFunc    // 关闭 resolver 及后台 goroutine。
-	resolveNow  chan struct{}         // grpc-go 发起的立即刷新信号。
+	watcher     GRPCServiceWatcher
+	clientConn  resolver.ClientConn
+	serviceName string
+	ctx         context.Context
+	cancel      context.CancelFunc
+
+	lastAddresses []resolver.Address // 最后一次成功解析的地址列表。
 }
 
 // ResolveNow 接收 grpc-go 的立即重新解析请求。
-// 使用非阻塞发送：如果已有刷新信号尚未处理，则无需重复排队。
+// Consul Blocking Query 已经持续等待服务变化，因此不需要额外触发查询。
 func (r *grpcResolver) ResolveNow(resolver.ResolveNowOptions) {
-	select {
-	case r.resolveNow <- struct{}{}:
-	default:
-	}
 }
 
 // Close 结束 resolver 生命周期，watch 会在收到 ctx.Done() 后退出。
 func (r *grpcResolver) Close() { r.cancel() }
 
 // watch 持续把 Consul 中的最新实例同步给 grpc.ClientConn。
-// 刷新由定时器或 grpc-go 的 ResolveNow 请求触发。
+// Watch 异常时采用指数退避；只要期间成功收到过一次更新，退避时间就会复位。
 func (r *grpcResolver) watch() {
-	ticker := time.NewTicker(grpcRefreshPeriod)
-	defer ticker.Stop()
+	retryDelay := 500 * time.Millisecond
 	for {
-		select {
-		case <-r.ctx.Done():
-			return // ClientConn 已关闭，不再继续发现服务。
-		case <-ticker.C:
-			// 到达定时刷新周期。
-		case <-r.resolveNow:
-			// grpc-go 要求立即刷新地址。
+		updated := false
+		err := r.watcher.WatchGRPCService(
+			r.ctx,
+			r.serviceName,
+			func(entries []*api.ServiceEntry) error {
+				if err := r.updateAddresses(entries); err != nil {
+					return err
+				}
+				updated = true
+				return nil
+			},
+		)
+		if r.ctx.Err() != nil {
+			return
 		}
-		if err := r.resolve(); err != nil {
-			// 本次发现失败时通知 grpc-go；上一次成功的地址仍可继续使用。
-			r.clientConn.ReportError(err)
+		if updated {
+			retryDelay = 500 * time.Millisecond
+		}
+		r.clientConn.ReportError(
+			fmt.Errorf("watch gRPC service %q: %w", r.serviceName, err),
+		)
+		if !waitRetry(r.ctx, retryDelay) {
+			return
+		}
+		retryDelay = retryDelay * 2
+		if retryDelay > 15*time.Second {
+			retryDelay = 15 * time.Second
 		}
 	}
+
 }
 
-// resolve 执行一次完整的服务发现：查询 Consul、转换地址、通知 grpc-go。
-func (r *grpcResolver) resolve() error {
-	// 单次请求设置独立超时，同时父级 r.ctx 取消时也会立即结束。
-	ctx, cancel := context.WithTimeout(r.ctx, grpcDiscoveryTimeout)
-	defer cancel()
-
-	entries, err := r.discoverer.DiscoverGRPCService(ctx, r.serviceName)
-	if err != nil {
-		return fmt.Errorf("discover gRPC service %q: %w", r.serviceName, err)
-	}
-	// 把 Consul ServiceEntry 转换成 grpc-go 能识别的 resolver.Address。
+func (r *grpcResolver) updateAddresses(entries []*api.ServiceEntry) error {
 	addresses := grpcResolverAddresses(entries)
-	if len(addresses) == 0 {
-		return fmt.Errorf("gRPC service %q has no healthy instances", r.serviceName)
+	if resolverAddressesEqual(r.lastAddresses, addresses) {
+		return nil
 	}
-	// UpdateState 必须提交当前完整地址列表，不是只提交新增地址。
-	// grpc-go 会据此新增、复用或移除内部 SubConn，并交给 round_robin 选择。
-	if err := r.clientConn.UpdateState(resolver.State{Addresses: addresses}); err != nil {
+	state := resolver.State{Addresses: addresses}
+	if err := r.clientConn.UpdateState(state); err != nil {
 		return fmt.Errorf("update gRPC resolver state for %q: %w", r.serviceName, err)
 	}
+	r.lastAddresses = slices.Clone(addresses)
 	return nil
 }
 
@@ -170,5 +166,20 @@ func grpcResolverAddresses(entries []*api.ServiceEntry) []resolver.Address {
 		seen[address] = struct{}{}
 		addresses = append(addresses, resolver.Address{Addr: address})
 	}
+	// 排序使相同实例集合始终得到相同顺序，避免无意义地更新 ClientConn。
+	sort.Slice(addresses, func(i, j int) bool {
+		return addresses[i].Addr < addresses[j].Addr
+	})
 	return addresses
+}
+
+func resolverAddressesEqual(
+	left []resolver.Address,
+	right []resolver.Address,
+) bool {
+	return slices.EqualFunc(
+		left,
+		right,
+		func(a, b resolver.Address) bool { return a.Addr == b.Addr },
+	)
 }

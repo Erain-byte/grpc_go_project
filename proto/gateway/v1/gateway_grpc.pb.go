@@ -19,9 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GatewayService_Forward_FullMethodName     = "/gateway.v1.GatewayService/Forward"
-	GatewayService_GetRoutes_FullMethodName   = "/gateway.v1.GatewayService/GetRoutes"
-	GatewayService_HealthCheck_FullMethodName = "/gateway.v1.GatewayService/HealthCheck"
+	GatewayService_Forward_FullMethodName   = "/gateway.v1.GatewayService/Forward"
+	GatewayService_GetRoutes_FullMethodName = "/gateway.v1.GatewayService/GetRoutes"
 )
 
 // GatewayServiceClient is the client API for GatewayService service.
@@ -30,7 +29,6 @@ const (
 type GatewayServiceClient interface {
 	Forward(ctx context.Context, in *ForwardRequest, opts ...grpc.CallOption) (*ForwardResponse, error)
 	GetRoutes(ctx context.Context, in *GetRoutesRequest, opts ...grpc.CallOption) (*GetRoutesResponse, error)
-	HealthCheck(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error)
 }
 
 type gatewayServiceClient struct {
@@ -61,23 +59,12 @@ func (c *gatewayServiceClient) GetRoutes(ctx context.Context, in *GetRoutesReque
 	return out, nil
 }
 
-func (c *gatewayServiceClient) HealthCheck(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(HealthCheckResponse)
-	err := c.cc.Invoke(ctx, GatewayService_HealthCheck_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // GatewayServiceServer is the server API for GatewayService service.
 // All implementations must embed UnimplementedGatewayServiceServer
 // for forward compatibility.
 type GatewayServiceServer interface {
 	Forward(context.Context, *ForwardRequest) (*ForwardResponse, error)
 	GetRoutes(context.Context, *GetRoutesRequest) (*GetRoutesResponse, error)
-	HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error)
 	mustEmbedUnimplementedGatewayServiceServer()
 }
 
@@ -93,9 +80,6 @@ func (UnimplementedGatewayServiceServer) Forward(context.Context, *ForwardReques
 }
 func (UnimplementedGatewayServiceServer) GetRoutes(context.Context, *GetRoutesRequest) (*GetRoutesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRoutes not implemented")
-}
-func (UnimplementedGatewayServiceServer) HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method HealthCheck not implemented")
 }
 func (UnimplementedGatewayServiceServer) mustEmbedUnimplementedGatewayServiceServer() {}
 func (UnimplementedGatewayServiceServer) testEmbeddedByValue()                        {}
@@ -154,24 +138,6 @@ func _GatewayService_GetRoutes_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GatewayService_HealthCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HealthCheckRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).HealthCheck(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_HealthCheck_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).HealthCheck(ctx, req.(*HealthCheckRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // GatewayService_ServiceDesc is the grpc.ServiceDesc for GatewayService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -186,10 +152,6 @@ var GatewayService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRoutes",
 			Handler:    _GatewayService_GetRoutes_Handler,
-		},
-		{
-			MethodName: "HealthCheck",
-			Handler:    _GatewayService_HealthCheck_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

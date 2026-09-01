@@ -51,7 +51,7 @@ type pendingConnection struct {
 
 // 创建gRPC客户端管理器
 type ClientManager struct {
-	registry consul.GRPCServiceDiscoverer
+	registry consul.GRPCServiceWatcher
 	config   *GrpcConfig
 
 	mu      sync.RWMutex
@@ -60,7 +60,7 @@ type ClientManager struct {
 	closed  bool
 }
 
-func NewClientManager(registry consul.GRPCServiceDiscoverer, config *GrpcConfig) *ClientManager {
+func NewClientManager(registry consul.GRPCServiceWatcher, config *GrpcConfig) *ClientManager {
 	cfg := GrpcConfig{}
 	if config != nil {
 		cfg = *config
@@ -398,8 +398,8 @@ func (cm *ClientManager) AdminClient(ctx context.Context) (pbAdmin.AdminServiceC
 
 // AuthClient 创建 AuthService 客户端。
 // 当前 AuthService 注册在 admin-service；以后拆成独立服务时只需调整服务名。
-func (cm *ClientManager) AuthClient(ctx context.Context) (pbAuth.AuthServiceClient, error) {
-	return CreateClient(ctx, cm, "admin-service", pbAuth.NewAuthServiceClient)
+func (cm *ClientManager) AuthClient(ctx context.Context, serviceName string) (pbAuth.AuthServiceClient, error) {
+	return CreateClient(ctx, cm, serviceName, pbAuth.NewAuthServiceClient)
 }
 
 // LLM service

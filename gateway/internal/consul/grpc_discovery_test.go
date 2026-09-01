@@ -2,35 +2,77 @@ package consul
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/consul/api"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/serviceconfig"
 )
 
-type fakeGRPCDiscoverer struct {
-	mu      sync.Mutex
+type watchUpdate struct {
 	entries []*api.ServiceEntry
 	err     error
-	names   []string
 }
 
-func (f *fakeGRPCDiscoverer) DiscoverGRPCService(_ context.Context, name string) ([]*api.ServiceEntry, error) {
+// fakeGRPCWatcher由测试主动发送服务变化，模拟Consul Blocking Query返回。
+type fakeGRPCWatcher struct {
+	mu      sync.Mutex
+	names   []string
+	updates chan watchUpdate
+	started chan struct{}
+	stopped chan struct{}
+	start   sync.Once
+	stop    sync.Once
+}
+
+func newFakeGRPCWatcher() *fakeGRPCWatcher {
+	return &fakeGRPCWatcher{
+		updates: make(chan watchUpdate, 8),
+		started: make(chan struct{}),
+		stopped: make(chan struct{}),
+	}
+}
+
+func (f *fakeGRPCWatcher) WatchGRPCService(
+	ctx context.Context,
+	name string,
+	onUpdate func([]*api.ServiceEntry) error,
+) error {
 	f.mu.Lock()
-	defer f.mu.Unlock()
 	f.names = append(f.names, name)
-	return f.entries, f.err
+	f.mu.Unlock()
+	f.start.Do(func() { close(f.started) })
+
+	for {
+		select {
+		case <-ctx.Done():
+			f.stop.Do(func() { close(f.stopped) })
+			return ctx.Err()
+		case update := <-f.updates:
+			if update.err != nil {
+				return update.err
+			}
+			if err := onUpdate(update.entries); err != nil {
+				return err
+			}
+		}
+	}
+}
+
+func serviceEntry(address string, port int) *api.ServiceEntry {
+	return &api.ServiceEntry{Service: &api.AgentService{Address: address, Port: port}}
 }
 
 func TestGRPCResolverAddresses(t *testing.T) {
 	entries := []*api.ServiceEntry{
 		nil,
-		{Service: &api.AgentService{Address: "127.0.0.1", Port: 50051}},
-		{Service: &api.AgentService{Address: "127.0.0.1", Port: 50051}},
+		serviceEntry("127.0.0.1", 50051),
+		serviceEntry("127.0.0.1", 50051),
 		{Node: &api.Node{Address: "2001:db8::1"}, Service: &api.AgentService{Port: 50052}},
-		{Service: &api.AgentService{Address: "127.0.0.2", Port: 0}},
+		serviceEntry("127.0.0.2", 0),
 	}
 	got := grpcResolverAddresses(entries)
 	if len(got) != 2 {
@@ -46,11 +88,15 @@ func TestGRPCResolverAddresses(t *testing.T) {
 
 type fakeResolverClientConn struct {
 	resolver.ClientConn
-	states chan resolver.State
-	errors chan error
+	states    chan resolver.State
+	errors    chan error
+	updateErr error
 }
 
 func (f *fakeResolverClientConn) UpdateState(state resolver.State) error {
+	if f.updateErr != nil {
+		return f.updateErr
+	}
 	f.states <- state
 	return nil
 }
@@ -61,64 +107,176 @@ func (f *fakeResolverClientConn) ParseServiceConfig(string) *serviceconfig.Parse
 	return nil
 }
 
-func TestGRPCResolverPublishesInitialState(t *testing.T) {
-	discoverer := &fakeGRPCDiscoverer{entries: []*api.ServiceEntry{
-		{Service: &api.AgentService{Address: "127.0.0.1", Port: 50051}},
-		{Service: &api.AgentService{Address: "127.0.0.2", Port: 50052}},
-	}}
-	cc := &fakeResolverClientConn{
-		states: make(chan resolver.State, 1),
-		errors: make(chan error, 1),
+func newFakeResolverClientConn() *fakeResolverClientConn {
+	return &fakeResolverClientConn{
+		states: make(chan resolver.State, 8),
+		errors: make(chan error, 8),
 	}
-	builder := NewGRPCResolverBuilder(discoverer)
+}
+
+func resolverTarget(serviceName string) resolver.Target {
 	target := resolver.Target{}
 	target.URL.Scheme = grpcResolverScheme
-	target.URL.Path = "/admin-service-grpc"
+	target.URL.Path = "/" + serviceName
+	return target
+}
 
-	built, err := builder.Build(target, cc, resolver.BuildOptions{})
+func receiveResolverState(t *testing.T, states <-chan resolver.State) resolver.State {
+	t.Helper()
+	select {
+	case state := <-states:
+		return state
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for resolver state")
+		return resolver.State{}
+	}
+}
+
+func TestGRPCResolverPublishesInitialState(t *testing.T) {
+	watcher := newFakeGRPCWatcher()
+	watcher.updates <- watchUpdate{entries: []*api.ServiceEntry{
+		serviceEntry("127.0.0.1", 50051),
+		serviceEntry("127.0.0.2", 50052),
+	}}
+	cc := newFakeResolverClientConn()
+	built, err := NewGRPCResolverBuilder(watcher).Build(
+		resolverTarget("admin-service-grpc"), cc, resolver.BuildOptions{},
+	)
 	if err != nil {
 		t.Fatalf("Build() error = %v", err)
 	}
 	t.Cleanup(built.Close)
 
+	state := receiveResolverState(t, cc.states)
+	if len(state.Addresses) != 2 {
+		t.Fatalf("resolver addresses = %+v, want 2 addresses", state.Addresses)
+	}
+	watcher.mu.Lock()
+	defer watcher.mu.Unlock()
+	if len(watcher.names) != 1 || watcher.names[0] != "admin-service-grpc" {
+		t.Fatalf("watch names = %v", watcher.names)
+	}
+}
+
+func TestGRPCResolverPublishesEmptyState(t *testing.T) {
+	watcher := newFakeGRPCWatcher()
+	cc := newFakeResolverClientConn()
+	built, err := NewGRPCResolverBuilder(watcher).Build(
+		resolverTarget("admin-service-grpc"), cc, resolver.BuildOptions{},
+	)
+	if err != nil {
+		t.Fatalf("Build() error = %v", err)
+	}
+	t.Cleanup(built.Close)
+
+	watcher.updates <- watchUpdate{entries: []*api.ServiceEntry{serviceEntry("127.0.0.1", 50051)}}
+	if got := len(receiveResolverState(t, cc.states).Addresses); got != 1 {
+		t.Fatalf("initial address count = %d, want 1", got)
+	}
+	watcher.updates <- watchUpdate{entries: []*api.ServiceEntry{}}
+	if got := len(receiveResolverState(t, cc.states).Addresses); got != 0 {
+		t.Fatalf("empty address count = %d, want 0", got)
+	}
+}
+
+func TestGRPCResolverSkipsEquivalentAddressState(t *testing.T) {
+	watcher := newFakeGRPCWatcher()
+	cc := newFakeResolverClientConn()
+	built, err := NewGRPCResolverBuilder(watcher).Build(
+		resolverTarget("admin-service-grpc"), cc, resolver.BuildOptions{},
+	)
+	if err != nil {
+		t.Fatalf("Build() error = %v", err)
+	}
+	t.Cleanup(built.Close)
+
+	watcher.updates <- watchUpdate{entries: []*api.ServiceEntry{
+		serviceEntry("127.0.0.2", 50052), serviceEntry("127.0.0.1", 50051),
+	}}
+	_ = receiveResolverState(t, cc.states)
+	watcher.updates <- watchUpdate{entries: []*api.ServiceEntry{
+		serviceEntry("127.0.0.1", 50051), serviceEntry("127.0.0.2", 50052),
+	}}
 	select {
 	case state := <-cc.states:
-		if len(state.Addresses) != 2 {
-			t.Fatalf("resolver addresses = %+v", state.Addresses)
+		t.Fatalf("unexpected duplicate resolver state: %+v", state)
+	case <-time.After(100 * time.Millisecond):
+	}
+}
+
+func TestGRPCResolverReportsWatchError(t *testing.T) {
+	watcher := newFakeGRPCWatcher()
+	cc := newFakeResolverClientConn()
+	built, err := NewGRPCResolverBuilder(watcher).Build(
+		resolverTarget("admin-service-grpc"), cc, resolver.BuildOptions{},
+	)
+	if err != nil {
+		t.Fatalf("Build() error = %v", err)
+	}
+	t.Cleanup(built.Close)
+
+	wantErr := errors.New("Consul unavailable")
+	watcher.updates <- watchUpdate{err: wantErr}
+	select {
+	case gotErr := <-cc.errors:
+		if !errors.Is(gotErr, wantErr) {
+			t.Fatalf("reported error = %v, want wrapped %v", gotErr, wantErr)
 		}
-	default:
-		t.Fatal("resolver did not publish initial state")
-	}
-
-	discoverer.mu.Lock()
-	defer discoverer.mu.Unlock()
-	if len(discoverer.names) != 1 || discoverer.names[0] != "admin-service-grpc" {
-		t.Fatalf("discovery names = %v", discoverer.names)
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for resolver error")
 	}
 }
 
-func TestGRPCResolverRejectsNoInstances(t *testing.T) {
-	builder := NewGRPCResolverBuilder(&fakeGRPCDiscoverer{})
-	cc := &fakeResolverClientConn{
-		states: make(chan resolver.State, 1),
-		errors: make(chan error, 1),
-	}
-	target := resolver.Target{}
-	target.URL.Path = "/admin-service-grpc"
-	if _, err := builder.Build(target, cc, resolver.BuildOptions{}); err == nil {
-		t.Fatal("Build() error = nil, want no instances error")
-	}
-}
-
-func TestGRPCResolverHonorsCanceledContext(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
+func TestGRPCResolverDoesNotRememberFailedState(t *testing.T) {
+	wantErr := errors.New("update state failed")
+	cc := newFakeResolverClientConn()
+	cc.updateErr = wantErr
 	r := &grpcResolver{
-		discoverer:  &fakeGRPCDiscoverer{},
-		ctx:         ctx,
+		clientConn:  cc,
 		serviceName: "admin-service-grpc",
 	}
-	if err := r.resolve(); err == nil {
-		t.Fatal("resolve() error = nil for canceled context")
+
+	err := r.updateAddresses([]*api.ServiceEntry{serviceEntry("127.0.0.1", 50051)})
+	if !errors.Is(err, wantErr) {
+		t.Fatalf("updateAddresses() error = %v, want wrapped %v", err, wantErr)
+	}
+	if len(r.lastAddresses) != 0 {
+		t.Fatalf("lastAddresses = %+v after failed UpdateState", r.lastAddresses)
+	}
+}
+
+func TestGRPCResolverCloseStopsWatch(t *testing.T) {
+	watcher := newFakeGRPCWatcher()
+	cc := newFakeResolverClientConn()
+	built, err := NewGRPCResolverBuilder(watcher).Build(
+		resolverTarget("admin-service-grpc"), cc, resolver.BuildOptions{},
+	)
+	if err != nil {
+		t.Fatalf("Build() error = %v", err)
+	}
+	select {
+	case <-watcher.started:
+	case <-time.After(time.Second):
+		t.Fatal("watch did not start")
+	}
+	built.Close()
+	select {
+	case <-watcher.stopped:
+	case <-time.After(time.Second):
+		t.Fatal("watch did not stop after resolver Close")
+	}
+}
+
+func TestGRPCResolverRejectsInvalidBuilderInput(t *testing.T) {
+	cc := newFakeResolverClientConn()
+	if _, err := NewGRPCResolverBuilder(nil).Build(
+		resolverTarget("admin-service-grpc"), cc, resolver.BuildOptions{},
+	); err == nil {
+		t.Fatal("Build() error = nil for nil watcher")
+	}
+	if _, err := NewGRPCResolverBuilder(newFakeGRPCWatcher()).Build(
+		resolverTarget(""), cc, resolver.BuildOptions{},
+	); err == nil {
+		t.Fatal("Build() error = nil for empty service name")
 	}
 }

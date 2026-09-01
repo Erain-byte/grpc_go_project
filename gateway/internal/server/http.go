@@ -36,7 +36,7 @@ func NewHTTPServer(svcCtx *svc.ServiceContext, clientManager *grpcclient.ClientM
 	CorsMiddelware := middleware.NewCorsMiddleware(svcCtx.Config.Cors)
 	engine.Use(CorsMiddelware.Handle)
 	// AuthService 当前由 Admin 进程实现，ClientManager 通过 Consul 找到其实例。
-	authClient, err := clientManager.AuthClient(context.Background())
+	/*authClient, err := clientManager.AuthClient(context.Background())
 	if err != nil {
 		return nil, apperror.Wrap(
 			err,
@@ -44,7 +44,7 @@ func NewHTTPServer(svcCtx *svc.ServiceContext, clientManager *grpcclient.ClientM
 			"failed to create authentication client",
 			http.StatusServiceUnavailable,
 		)
-	}
+	}*/
 	// JWT 中间件只验证 Token；Session 中间件单独调用 AuthService 检查登录状态。
 	jwtMiddleware, jwtErr := middleware.NewJWTMiddleware(svcCtx.Config.Auth)
 	if jwtErr != nil {
@@ -55,7 +55,7 @@ func NewHTTPServer(svcCtx *svc.ServiceContext, clientManager *grpcclient.ClientM
 			http.StatusInternalServerError,
 		)
 	}
-	sessionMiddleware, sessionErr := middleware.NewSessionMiddleware(authClient)
+	sessionMiddleware, sessionErr := middleware.NewSessionMiddleware(clientManager)
 	if sessionErr != nil {
 		return nil, apperror.Wrap(
 			sessionErr,

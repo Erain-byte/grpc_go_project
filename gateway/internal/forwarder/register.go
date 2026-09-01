@@ -2,7 +2,6 @@ package forwarder
 
 import (
 	"gateway/internal/logger"
-	"gateway/internal/svc"
 
 	clien "gateway/internal/grpc"
 
@@ -16,10 +15,10 @@ import (
 **/
 
 // RegisterAllGRPCServices 注册所有 gRPC 服务到网关
-func RegisterAllGRPCServices(grpcSrvc *grpc.Server, svcCtx *svc.ServiceContext, grpcClien *clien.ClientManager) {
+func RegisterAllGRPCServices(grpcSrvc *grpc.Server, grpcClien *clien.ClientManager) {
 	// 创建各个服务的转发器
-	AdminForwarder := NewAdminForwarder(svcCtx, grpcClien)
-	LlmForwarder := NewLlmForwarder(svcCtx, grpcClien)
+	AdminForwarder := NewAdminForwarder(grpcClien)
+	LlmForwarder := NewLlmForwarder(grpcClien)
 	// 注册服务到网关
 	pbAdmin.RegisterAdminServiceServer(grpcSrvc, AdminForwarder)
 	logger.SugaredLogger.Infof("Admin service registered")

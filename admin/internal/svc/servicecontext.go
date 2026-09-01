@@ -4,6 +4,7 @@ import (
 	"admin/internal/config"
 	"admin/internal/consul"
 	"admin/internal/database"
+	"admin/internal/mq"
 	"admin/internal/redis"
 
 	"go.uber.org/zap"
@@ -19,6 +20,8 @@ type ServiceContext struct {
 	DB     *database.GormClient
 	Logger *zap.Logger
 	Consul *consul.ConsulRegistry
+	// OperationLogPublisher 由 app.Run 创建并注入，业务层不需要自行连接 RabbitMQ。
+	OperationLogPublisher mq.OperationLogPublisher
 }
 
 func NewServiceContext(
@@ -27,13 +30,15 @@ func NewServiceContext(
 	db *database.GormClient,
 	log *zap.Logger,
 	consulRegistry *consul.ConsulRegistry,
+	operationLogPublisher mq.OperationLogPublisher,
 ) *ServiceContext {
 	// 这里没有创建新连接，只是把外部已经创建好的对象地址保存起来。
 	return &ServiceContext{
-		Config: cfg,
-		Redis:  redisClient,
-		DB:     db,
-		Logger: log,
-		Consul: consulRegistry,
+		Config:                cfg,
+		Redis:                 redisClient,
+		DB:                    db,
+		Logger:                log,
+		Consul:                consulRegistry,
+		OperationLogPublisher: operationLogPublisher,
 	}
 }

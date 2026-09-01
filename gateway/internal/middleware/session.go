@@ -10,26 +10,38 @@ import (
 
 	authv1 "github.com/Erain-byte/grpc_go_project/proto/auth/v1"
 	"github.com/gin-gonic/gin"
-	"google.golang.org/grpc"
 )
 
 const sessionValidationTimeout = 3 * time.Second
 
-type SessionValidator interface {
-	ValidateSession(context.Context, *authv1.ValidateSessionRequest, ...grpc.CallOption) (*authv1.ValidateSessionResponse, error)
+/*type SessionValidator interface {
+	ValidateSession(context.Context,
+		*authv1.ValidateSessionRequest,
+		...grpc.CallOption,
+	) (*authv1.ValidateSessionResponse, error)
 }
 
 // SessionMiddleware 负责验证 JWT 对应的服务端 Session 是否仍然有效。
 // 它不直接操作 Redis，而是通过 AuthService 把存储细节留在认证服务内部。
 type SessionMiddleware struct {
 	validator SessionValidator
+}*/
+
+type AuthClientProvider interface {
+	AuthClient(context.Context, string) (authv1.AuthServiceClient, error)
 }
 
-func NewSessionMiddleware(validator SessionValidator) (*SessionMiddleware, error) {
-	if validator == nil {
-		return nil, fmt.Errorf("session validator is nil")
+type SessionMiddleware struct {
+	client AuthClientProvider
+}
+
+func NewSessionMiddleware(client AuthClientProvider) (*SessionMiddleware, error) {
+	if client == nil {
+		return nil, fmt.Errorf("client is nil")
 	}
-	return &SessionMiddleware{validator: validator}, nil
+	return &SessionMiddleware{
+		client: client,
+	}, nil
 }
 
 // Handle 必须放在 JWTMiddleware.Handle 后面执行，因为它需要读取已经验证过的 Claims。
@@ -42,13 +54,24 @@ func (m *SessionMiddleware) Handle(c *gin.Context) {
 		Fail(c, apperror.Unauthorized("verified access token claims are missing"))
 		return
 	}
+	issuer := strings.TrimSpace(claims.Issuer)
+	if issuer == "" {
+		Fail(c, apperror.Unauthorized("verified access token issuer is missing"))
+		return
+	}
 
 	// Session 验证是一次内部 gRPC 请求，使用 HTTP 请求 Context 传递取消信号，
 	// 并额外限制最长等待时间，避免认证服务异常时长期占用 Gateway 请求。
 	validationCtx, cancel := context.WithTimeout(c.Request.Context(), sessionValidationTimeout)
 	defer cancel()
-	validated, err := m.validator.ValidateSession(validationCtx, &authv1.ValidateSessionRequest{
-		SubjectType: subjectTypeForIssuer(claims.Issuer),
+	authClient, err := m.client.AuthClient(validationCtx, issuer)
+	if err != nil {
+		Fail(c, err)
+		return
+	}
+	subjectType := subjectTypeForIssuer(claims.Issuer)
+	validated, err := authClient.ValidateSession(validationCtx, &authv1.ValidateSessionRequest{
+		SubjectType: subjectType,
 		SubjectId:   claims.Subject,
 		SessionId:   claims.SessionID,
 		TokenId:     claims.ID,
@@ -63,6 +86,14 @@ func (m *SessionMiddleware) Handle(c *gin.Context) {
 	}
 	if validated.GetSubjectId() == "" || validated.GetSessionId() == "" || validated.GetRole() == "" {
 		Fail(c, apperror.Unauthorized("session identity is incomplete"))
+		return
+	}
+	// AuthService 可以返回最新角色，但身份类型、用户和 Session 必须与 JWT 一致。
+	// 该检查可避免错误缓存或服务实现错误把请求切换到另一名用户的身份。
+	if validated.GetSubjectType() != subjectType ||
+		validated.GetSubjectId() != claims.Subject ||
+		validated.GetSessionId() != claims.SessionID {
+		Fail(c, apperror.Unauthorized("session identity does not match access token"))
 		return
 	}
 

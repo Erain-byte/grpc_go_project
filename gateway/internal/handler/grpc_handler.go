@@ -173,7 +173,9 @@ func WithMetadata(c *gin.Context) context.Context {
 	userID := c.GetString(middleware.ContextUserID)
 	role := c.GetString(middleware.ContextRole)
 	sessionID := c.GetString(middleware.ContextSessionID)
-	if userID != "" {
+	tokenID := c.GetString(middleware.ContextTokenID)
+	// 登录、刷新等公开接口没有认证身份，不写入空 metadata。
+	if userID == "" {
 		return ctx
 	}
 	return metadata.AppendToOutgoingContext(
@@ -181,6 +183,7 @@ func WithMetadata(c *gin.Context) context.Context {
 		"x-user-id", userID,
 		"x-user-role", role,
 		"x-session-id", sessionID,
+		"x-token-id", tokenID,
 	)
 }
 

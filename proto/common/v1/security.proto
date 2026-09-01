@@ -14,7 +14,7 @@ message AuthRule {
   // Public methods do not require an authenticated end-user identity.
   bool public = 1;
 
-  // 允许访问该方法的角色。
+  // 允许访问该方法的角色。空列表表示只要求身份有效，不限制角色。
   repeated string roles = 2;
 }
 

@@ -8,7 +8,7 @@ import (
 )
 
 func (s *HTTPServer) registerAdminRoutes() {
-	adminForwarder := forwarder.NewAdminForwarder(s.svcCtx, s.clientManager)
+	adminForwarder := forwarder.NewAdminForwarder(s.clientManager)
 	admin := s.engine.Group("/admin")
 
 	// 登录和刷新需要在没有 Access Token 时访问，因此不挂 JWT 中间件。

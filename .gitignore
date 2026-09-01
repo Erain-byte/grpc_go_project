@@ -16,3 +16,6 @@ go.work.sum
 # Runtime logs are local artifacts and must not be committed.
 **/logs/
 *.log
+
+# Local interview prototype and generated delivery archive
+/interview_luckyred/

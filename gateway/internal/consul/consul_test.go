@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"slices"
+	"sync"
 	"testing"
 	"time"
 
@@ -74,12 +75,12 @@ func TestQueryConsulFiltersByProtocol(t *testing.T) {
 	}))
 	defer server.Close()
 
-	entries, index, err := newTestRegistry(t, server.URL).queryConsul(context.Background(), "user-service", ProtocolGRPC, 0)
+	entries, index, err := newTestRegistry(t, server.URL).queryGRPCService(context.Background(), "user-service", 0)
 	if err != nil {
-		t.Fatalf("queryConsul() error = %v", err)
+		t.Fatalf("queryGRPCService() error = %v", err)
 	}
 	if len(entries) != 0 || index != 42 {
-		t.Fatalf("queryConsul() = (%d entries, index %d), want (0, 42)", len(entries), index)
+		t.Fatalf("queryGRPCService() = (%d entries, index %d), want (0, 42)", len(entries), index)
 	}
 }
 
@@ -93,9 +94,9 @@ func TestQueryConsulPropagatesCancellation(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
-	_, _, err := newTestRegistry(t, server.URL).queryConsul(ctx, "user-service", ProtocolGRPC, 1)
+	_, _, err := newTestRegistry(t, server.URL).queryGRPCService(ctx, "user-service", 1)
 	if !errors.Is(err, context.DeadlineExceeded) || apperror.As(err).Code != apperror.CodeTimeout {
-		t.Fatalf("queryConsul() error = %v, want timeout with deadline cause", err)
+		t.Fatalf("queryGRPCService() error = %v, want timeout with deadline cause", err)
 	}
 	select {
 	case <-requestCanceled:
@@ -104,24 +105,74 @@ func TestQueryConsulPropagatesCancellation(t *testing.T) {
 	}
 }
 
-func TestQueryConsulValidatesProtocol(t *testing.T) {
-	registry := &ConsulRegistry{}
-	_, _, err := registry.queryConsul(context.Background(), "user-service", "", 0)
-	if err == nil || apperror.As(err).Code != apperror.CodeInvalidArgument {
-		t.Fatalf("queryConsul() error = %v, want invalid argument", err)
+func TestWatchGRPCServiceAdvancesConsulIndex(t *testing.T) {
+	var mu sync.Mutex
+	indexes := make([]string, 0, 2)
+	requestCount := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		indexes = append(indexes, r.URL.Query().Get("index"))
+		requestCount++
+		currentRequest := requestCount
+		mu.Unlock()
+
+		if currentRequest == 1 {
+			w.Header().Set("X-Consul-Index", "10")
+		} else {
+			w.Header().Set("X-Consul-Index", "11")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte("[]"))
+	}))
+	defer server.Close()
+
+	wantStop := errors.New("stop watch")
+	updateCount := 0
+	err := newTestRegistry(t, server.URL).WatchGRPCService(
+		context.Background(),
+		"admin-service-grpc",
+		func([]*api.ServiceEntry) error {
+			updateCount++
+			if updateCount == 2 {
+				return wantStop
+			}
+			return nil
+		},
+	)
+	if !errors.Is(err, wantStop) {
+		t.Fatalf("WatchGRPCService() error = %v, want %v", err, wantStop)
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	if len(indexes) != 2 {
+		t.Fatalf("Consul query indexes = %v, want 2 requests", indexes)
+	}
+	if indexes[0] != "" || indexes[1] != "10" {
+		t.Fatalf("Consul query indexes = %v, want [empty 10]", indexes)
 	}
 }
 
-func TestCacheSeparatesHTTPAndGRPCServices(t *testing.T) {
-	registry := &ConsulRegistry{serviceCache: make(map[string]*serviceCacheEntry)}
-	httpKey := serviceCacheKey("user-service", ProtocolHTTP)
-	grpcKey := serviceCacheKey("user-service", ProtocolGRPC)
-	registry.updateCache(httpKey, nil, 1)
-	if _, found := registry.getFromCache(httpKey); !found {
-		t.Fatal("HTTP cache entry was not found")
+func TestWatchGRPCServiceValidatesInput(t *testing.T) {
+	registry := &ConsulRegistry{}
+	validCallback := func([]*api.ServiceEntry) error { return nil }
+	tests := []struct {
+		name     string
+		ctx      context.Context
+		service  string
+		callback func([]*api.ServiceEntry) error
+	}{
+		{name: "nil context", service: "admin-service-grpc", callback: validCallback},
+		{name: "empty service", ctx: context.Background(), service: "  ", callback: validCallback},
+		{name: "nil callback", ctx: context.Background(), service: "admin-service-grpc"},
 	}
-	if _, found := registry.getFromCache(grpcKey); found {
-		t.Fatal("gRPC lookup incorrectly used HTTP cache entry")
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if err := registry.WatchGRPCService(test.ctx, test.service, test.callback); err == nil {
+				t.Fatal("WatchGRPCService() error = nil, want validation error")
+			}
+		})
 	}
 }
 

@@ -8,7 +8,7 @@ import (
 )
 
 func (s *HTTPServer) registerLLMRoutes() {
-	llmForwarder := forwarder.NewLlmForwarder(s.svcCtx, s.clientManager)
+	llmForwarder := forwarder.NewLlmForwarder(s.clientManager)
 	llmHTTPHandler := handler.NewLlmHTTPHandler(s.clientManager)
 	// LLM 路由全部需要登录，统一挂载 JWT 中间件。
 	llm := s.engine.Group("/llm")

@@ -9,7 +9,6 @@ option go_package = "github.com/Erain-byte/grpc_go_project/proto/gateway/v1;gate
 service GatewayService {
   rpc Forward(ForwardRequest) returns (ForwardResponse);
   rpc GetRoutes(GetRoutesRequest) returns (GetRoutesResponse);
-  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
 }
 
 message ForwardRequest {
@@ -40,20 +39,4 @@ message Route {
   string service = 3;
   bool strip_path = 4;
   google.protobuf.Duration timeout = 5;
-}
-
-message HealthCheckRequest {
-  string service = 1;
-}
-
-message HealthCheckResponse {
-  bool healthy = 1;
-  string message = 2;
-  map<string, ServiceHealth> services = 3;
-}
-
-message ServiceHealth {
-  bool healthy = 1;
-  string message = 2;
-  google.protobuf.Duration latency = 3;
 }

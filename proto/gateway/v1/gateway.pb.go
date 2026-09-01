@@ -330,170 +330,6 @@ func (x *Route) GetTimeout() *durationpb.Duration {
 	return nil
 }
 
-type HealthCheckRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Service       string                 `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *HealthCheckRequest) Reset() {
-	*x = HealthCheckRequest{}
-	mi := &file_gateway_v1_gateway_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *HealthCheckRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*HealthCheckRequest) ProtoMessage() {}
-
-func (x *HealthCheckRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_v1_gateway_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use HealthCheckRequest.ProtoReflect.Descriptor instead.
-func (*HealthCheckRequest) Descriptor() ([]byte, []int) {
-	return file_gateway_v1_gateway_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *HealthCheckRequest) GetService() string {
-	if x != nil {
-		return x.Service
-	}
-	return ""
-}
-
-type HealthCheckResponse struct {
-	state         protoimpl.MessageState    `protogen:"open.v1"`
-	Healthy       bool                      `protobuf:"varint,1,opt,name=healthy,proto3" json:"healthy,omitempty"`
-	Message       string                    `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	Services      map[string]*ServiceHealth `protobuf:"bytes,3,rep,name=services,proto3" json:"services,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *HealthCheckResponse) Reset() {
-	*x = HealthCheckResponse{}
-	mi := &file_gateway_v1_gateway_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *HealthCheckResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*HealthCheckResponse) ProtoMessage() {}
-
-func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_v1_gateway_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use HealthCheckResponse.ProtoReflect.Descriptor instead.
-func (*HealthCheckResponse) Descriptor() ([]byte, []int) {
-	return file_gateway_v1_gateway_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *HealthCheckResponse) GetHealthy() bool {
-	if x != nil {
-		return x.Healthy
-	}
-	return false
-}
-
-func (x *HealthCheckResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *HealthCheckResponse) GetServices() map[string]*ServiceHealth {
-	if x != nil {
-		return x.Services
-	}
-	return nil
-}
-
-type ServiceHealth struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Healthy       bool                   `protobuf:"varint,1,opt,name=healthy,proto3" json:"healthy,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	Latency       *durationpb.Duration   `protobuf:"bytes,3,opt,name=latency,proto3" json:"latency,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ServiceHealth) Reset() {
-	*x = ServiceHealth{}
-	mi := &file_gateway_v1_gateway_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ServiceHealth) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ServiceHealth) ProtoMessage() {}
-
-func (x *ServiceHealth) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_v1_gateway_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ServiceHealth.ProtoReflect.Descriptor instead.
-func (*ServiceHealth) Descriptor() ([]byte, []int) {
-	return file_gateway_v1_gateway_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *ServiceHealth) GetHealthy() bool {
-	if x != nil {
-		return x.Healthy
-	}
-	return false
-}
-
-func (x *ServiceHealth) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *ServiceHealth) GetLatency() *durationpb.Duration {
-	if x != nil {
-		return x.Latency
-	}
-	return nil
-}
-
 var File_gateway_v1_gateway_proto protoreflect.FileDescriptor
 
 const file_gateway_v1_gateway_proto_rawDesc = "" +
@@ -527,24 +363,10 @@ const file_gateway_v1_gateway_proto_rawDesc = "" +
 	"\aservice\x18\x03 \x01(\tR\aservice\x12\x1d\n" +
 	"\n" +
 	"strip_path\x18\x04 \x01(\bR\tstripPath\x123\n" +
-	"\atimeout\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\atimeout\".\n" +
-	"\x12HealthCheckRequest\x12\x18\n" +
-	"\aservice\x18\x01 \x01(\tR\aservice\"\xec\x01\n" +
-	"\x13HealthCheckResponse\x12\x18\n" +
-	"\ahealthy\x18\x01 \x01(\bR\ahealthy\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\x12I\n" +
-	"\bservices\x18\x03 \x03(\v2-.gateway.v1.HealthCheckResponse.ServicesEntryR\bservices\x1aV\n" +
-	"\rServicesEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
-	"\x05value\x18\x02 \x01(\v2\x19.gateway.v1.ServiceHealthR\x05value:\x028\x01\"x\n" +
-	"\rServiceHealth\x12\x18\n" +
-	"\ahealthy\x18\x01 \x01(\bR\ahealthy\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\x123\n" +
-	"\alatency\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\alatency2\xee\x01\n" +
+	"\atimeout\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\atimeout2\x9e\x01\n" +
 	"\x0eGatewayService\x12B\n" +
 	"\aForward\x12\x1a.gateway.v1.ForwardRequest\x1a\x1b.gateway.v1.ForwardResponse\x12H\n" +
-	"\tGetRoutes\x12\x1c.gateway.v1.GetRoutesRequest\x1a\x1d.gateway.v1.GetRoutesResponse\x12N\n" +
-	"\vHealthCheck\x12\x1e.gateway.v1.HealthCheckRequest\x1a\x1f.gateway.v1.HealthCheckResponseBBZ@github.com/Erain-byte/grpc_go_project/proto/gateway/v1;gatewayv1b\x06proto3"
+	"\tGetRoutes\x12\x1c.gateway.v1.GetRoutesRequest\x1a\x1d.gateway.v1.GetRoutesResponseBBZ@github.com/Erain-byte/grpc_go_project/proto/gateway/v1;gatewayv1b\x06proto3"
 
 var (
 	file_gateway_v1_gateway_proto_rawDescOnce sync.Once
@@ -558,40 +380,31 @@ func file_gateway_v1_gateway_proto_rawDescGZIP() []byte {
 	return file_gateway_v1_gateway_proto_rawDescData
 }
 
-var file_gateway_v1_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_gateway_v1_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_gateway_v1_gateway_proto_goTypes = []any{
 	(*ForwardRequest)(nil),      // 0: gateway.v1.ForwardRequest
 	(*ForwardResponse)(nil),     // 1: gateway.v1.ForwardResponse
 	(*GetRoutesRequest)(nil),    // 2: gateway.v1.GetRoutesRequest
 	(*GetRoutesResponse)(nil),   // 3: gateway.v1.GetRoutesResponse
 	(*Route)(nil),               // 4: gateway.v1.Route
-	(*HealthCheckRequest)(nil),  // 5: gateway.v1.HealthCheckRequest
-	(*HealthCheckResponse)(nil), // 6: gateway.v1.HealthCheckResponse
-	(*ServiceHealth)(nil),       // 7: gateway.v1.ServiceHealth
-	nil,                         // 8: gateway.v1.ForwardRequest.HeadersEntry
-	nil,                         // 9: gateway.v1.ForwardResponse.HeadersEntry
-	nil,                         // 10: gateway.v1.HealthCheckResponse.ServicesEntry
-	(*durationpb.Duration)(nil), // 11: google.protobuf.Duration
+	nil,                         // 5: gateway.v1.ForwardRequest.HeadersEntry
+	nil,                         // 6: gateway.v1.ForwardResponse.HeadersEntry
+	(*durationpb.Duration)(nil), // 7: google.protobuf.Duration
 }
 var file_gateway_v1_gateway_proto_depIdxs = []int32{
-	8,  // 0: gateway.v1.ForwardRequest.headers:type_name -> gateway.v1.ForwardRequest.HeadersEntry
-	9,  // 1: gateway.v1.ForwardResponse.headers:type_name -> gateway.v1.ForwardResponse.HeadersEntry
-	4,  // 2: gateway.v1.GetRoutesResponse.routes:type_name -> gateway.v1.Route
-	11, // 3: gateway.v1.Route.timeout:type_name -> google.protobuf.Duration
-	10, // 4: gateway.v1.HealthCheckResponse.services:type_name -> gateway.v1.HealthCheckResponse.ServicesEntry
-	11, // 5: gateway.v1.ServiceHealth.latency:type_name -> google.protobuf.Duration
-	7,  // 6: gateway.v1.HealthCheckResponse.ServicesEntry.value:type_name -> gateway.v1.ServiceHealth
-	0,  // 7: gateway.v1.GatewayService.Forward:input_type -> gateway.v1.ForwardRequest
-	2,  // 8: gateway.v1.GatewayService.GetRoutes:input_type -> gateway.v1.GetRoutesRequest
-	5,  // 9: gateway.v1.GatewayService.HealthCheck:input_type -> gateway.v1.HealthCheckRequest
-	1,  // 10: gateway.v1.GatewayService.Forward:output_type -> gateway.v1.ForwardResponse
-	3,  // 11: gateway.v1.GatewayService.GetRoutes:output_type -> gateway.v1.GetRoutesResponse
-	6,  // 12: gateway.v1.GatewayService.HealthCheck:output_type -> gateway.v1.HealthCheckResponse
-	10, // [10:13] is the sub-list for method output_type
-	7,  // [7:10] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	5, // 0: gateway.v1.ForwardRequest.headers:type_name -> gateway.v1.ForwardRequest.HeadersEntry
+	6, // 1: gateway.v1.ForwardResponse.headers:type_name -> gateway.v1.ForwardResponse.HeadersEntry
+	4, // 2: gateway.v1.GetRoutesResponse.routes:type_name -> gateway.v1.Route
+	7, // 3: gateway.v1.Route.timeout:type_name -> google.protobuf.Duration
+	0, // 4: gateway.v1.GatewayService.Forward:input_type -> gateway.v1.ForwardRequest
+	2, // 5: gateway.v1.GatewayService.GetRoutes:input_type -> gateway.v1.GetRoutesRequest
+	1, // 6: gateway.v1.GatewayService.Forward:output_type -> gateway.v1.ForwardResponse
+	3, // 7: gateway.v1.GatewayService.GetRoutes:output_type -> gateway.v1.GetRoutesResponse
+	6, // [6:8] is the sub-list for method output_type
+	4, // [4:6] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_gateway_v1_gateway_proto_init() }
@@ -605,7 +418,7 @@ func file_gateway_v1_gateway_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gateway_v1_gateway_proto_rawDesc), len(file_gateway_v1_gateway_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

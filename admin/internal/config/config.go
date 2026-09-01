@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -20,12 +21,56 @@ type Config struct {
 	GRPCPort    int              `yaml:"grpc_port" mapstructure:"grpc_port"`
 	Database    DatabaseConfig   `yaml:"database" mapstructure:"database"`
 	Redis       RedisConfig      `yaml:"redis" mapstructure:"redis"`
+	RabbitMQ    RabbitMQConfig   `yaml:"rabbitmq" mapstructure:"rabbitmq"`
 	Auth        AuthConfig       `yaml:"auth" mapstructure:"auth"`
 	Consul      ConsulConfig     `yaml:"consul" mapstructure:"consul"`
 	Logger      LoggerConfig     `yaml:"logger" mapstructure:"logger"`
 	Shutdown    ShutdownConfig   `yaml:"shutdown" mapstructure:"shutdown"`
 	GRPC        GRPCServerConfig `yaml:"grpc" mapstructure:"grpc"`
 	Tracing     TracingConfig    `yaml:"tracing" mapstructure:"tracing"`
+}
+
+// RabbitMQConfig 定义 Admin 服务的连接参数、发布确认、消费限速和操作日志拓扑。
+// Password 只从环境变量加载，避免把明文密码提交到配置文件。
+type RabbitMQConfig struct {
+	Enabled               bool                 `yaml:"enabled" mapstructure:"enabled"`                                 // 是否启用 RabbitMQ。
+	Host                  string               `yaml:"host" mapstructure:"host"`                                       // Broker 主机地址。
+	Port                  int                  `yaml:"port" mapstructure:"port"`                                       // AMQP 端口，默认 5672。
+	Username              string               `yaml:"username" mapstructure:"username"`                               // 登录用户名。
+	Password              string               `yaml:"-" mapstructure:"-"`                                             // 仅从环境变量读取。
+	VHost                 string               `yaml:"vhost" mapstructure:"vhost"`                                     // RabbitMQ 虚拟主机。
+	ConnectionName        string               `yaml:"connection_name" mapstructure:"connection_name"`                 // 管理后台显示的连接名称。
+	Heartbeat             string               `yaml:"heartbeat" mapstructure:"heartbeat"`                             // AMQP 心跳周期。
+	DialTimeout           string               `yaml:"dial_timeout" mapstructure:"dial_timeout"`                       // 建立 TCP/AMQP 连接的超时。
+	ReconnectInterval     string               `yaml:"reconnect_interval" mapstructure:"reconnect_interval"`           // 消费中断后的重连间隔。
+	PublishConfirmTimeout string               `yaml:"publish_confirm_timeout" mapstructure:"publish_confirm_timeout"` // 等待 Broker Confirm 的最长时间。
+	PrefetchCount         int                  `yaml:"prefetch_count" mapstructure:"prefetch_count"`                   // 单个消费者最多持有的未确认消息数。
+	OperationLog          RabbitMQOperationLog `yaml:"operation_log" mapstructure:"operation_log"`                     // 操作日志消息拓扑。
+}
+
+// MqAddress 拼装不含账号密码的 Broker 网络地址，例如 127.0.0.1:5672。
+func (m RabbitMQConfig) MqAddress() string {
+	return net.JoinHostPort(
+		strings.TrimSpace(m.Host),
+		strconv.Itoa(m.Port),
+	)
+}
+
+type RabbitMQOperationLog struct {
+	// 主消息经过 Exchange + RoutingKey 路由到 Queue。
+	Exchange        string `yaml:"exchange" mapstructure:"exchange"`
+	ExchangeType    string `yaml:"exchange_type" mapstructure:"exchange_type"`
+	RoutingKey      string `yaml:"routing_key" mapstructure:"routing_key"`
+	Queue           string `yaml:"queue" mapstructure:"queue"`
+	RetryExchange   string `yaml:"retry_exchange" mapstructure:"retry_exchange"`
+	RetryRoutingKey string `yaml:"retry_routing_key" mapstructure:"retry_routing_key"`
+	RetryQueue      string `yaml:"retry_queue" mapstructure:"retry_queue"`
+	RetryDelay      string `yaml:"retry_delay" mapstructure:"retry_delay"`
+	MaxRetries      int    `yaml:"max_retries" mapstructure:"max_retries"`
+	// 超过重试次数或消息格式永久无效时进入死信队列，等待人工排查或补偿。
+	DeadLetterExchange   string `yaml:"dead_letter_exchange" mapstructure:"dead_letter_exchange"`
+	DeadLetterRoutingKey string `yaml:"dead_letter_routing_key" mapstructure:"dead_letter_routing_key"`
+	DeadLetterQueue      string `yaml:"dead_letter_queue" mapstructure:"dead_letter_queue"`
 }
 
 type DatabaseConfig struct {
@@ -206,6 +251,16 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("database.replica_addresses", []string{})
 	v.SetDefault("redis.host", "127.0.0.1")
 	v.SetDefault("redis.port", 6379)
+	v.SetDefault("rabbitmq.enabled", false)
+	v.SetDefault("rabbitmq.host", "127.0.0.1")
+	v.SetDefault("rabbitmq.port", 5672)
+	v.SetDefault("rabbitmq.vhost", "/grpc-go")
+	v.SetDefault("rabbitmq.connection_name", "admin-service")
+	v.SetDefault("rabbitmq.heartbeat", "30s")
+	v.SetDefault("rabbitmq.dial_timeout", "5s")
+	v.SetDefault("rabbitmq.reconnect_interval", "5s")
+	v.SetDefault("rabbitmq.publish_confirm_timeout", "5s")
+	v.SetDefault("rabbitmq.prefetch_count", 10)
 	v.SetDefault("consul.host", "127.0.0.1")
 	v.SetDefault("consul.port", 8500)
 	v.SetDefault("consul.scheme", "http")
@@ -221,6 +276,9 @@ func applyEnvironment(cfg *Config) {
 	}
 	if value := os.Getenv("ADMIN_REDIS_PASSWORD"); value != "" {
 		cfg.Redis.Password = value
+	}
+	if value := os.Getenv("ADMIN_RABBITMQ_PASSWORD"); value != "" {
+		cfg.RabbitMQ.Password = value
 	}
 	if value := os.Getenv("ADMIN_CONSUL_TOKEN"); value != "" {
 		cfg.Consul.Token = value
@@ -249,6 +307,57 @@ func (c Config) Validate() error {
 			if _, _, err := net.SplitHostPort(strings.TrimSpace(address)); err != nil {
 				return fmt.Errorf("invalid database replica address %q: %w", address, err)
 			}
+		}
+	}
+	if c.RabbitMQ.Enabled {
+		// 只有启用 RabbitMQ 时才要求连接参数和完整拓扑配置。
+		if strings.TrimSpace(c.RabbitMQ.Host) == "" {
+			return fmt.Errorf("RabbitMQ host is empty")
+		}
+		if c.RabbitMQ.Port < 1 || c.RabbitMQ.Port > 65535 {
+			return fmt.Errorf("RabbitMQ port %d is outside 1..65535", c.RabbitMQ.Port)
+		}
+		if strings.TrimSpace(c.RabbitMQ.Username) == "" {
+			return fmt.Errorf("RabbitMQ username is empty")
+		}
+		if strings.TrimSpace(c.RabbitMQ.VHost) == "" {
+			return fmt.Errorf("RabbitMQ vhost is empty")
+		}
+		if c.RabbitMQ.PrefetchCount < 1 {
+			return fmt.Errorf("RabbitMQ prefetch count must be positive")
+		}
+		// 统一校验所有以字符串表达的 Duration，避免运行阶段才发现格式错误。
+		durations := map[string]string{
+			"heartbeat":               c.RabbitMQ.Heartbeat,
+			"dial timeout":            c.RabbitMQ.DialTimeout,
+			"reconnect interval":      c.RabbitMQ.ReconnectInterval,
+			"publish confirm timeout": c.RabbitMQ.PublishConfirmTimeout,
+		}
+		for name, value := range durations {
+			duration, err := time.ParseDuration(value)
+			if err != nil || duration <= 0 {
+				return fmt.Errorf("RabbitMQ %s must be a positive duration", name)
+			}
+		}
+		operationLog := c.RabbitMQ.OperationLog
+		if strings.TrimSpace(operationLog.Exchange) == "" ||
+			strings.TrimSpace(operationLog.ExchangeType) == "" ||
+			strings.TrimSpace(operationLog.RoutingKey) == "" ||
+			strings.TrimSpace(operationLog.Queue) == "" ||
+			strings.TrimSpace(operationLog.RetryExchange) == "" ||
+			strings.TrimSpace(operationLog.RetryRoutingKey) == "" ||
+			strings.TrimSpace(operationLog.RetryQueue) == "" ||
+			strings.TrimSpace(operationLog.DeadLetterExchange) == "" ||
+			strings.TrimSpace(operationLog.DeadLetterRoutingKey) == "" ||
+			strings.TrimSpace(operationLog.DeadLetterQueue) == "" {
+			return fmt.Errorf("RabbitMQ operation-log topology is incomplete")
+		}
+		retryDelay, err := time.ParseDuration(operationLog.RetryDelay)
+		if err != nil || retryDelay <= 0 {
+			return fmt.Errorf("RabbitMQ operation-log retry delay must be a positive duration")
+		}
+		if operationLog.MaxRetries < 0 {
+			return fmt.Errorf("RabbitMQ operation-log max retries cannot be negative")
 		}
 	}
 	if strings.TrimSpace(c.Auth.AccessToken.Issuer) == "" {

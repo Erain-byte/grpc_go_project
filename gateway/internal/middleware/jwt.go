@@ -16,6 +16,7 @@ const (
 	ContextUserID    = "auth.user_id"
 	ContextRole      = "auth.role"
 	ContextSessionID = "auth.session_id"
+	ContextTokenID   = "auth.token_id"
 	ContextClaims    = "auth.claims"
 )
 
@@ -109,6 +110,9 @@ func (m *JWTMiddleware) ValidateJWT(tokenString string) (*AccessTokenClaims, err
 	if claims.SessionID == "" {
 		return nil, apperror.Unauthorized("access token session is empty")
 	}
+	if claims.ID == "" {
+		return nil, apperror.Unauthorized("access token ID is empty")
+	}
 	if _, ok := m.allowedIssuers[claims.Issuer]; !ok {
 		return nil, apperror.Unauthorized("access token issuer is not allowed")
 	}
@@ -133,6 +137,7 @@ func (m *JWTMiddleware) Handle(c *gin.Context) {
 	c.Set(ContextUserID, claims.Subject)
 	c.Set(ContextRole, claims.Role)
 	c.Set(ContextSessionID, claims.SessionID)
+	c.Set(ContextTokenID, claims.ID)
 	c.Set(ContextClaims, claims)
 	c.Next()
 }

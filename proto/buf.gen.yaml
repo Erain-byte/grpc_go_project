@@ -1,0 +1,13 @@
+version: v2
+
+# 在 proto 模块内生成，并保持与源文件相同的目录结构。
+plugins:
+  - local: protoc-gen-go
+    out: .
+    opt:
+      - paths=source_relative
+  - local: protoc-gen-go-grpc
+    out: .
+    opt:
+      - paths=source_relative
+

@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/hashicorp/consul/api"
@@ -19,23 +18,8 @@ import (
 // \gateway\internal\consul\consul.go
 // 定义结构体
 type ConsulRegistry struct {
-	client          *api.Client // Consul 客户端
-	config          config.ConsulConfig
-	cacheMu         sync.RWMutex
-	serviceCache    map[string]*serviceCacheEntry //服务缓存
-	watchMu         sync.Mutex
-	watchedServices map[string]struct{}
-	watchCtx        context.Context
-	watchCancel     context.CancelFunc //取消函数
-	watchWG         sync.WaitGroup
-	closed          bool
-}
-
-// serviceCacheEntry 服务缓存条目
-type serviceCacheEntry struct {
-	entries   []*api.ServiceEntry //服务实例
-	lastIndex uint64              //	最后一次更新时间
-	updatedAt time.Time
+	client *api.Client // Consul 客户端
+	config config.ConsulConfig
 }
 
 // 构造函数
@@ -54,14 +38,9 @@ func NewConsulRegistry(config config.ConsulConfig) (*ConsulRegistry, error) {
 	if err != nil {
 		return nil, apperror.Wrap(err, apperror.CodeInternal, "failed to create Consul client", http.StatusInternalServerError)
 	}
-	watchCtx, watchCancel := context.WithCancel(context.Background()) //创建取消函数
 	return &ConsulRegistry{
-		client:          cli,
-		config:          config,
-		serviceCache:    make(map[string]*serviceCacheEntry),
-		watchedServices: make(map[string]struct{}),
-		watchCtx:        watchCtx,
-		watchCancel:     watchCancel,
+		client: cli,
+		config: config,
 	}, nil
 
 }
@@ -195,67 +174,10 @@ func BuildServiceTags(cfg *config.Config, protocol string) []string {
 
 }
 
-// DiscoverService 默认发现 HTTP 服务，保留该方法以兼容现有调用。
-func (r *ConsulRegistry) DiscoverService(ctx context.Context, name string) ([]*api.ServiceEntry, error) {
-	return r.DiscoverHTTPService(ctx, name)
-}
-
-// DiscoverHTTPService 发现 HTTP 服务。
-func (r *ConsulRegistry) DiscoverHTTPService(ctx context.Context, name string) ([]*api.ServiceEntry, error) {
-	return r.discoverService(ctx, name, ProtocolHTTP)
-}
-
-// DiscoverService 发现服务。
-func (r *ConsulRegistry) discoverService(ctx context.Context, name string, protocol string) ([]*api.ServiceEntry, error) {
-	key := serviceCacheKey(name, protocol)
-	if entries, found := r.getFromCache(key); found {
-		return entries, nil
-	}
-	entries, lastIndex, err := r.queryConsul(ctx, name, protocol, 0) //查询Consul
-	if err != nil {
-		return nil, err
-	}
-	r.updateCache(key, entries, lastIndex)  //更新缓存
-	r.startWatch(name, protocol, lastIndex) //启动监听
-	return slices.Clone(entries), nil
-}
-
-// startWatch 启动服务发现监听
-func serviceCacheKey(name string, protocol string) string {
-	return strings.TrimSpace(name) + ":" + strings.TrimSpace(protocol)
-}
-
-// getFromCache 获取服务实例缓存
-func (r *ConsulRegistry) getFromCache(name string) ([]*api.ServiceEntry, bool) {
-	r.cacheMu.RLock()
-	defer r.cacheMu.RUnlock()
-	entry, ok := r.serviceCache[name]
-	if !ok {
-		return nil, false
-	}
-	// 检查缓存是否过期（30秒）
-	if time.Since(entry.updatedAt) > 30*time.Second {
-		return nil, false
-	}
-	return slices.Clone(entry.entries), true
-}
-
-// updateCache 更新服务缓存
-func (r *ConsulRegistry) updateCache(name string, entries []*api.ServiceEntry, lastIndex uint64) {
-	r.cacheMu.Lock()
-	defer r.cacheMu.Unlock()
-	r.serviceCache[name] = &serviceCacheEntry{
-		entries:   slices.Clone(entries),
-		lastIndex: lastIndex,
-		updatedAt: time.Now(),
-	}
-}
-
-// queryConsul 查询 Consul 服务实例
-// waitIndex: Consul Watch 的 WaitIndex，用于实现 Watch 的增量查询。
-// 如果 waitIndex 为 0，则表示不使用 Watch，直接查询 Consul。
-
-func (r *ConsulRegistry) queryConsul(ctx context.Context, name string, protocol string, waitIndex uint64) ([]*api.ServiceEntry, uint64, error) {
+// queryGRPCService 使用 Consul Blocking Query 查询健康的 gRPC 服务实例。
+// waitIndex 为上一次查询返回的 Consul Index；Consul 会在实例变化或 WaitTime
+// 到期后返回，从而避免客户端定时轮询。
+func (r *ConsulRegistry) queryGRPCService(ctx context.Context, name string, waitIndex uint64) ([]*api.ServiceEntry, uint64, error) {
 	if ctx == nil {
 		return nil, waitIndex, apperror.InvalidArgument("query consul: context is nil")
 	}
@@ -264,15 +186,11 @@ func (r *ConsulRegistry) queryConsul(ctx context.Context, name string, protocol 
 	if name == "" {
 		return nil, waitIndex, apperror.InvalidArgument("query consul: service name is empty")
 	}
-	protocol = strings.TrimSpace(protocol)
-	if protocol != ProtocolHTTP && protocol != ProtocolGRPC {
-		return nil, waitIndex, apperror.InvalidArgument("query consul: protocol must be http or grpc")
-	}
 	options := (&api.QueryOptions{
 		WaitIndex: waitIndex,
 		WaitTime:  20 * time.Second,
 	}).WithContext(ctx)
-	entries, meta, err := r.client.Health().Service(name, protocol, true, options) //查询服务
+	entries, meta, err := r.client.Health().Service(name, ProtocolGRPC, true, options)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return nil, waitIndex, apperror.Wrap(err, apperror.CodeTimeout, "Consul query timed out", http.StatusGatewayTimeout)
@@ -285,44 +203,25 @@ func (r *ConsulRegistry) queryConsul(ctx context.Context, name string, protocol 
 	return entries, meta.LastIndex, nil
 }
 
-// startWatch 保证每个服务在当前 Registry 中最多只有一个 Watch。
-
-func (r *ConsulRegistry) startWatch(name string, protocol string, lastIndex uint64) {
-	key := serviceCacheKey(name, protocol)
-	r.watchMu.Lock()
-	if r.closed {
-		r.watchMu.Unlock()
-		return
+// WatchGRPCService 持续监听健康的 gRPC 服务实例，并在地址发生查询更新时回调。
+// 重连和退避由 grpcResolver 统一负责，Registry 只负责一次连续的 Blocking Query。
+func (r *ConsulRegistry) WatchGRPCService(ctx context.Context, name string, onUpdate func([]*api.ServiceEntry) error) error {
+	if ctx == nil {
+		return apperror.InvalidArgument("watch grpc service: context is nil")
 	}
-	if _, exists := r.watchedServices[key]; exists {
-		r.watchMu.Unlock()
-		return
+	if strings.TrimSpace(name) == "" {
+		return apperror.InvalidArgument("watch grpc service: service name is empty")
 	}
-	r.watchedServices[key] = struct{}{}
-	r.watchWG.Add(1)
-	r.watchMu.Unlock()
-
-	go r.watchService(r.watchCtx, name, protocol, lastIndex)
-}
-
-// watchService 后台监听服务变化
-func (r *ConsulRegistry) watchService(ctx context.Context, name string, protocol string, lastIndex uint64) {
-	key := serviceCacheKey(name, protocol)
-	defer r.watchWG.Done()
-	defer r.removeWatchService(key)
+	if onUpdate == nil {
+		return apperror.InvalidArgument("watch grpc service: onUpdate is nil")
+	}
+	var lastIndex uint64
 	for {
-		entries, newIndex, err := r.queryConsul(ctx, name, protocol, lastIndex)
-		if err != nil {
-			if ctx.Err() != nil {
-				return
-			}
-			logger.SugaredLogger.Errorf("failed to query %s service %s: %v", protocol, name, err)
-			if !waitRetry(ctx, 5*time.Second) {
-				return
-			}
-			continue
-		}
+		entries, newIndex, err := r.queryGRPCService(ctx, name, lastIndex)
 
+		if err != nil {
+			return err
+		}
 		if newIndex < lastIndex {
 			lastIndex = 0
 			continue
@@ -330,10 +229,12 @@ func (r *ConsulRegistry) watchService(ctx context.Context, name string, protocol
 		if newIndex == 0 {
 			newIndex = 1
 		}
-
-		r.updateCache(key, entries, newIndex)
+		if err := onUpdate(slices.Clone(entries)); err != nil {
+			return err
+		}
 		lastIndex = newIndex
 	}
+
 }
 
 // ping
@@ -370,62 +271,6 @@ func waitRetry(ctx context.Context, delay time.Duration) bool {
 	case <-timer.C:
 		return true
 	}
-}
-
-// removeWatchService 移除监听服务
-func (r *ConsulRegistry) removeWatchService(name string) {
-	r.watchMu.Lock()
-	defer r.watchMu.Unlock()
-	delete(r.watchedServices, name)
-}
-
-// Close 停止 Registry 创建的所有 Watch，并等待 goroutine 退出。
-func (r *ConsulRegistry) Close() {
-	if r == nil {
-		return
-	}
-	r.watchMu.Lock()
-	if r.closed {
-		r.watchMu.Unlock()
-		return
-	}
-	r.closed = true
-	r.watchCancel()
-	r.watchMu.Unlock()
-	r.watchWG.Wait()
-}
-
-// GetServiceMetadata 获取服务的元数据（公开接口、CORS配置等）
-func (r *ConsulRegistry) GetServiceMetadata(ctx context.Context, name string) (map[string]string, error) {
-
-	entries, err := r.DiscoverService(ctx, name)
-	if err != nil {
-		return nil, err
-	}
-	if len(entries) == 0 {
-		return nil, apperror.NotFound(fmt.Sprintf("service %q not found", name))
-	}
-
-	return entries[0].Service.Meta, nil
-
-}
-
-// GetPublicEndpoints 获取服务的公开接口列表
-func (r *ConsulRegistry) GetPublicEndpoints(ctx context.Context, name string) ([]string, error) {
-	metadata, err := r.GetServiceMetadata(ctx, name)
-	if err != nil {
-		return nil, err
-	}
-	if publicAPIs, ok := metadata["public_apis"]; ok {
-		//return strings.Split(publicAPIs, ","), nil
-		var listAPIs []string
-		apiList := strings.Split(publicAPIs, ",")
-		for _, api := range apiList {
-			listAPIs = append(listAPIs, strings.TrimSpace(api))
-		}
-		return listAPIs, nil
-	}
-	return []string{}, nil
 }
 
 // DeregisterHTTPService 删除HTTP服务

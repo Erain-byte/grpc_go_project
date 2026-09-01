@@ -3,7 +3,6 @@ package forwarder
 import (
 	"context"
 	clien "gateway/internal/grpc"
-	"gateway/internal/svc"
 	"gateway/pkg/apperror"
 
 	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
@@ -15,10 +14,9 @@ type AdminForwarder struct {
 	base                                    *BaseForwarder[pbAdmin.AdminServiceClient] // 基础转发器
 }
 
-func NewAdminForwarder(svcCtx *svc.ServiceContext, clinMgnager *clien.ClientManager) *AdminForwarder {
+func NewAdminForwarder(clinMgnager *clien.ClientManager) *AdminForwarder {
 	return &AdminForwarder{
 		base: NewBaseForwarder[pbAdmin.AdminServiceClient](
-			svcCtx,
 			pbAdmin.NewAdminServiceClient,
 			clinMgnager,
 			"admin-service",

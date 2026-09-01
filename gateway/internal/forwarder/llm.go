@@ -5,7 +5,6 @@ import (
 	"io"
 
 	clien "gateway/internal/grpc"
-	"gateway/internal/svc"
 	"gateway/pkg/apperror"
 
 	bpLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
@@ -17,10 +16,9 @@ type LlmForwarder struct {
 	base                                *BaseForwarder[bpLlm.LlmServiceClient]
 }
 
-func NewLlmForwarder(svcCtx *svc.ServiceContext, clinMgnager *clien.ClientManager) *LlmForwarder {
+func NewLlmForwarder(clinMgnager *clien.ClientManager) *LlmForwarder {
 	return &LlmForwarder{
 		base: NewBaseForwarder[bpLlm.LlmServiceClient](
-			svcCtx,
 			bpLlm.NewLlmServiceClient,
 			clinMgnager,
 			"llm-service",

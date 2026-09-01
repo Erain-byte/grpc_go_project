@@ -160,12 +160,26 @@ consul:///admin-service-grpc
 
 ```text
 Consul 中的实例发生变化
-→ 自定义 resolver 查询健康实例
+→ Consul Blocking Query 立即返回
+→ WatchGRPCService 得到完整健康实例列表
 → 生成 []resolver.Address
 → resolver.ClientConn.UpdateState(...)
 → grpc.ClientConn 更新后端连接（SubConn）
 → round_robin 从 READY 连接中轮流选择
 ```
+
+当前不再使用定时刷新、旧 `watchService` 或 HTTP 下游服务缓存。Resolver 为每个
+逻辑 gRPC 服务维持一个 Blocking Query；Consul 实例发生变化时立即返回，查询
+完成后马上携带新的 `WaitIndex` 发起下一次监听。监听异常由 Resolver 使用
+500ms～15s 的指数退避重试，成功收到更新后重置退避时间。
+
+需要区分以下两个 HTTP 概念：
+
+- **HTTP 入站**：浏览器/App 请求 Gateway，必须保留 Gin HTTP Server。
+- **HTTP 服务发现**：Gateway 查找下游 HTTP 服务，当前架构不再需要，已经移除。
+
+Gateway 仍注册为 Consul HTTP 实例，是为了让 Consul 检查 `/health` 并支持入口层
+发现；这不表示 Gateway 会使用 HTTP 调用 Admin、User 或 LLM。
 
 负载均衡配置：
 
@@ -784,7 +798,7 @@ userv1.RegisterUserServiceServer(grpcServer, userForwarder)
 `routes_<service>.go`，避免所有路由堆积在一个函数中：
 
 ```go
-func (s *Server) registerRoutes() {
+func (s *HTTPServer) registerRoutes() {
     s.registerHealthRoutes()
     s.registerAdminRoutes()
     s.registerLLMRoutes()
@@ -813,3 +827,17 @@ consul:///llm-service-grpc
 resolver 查询 Consul 健康实例，将地址转换为 `resolver.Address`，再通过
 `UpdateState` 交给 `grpc.ClientConn`。grpc-go 为地址维护 SubConn，并由
 `round_robin` 从处于 `READY` 状态的连接中轮流选择后端。
+
+当前服务发现流程：
+
+```text
+ClientManager 创建 consul:///<service>-grpc ClientConn
+→ grpc-go 调用 GRPCResolverBuilder.Build
+→ grpcResolver 启动 WatchGRPCService
+→ Consul Blocking Query（passing=true，tag=grpc）
+→ UpdateState 提交完整且去重、排序后的地址列表
+→ round_robin 更新可用后端
+```
+
+`grpcResolver.Close` 会取消其 Context，从而结束正在阻塞的 Consul 查询。旧的
+`DiscoverHTTPService`、`discoverService`、服务缓存和 `watchService` 已移除。

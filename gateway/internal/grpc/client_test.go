@@ -26,11 +26,26 @@ type fakeRegistry struct {
 	names   []string
 }
 
-func (f *fakeRegistry) DiscoverGRPCService(_ context.Context, name string) ([]*api.ServiceEntry, error) {
+func (f *fakeRegistry) WatchGRPCService(
+	ctx context.Context,
+	name string,
+	onUpdate func([]*api.ServiceEntry) error,
+) error {
 	f.mu.Lock()
-	defer f.mu.Unlock()
 	f.names = append(f.names, name)
-	return f.entries, f.err
+	entries := f.entries
+	err := f.err
+	f.mu.Unlock()
+	if err != nil {
+		return err
+	}
+	if len(entries) > 0 {
+		if err := onUpdate(entries); err != nil {
+			return err
+		}
+	}
+	<-ctx.Done()
+	return ctx.Err()
 }
 
 func TestNewClientManagerDoesNotMutateConfig(t *testing.T) {

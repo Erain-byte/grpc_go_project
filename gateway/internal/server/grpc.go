@@ -50,7 +50,7 @@ func NewGRPCServer(
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
 	// 空字符串代表整个 gRPC Server，而不是某一个具体业务服务。
 	healthServer.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
-	forwarder.RegisterAllGRPCServices(grpcServer, svcCtx, clientManager)
+	forwarder.RegisterAllGRPCServices(grpcServer, clientManager)
 
 	return &GRPCServer{
 		server:   grpcServer,

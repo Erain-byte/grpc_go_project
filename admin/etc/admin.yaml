@@ -42,6 +42,35 @@ redis:
   pool_timeout: "4s"
   health_required: false
 
+# RabbitMQ password is loaded from ADMIN_RABBITMQ_PASSWORD.
+# RabbitMQ 操作日志异步链路；密码通过 ADMIN_RABBITMQ_PASSWORD 注入。
+rabbitmq:
+  enabled: true
+  host: "127.0.0.1"
+  port: 5672
+  username: "grpc_app"
+  vhost: "/grpc-go"
+  connection_name: "admin-service"
+  heartbeat: "30s"
+  dial_timeout: "5s"
+  reconnect_interval: "5s"
+  publish_confirm_timeout: "5s"
+  prefetch_count: 10
+  # 主队列、延迟重试队列和死信队列的固定拓扑。
+  operation_log:
+    exchange: "admin.events"
+    exchange_type: "topic"
+    routing_key: "admin.operation_log.created"
+    queue: "admin.operation_log"
+    retry_exchange: "admin.events.retry"
+    retry_routing_key: "admin.operation_log.retry"
+    retry_queue: "admin.operation_log.retry"
+    retry_delay: "5s" # 每次失败后等待 5 秒再投回主队列。
+    max_retries: 3    # 超过次数后转入死信队列。
+    dead_letter_exchange: "admin.events.dlx"
+    dead_letter_routing_key: "admin.operation_log.dead"
+    dead_letter_queue: "admin.operation_log.dlq"
+
 # ADMIN_ACCESS_TOKEN_SECRET must match the Gateway verification secret.
 auth:
   access_token:

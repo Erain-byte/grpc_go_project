@@ -2,6 +2,8 @@ package model
 
 type OperationLogModel struct {
 	BaseModel
+	// EventID 对应 MQ 消息唯一标识，唯一索引用于抵御 RabbitMQ 的重复投递。
+	EventID    string `gorm:"size:64;uniqueIndex;not null;comment:消息事件ID" json:"event_id"`
 	AdminID    uint   `gorm:"index;not null;comment:操作管理员ID" json:"admin_id"`
 	AdminName  string `gorm:"size:64;not null;comment:操作人账号" json:"admin_name"`
 	Module     string `gorm:"size:64;comment:操作模块" json:"module"`

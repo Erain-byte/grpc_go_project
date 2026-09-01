@@ -6,7 +6,10 @@ import (
 	"admin/internal/consul"
 	"admin/internal/database"
 	"admin/internal/logger"
+	"admin/internal/mq"
+	"admin/internal/mqhandler"
 	"admin/internal/redis"
+	"admin/internal/repository"
 	"admin/internal/server"
 	"admin/internal/svc"
 	"admin/internal/tracer"
@@ -105,6 +108,35 @@ func Run() error {
 			http.StatusInternalServerError,
 		)
 	}
+	// RabbitMQ 是可选依赖。启用后共用一条 Connection，Publisher 和 Consumer
+	// 分别持有自己的 Channel，避免在并发发布和消费之间共享 Channel 状态。
+	var mqClient mq.Client
+	var operationLogPublisher *mq.Publisher
+	if cfg.RabbitMQ.Enabled {
+		var mqErr error
+		mqClient, mqErr = mq.NewClient(cfg.RabbitMQ)
+		if mqErr != nil {
+			return apperror.Wrap(mqErr, apperror.CodeUnavailable, "failed to initialize RabbitMQ", http.StatusServiceUnavailable)
+		}
+		// defer 按后进先出执行：Publisher Channel 会先关闭，底层 Connection 后关闭。
+		defer func() {
+			if err := mqClient.Close(); err != nil {
+				logger.SugaredLogger.Errorf("Failed to close RabbitMQ client: %v", err)
+			}
+		}()
+		if err := rabbitMQPing(context.Background(), mqClient); err != nil {
+			return apperror.Wrap(err, apperror.CodeUnavailable, "failed to ping RabbitMQ", http.StatusServiceUnavailable)
+		}
+		operationLogPublisher, mqErr = mq.NewPublisher(mqClient, cfg.RabbitMQ)
+		if mqErr != nil {
+			return apperror.Wrap(mqErr, apperror.CodeUnavailable, "failed to initialize RabbitMQ publisher", http.StatusServiceUnavailable)
+		}
+		defer func() {
+			if err := operationLogPublisher.Close(); err != nil {
+				logger.SugaredLogger.Errorf("Failed to close RabbitMQ publisher: %v", err)
+			}
+		}()
+	}
 	//svc
 	severice := svc.NewServiceContext(
 		cfg,
@@ -112,6 +144,7 @@ func Run() error {
 		gormDB,
 		logger.Logger,
 		consulClenit,
+		operationLogPublisher,
 	)
 	tracerCtx, traceCtxCancel := context.WithTimeout(context.Background(), dependencyCheckTimeout)
 	//tacer
@@ -173,6 +206,30 @@ func Run() error {
 		syscall.SIGTERM,
 	)
 	defer signalCtxCancel()
+	if cfg.RabbitMQ.Enabled {
+		// 消费链路：Consumer 解码消息 -> Handler 转换模型 -> Repository 幂等写库。
+		operationLogRepository := repository.NewOperationLogRepository(severice)
+		operationLogHandler, err := mqhandler.NewOperationLog(operationLogRepository)
+		if err != nil {
+			return apperror.Wrap(err, apperror.CodeInternal, "failed to initialize operation-log handler", http.StatusInternalServerError)
+		}
+		operationLogConsumer, err := mq.NewConsumer(
+			mqClient,
+			cfg.RabbitMQ,
+			operationLogHandler,
+			operationLogPublisher,
+			logger.Logger,
+		)
+		if err != nil {
+			return apperror.Wrap(err, apperror.CodeInternal, "failed to initialize RabbitMQ consumer", http.StatusInternalServerError)
+		}
+		go func() {
+			// Consumer 内部会持续重连；这里只需要让它跟随服务退出 Context 结束。
+			if err := operationLogConsumer.Start(signlCatxh); err != nil {
+				logger.SugaredLogger.Errorf("RabbitMQ operation-log consumer stopped: %v", err)
+			}
+		}()
+	}
 	//监控证书
 	go grpcServer.MonitorCertificate(
 		signlCatxh,
@@ -234,4 +291,14 @@ func consulPin(ctx context.Context, consulClient *consul.ConsulRegistry) error {
 	consulCtx, consulCtxCancel := context.WithTimeout(ctx, dependencyCheckTimeout)
 	defer consulCtxCancel()
 	return consulClient.Ping(consulCtx)
+}
+
+func rabbitMQPing(ctx context.Context, client mq.Client) error {
+	// 启动阶段执行一次快速健康检查，Broker 不可用时直接阻止服务进入可用状态。
+	if client == nil {
+		return errors.New("RabbitMQ client is nil")
+	}
+	pingCtx, cancel := context.WithTimeout(ctx, dependencyCheckTimeout)
+	defer cancel()
+	return client.Ping(pingCtx)
 }

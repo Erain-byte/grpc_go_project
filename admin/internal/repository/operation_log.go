@@ -6,6 +6,8 @@ import (
 	"admin/pkg/apperorr"
 	"context"
 	"time"
+
+	"gorm.io/gorm/clause"
 )
 
 type OperationLogFilter struct {
@@ -36,7 +38,13 @@ func (r *operationLogRepository) Create(ctx context.Context, log *model.Operatio
 	if log == nil {
 		return apperorr.InvalidArgument("operation log is nil")
 	}
-	return r.svc.DB.Gorm().WithContext(ctx).Omit("Admin").Create(log).Error
+	// RabbitMQ 可能重复投递消息。EventID 建有唯一索引，发生唯一键冲突时
+	// DoNothing 会把重复消费转换成成功结果，从而保证操作日志幂等写入。
+	return r.svc.DB.Gorm().WithContext(ctx).
+		Omit("Admin").
+		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "event_id"}}, DoNothing: true}).
+		Create(log).
+		Error
 }
 
 func (r *operationLogRepository) FindByID(ctx context.Context, id uint) (*model.OperationLogModel, error) {

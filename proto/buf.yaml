@@ -1,0 +1,14 @@
+version: v2
+
+# proto 是独立发布的协议模块，Buf 配置不依赖仓库中的其他服务。
+modules:
+  - path: .
+
+lint:
+  use:
+    - STANDARD
+
+breaking:
+  use:
+    - FILE
+

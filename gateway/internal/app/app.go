@@ -97,7 +97,6 @@ func Run() error {
 			http.StatusServiceUnavailable,
 		)
 	}
-	defer consulRegistry.Close()
 	healthCtxConusul, cancelHealthConsul := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancelHealthConsul()
 	healthErrConsul := consulRegistry.Ping(healthCtxConusul)
@@ -167,8 +166,7 @@ func Run() error {
 		}
 		return err
 	}
-	// Run 退出时注销两个实例。defer 按后进先出执行，因此该注销动作
-	// 会先于 consulRegistry.Close，保证注销时 Consul Client 仍然可用。
+	// Run 退出时注销两个 Gateway 入站实例。
 	defer func() {
 		if err := consulRegistry.DeregisterGRPCService(cfg.Name, cfg.Host, cfg.GRPCPort); err != nil {
 			logger.SugaredLogger.Errorf("failed to deregister Gateway gRPC service: %v", err)
