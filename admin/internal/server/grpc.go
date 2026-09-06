@@ -17,6 +17,8 @@ import (
 	"strings"
 	"time"
 
+	"admin/internal/ratelimit"
+
 	adminv1 "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
 	authv1 "github.com/Erain-byte/grpc_go_project/proto/auth/v1"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -52,6 +54,18 @@ func NewGRPCServer(cfg *config.Config, svcCtx *svc.ServiceContext) (*GRPCServer,
 		return nil, err
 	}*/
 	//authInterceptor := middleware.NewAuthInterceptor(tokenVerifier)
+	//初始化限流
+	redisLimiter, err := ratelimit.NewRedisSlidingWindow(svcCtx.Redis)
+	if err != nil {
+		_ = listener.Close()
+		return nil, err
+	}
+	//初始化限流拦截器
+	rateLimitInterceptor, err := middleware.NewRateLimitInterceptor(cfg.RateLimit, redisLimiter, svcCtx.Logger)
+	if err != nil {
+		_ = listener.Close()
+		return nil, err
+	}
 	options := []grpc.ServerOption{
 		// StatsHandler 从 gRPC metadata 提取上游 Trace，并记录服务端 Span。
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
@@ -60,6 +74,7 @@ func NewGRPCServer(cfg *config.Config, svcCtx *svc.ServiceContext) (*GRPCServer,
 			middleware.RequestID(),
 			middleware.ErrorHandler(),
 			middleware.NewAuthInterceptor().Unary(),
+			rateLimitInterceptor.Unary(),
 		),
 	}
 	if cfg.GRPC.UseTLS {

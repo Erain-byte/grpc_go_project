@@ -161,12 +161,11 @@ type GrpcConfig struct {
 
 // RateLimitConfig 限流配置
 type RateLimitConfig struct {
-	Enabled           bool    `yaml:"enabled" default:"false"`
-	RequestsPerSecond float64 `yaml:"requests_per_second" default:"100"`
-	BurstSize         int     `yaml:"burst_size" default:"20"`
-	ByIP              bool    `yaml:"by_ip" default:"true"`
-	ByAPI             bool    `yaml:"by_api" default:"false"`
-	FallbackToLocal   bool    `yaml:"fallback_to_local" default:"true"`
+	Enabled      bool   `yaml:"enabled"`
+	Limit        int64  `yaml:"limit"`
+	Window       string `yaml:"window"`
+	RedisTimeout string `yaml:"redis_timeout"`
+	FailClosed   bool   `yaml:"fail_closed"`
 }
 
 // CircuitBreakerConfig 熔断器配置

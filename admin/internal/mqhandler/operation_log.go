@@ -8,6 +8,11 @@ import (
 	"context"
 	"errors"
 	"math"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // OperationLog 把稳定的 MQ 消息协议转换成当前数据库模型。
@@ -25,18 +30,34 @@ func NewOperationLog(repository repository.OperationLogRepository) (*OperationLo
 
 // Handle 校验消息并把事件字段映射为 OperationLogModel 后幂等写入数据库。
 func (h *OperationLog) Handle(ctx context.Context, event mq.OperationLogEvent) error {
+	ctx, span := otel.Tracer("admin/internal/mqhandler").Start(
+		ctx,
+		"operation_log.persist",
+		trace.WithAttributes(
+			attribute.String("messaging.message.id", event.EventID),
+			attribute.String("operation_log.module", event.Module),
+			attribute.String("operation_log.action", event.Action),
+		),
+	)
+	defer span.End()
+
 	if err := event.Validate(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "operation-log event validation failed")
 		return mq.MarkPermanent(err)
 	}
 	if event.AdminID > uint64(math.MaxUint) {
-		return mq.MarkPermanent(errors.New("admin_id exceeds uint range"))
+		err := errors.New("admin_id exceeds uint range")
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "operation-log event validation failed")
+		return mq.MarkPermanent(err)
 	}
 	// 数据库使用 1/0 保存成功状态，消息协议使用更直观的 bool。
 	status := int8(0)
 	if event.Success {
 		status = 1
 	}
-	return h.repository.Create(ctx, &model.OperationLogModel{
+	err := h.repository.Create(ctx, &model.OperationLogModel{
 		EventID:    event.EventID,
 		AdminID:    uint(event.AdminID),
 		AdminName:  event.AdminName,
@@ -49,4 +70,9 @@ func (h *OperationLog) Handle(ctx context.Context, event mq.OperationLogEvent) e
 		UserAgent:  event.UserAgent,
 		Status:     status,
 	})
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "operation-log persistence failed")
+	}
+	return err
 }

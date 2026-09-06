@@ -23,6 +23,7 @@ type RedisClient interface {
 	Ping(ctx context.Context) error
 	Close() error
 	Raw() goredis.UniversalClient
+	Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error)
 }
 type redisClient struct {
 	raw goredis.UniversalClient
@@ -236,4 +237,12 @@ func (c *redisClient) Close() error {
 }
 func (c *redisClient) Raw() goredis.UniversalClient {
 	return c.raw
+}
+
+func (c *redisClient) Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error) {
+	result, err := c.raw.Eval(ctx, script, keys, args...).Result()
+	if err != nil {
+		return nil, apperror.Wrap(err, apperror.CodeUnavailable, "failed to execute script in Redis", http.StatusServiceUnavailable)
+	}
+	return result, nil
 }

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	authv1 "github.com/Erain-byte/grpc_go_project/proto/auth/v1"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -80,7 +81,10 @@ func (s *ValidateSessionService) ValidateSession(
 	// Session 有效后再取得服务端保存的管理员角色。
 	// 优先读取资料缓存；缓存未命中时查询 MySQL 并回填 Redis。
 	profileKey := adminProfileRedisKey(subjectID)
-	profile, hit := s.info.profileFromCache(requestCtx, profileKey)
+	profile, hit, cacheErr := s.info.profileFromCache(requestCtx, profileKey)
+	if cacheErr != nil && s.svc.Logger != nil {
+		s.svc.Logger.Warn("read admin profile cache", zap.Error(cacheErr))
+	}
 	if !hit {
 		admin, findErr := s.adminModel.FindByID(requestCtx, uint(adminID))
 		if errors.Is(findErr, gorm.ErrRecordNotFound) || admin == nil {
@@ -103,7 +107,9 @@ func (s *ValidateSessionService) ValidateSession(
 			Role:     roleValue,
 			RoleCode: roleCode,
 		}
-		s.info.cacheProfile(requestCtx, profileKey, profile)
+		if cacheErr := s.info.cacheProfile(requestCtx, profileKey, profile); cacheErr != nil && s.svc.Logger != nil {
+			s.svc.Logger.Warn("write admin profile cache", zap.Error(cacheErr))
+		}
 	}
 	if profile.ID != subjectID || strings.TrimSpace(profile.RoleCode) == "" {
 		return invalidSession("identity_mismatch"), nil

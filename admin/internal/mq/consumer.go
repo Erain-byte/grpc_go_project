@@ -108,7 +108,10 @@ func (c *Consumer) handleDelivery(parent context.Context, delivery amqp.Delivery
 	ctx, span := otel.Tracer("admin/internal/mq").Start(ctx, "rabbitmq consume "+c.config.OperationLog.Queue,
 		trace.WithSpanKind(trace.SpanKindConsumer), trace.WithAttributes(
 			attribute.String("messaging.system", "rabbitmq"),
-			attribute.String("messaging.destination.name", c.config.OperationLog.Queue)))
+			attribute.String("messaging.destination.name", c.config.OperationLog.Queue),
+			attribute.String("messaging.operation.name", "process"),
+			attribute.String("messaging.message.id", delivery.MessageId),
+			attribute.Int("messaging.message.retry_count", retryCount(delivery.Headers))))
 	defer span.End()
 	event, err := decodeOperationLog(delivery.Body)
 	if err == nil {
@@ -117,6 +120,8 @@ func (c *Consumer) handleDelivery(parent context.Context, delivery amqp.Delivery
 	}
 	if err == nil {
 		if ackErr := delivery.Ack(false); ackErr != nil {
+			span.RecordError(ackErr)
+			span.SetStatus(codes.Error, "RabbitMQ acknowledgement failed")
 			c.logger.Error("ack RabbitMQ message failed", zap.Error(ackErr))
 		}
 		return

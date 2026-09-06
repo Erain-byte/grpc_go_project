@@ -5,6 +5,7 @@ import (
 	"admin/internal/model"
 	"admin/internal/repository"
 	"admin/internal/svc"
+	tracing "admin/internal/tracer"
 	"admin/pkg/apperorr"
 	"context"
 	"encoding/json"
@@ -15,6 +16,9 @@ import (
 
 	adminv1 "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -34,6 +38,8 @@ type LogicService struct {
 	adminModel   repository.AdminRepository
 	adminSession repository.SessionRepository
 	roleModel    repository.RoleRepository
+	//添加子span
+	tracer trace.Tracer
 }
 
 type cachedAdminProfile struct {
@@ -58,10 +64,25 @@ func NewLogicService(svcCtx *svc.ServiceContext) (*LogicService, error) {
 		adminModel:   repository.NewAdminRepository(svcCtx),
 		adminSession: repository.NewAdminSessionRepository(svcCtx),
 		roleModel:    repository.NewRoleRepository(svcCtx),
+		// 使用全局TracerProvider。如果需要，可以创建一个特定的TracerProvider
+		tracer: otel.Tracer("admin/internal/service"),
 	}, nil
 }
 
-func (l *LogicService) Login(ctx context.Context, req *adminv1.LoginRequest) (*adminv1.LoginResponse, error) {
+func (l *LogicService) Login(ctx context.Context, req *adminv1.LoginRequest) (_ *adminv1.LoginResponse, returnErr error) {
+
+	ctx, span := l.tracer.Start(
+		ctx,
+		"admin.login",
+		trace.WithSpanKind(trace.SpanKindInternal),
+	)
+	//关闭span
+	defer func() {
+		if returnErr != nil {
+			tracing.RecordError(span, returnErr, "admin login failed")
+		}
+		span.End()
+	}()
 	if req == nil {
 		return nil, apperorr.InvalidArgument("login request is required")
 	}
@@ -72,18 +93,25 @@ func (l *LogicService) Login(ctx context.Context, req *adminv1.LoginRequest) (*a
 
 	loginCtx, cancel := context.WithTimeout(ctx, loginTimeout)
 	defer cancel()
-	admin, err := l.adminModel.FindByUsername(loginCtx, username)
+	admin, err := l.findAdminByUsername(loginCtx, username)
 	if err != nil || admin == nil {
 		return nil, apperorr.Unauthorized("username or password is incorrect")
 	}
+	//写入span属性
+	span.SetAttributes(attribute.Int64("admin.id", int64(admin.ID)))
 	if !admin.IsEnabled() {
 		return nil, apperorr.Forbidden("admin account is disabled")
 	}
-	if err := bcrypt.CompareHashAndPassword([]byte(admin.PasswordHash), []byte(req.GetPassword())); err != nil {
+	//检查密码
+	if err := l.verifyPassword(
+		loginCtx,
+		admin.PasswordHash,
+		req.GetPassword(),
+	); err != nil {
 		return nil, apperorr.Unauthorized("username or password is incorrect")
 	}
 
-	roles, err := l.roleModel.FindByAdminID(loginCtx, admin.ID)
+	roles, err := l.findAdminRoles(loginCtx, admin.ID)
 	if err != nil {
 		return nil, apperorr.Wrap(err, apperorr.CodeInternal, "query admin roles", http.StatusInternalServerError)
 	}
@@ -110,13 +138,13 @@ func (l *LogicService) Login(ctx context.Context, req *adminv1.LoginRequest) (*a
 		ExpiresAt:        now.Add(l.auth.RefreshTTL()),
 		Status:           model.SessionStatusActive,
 	}
-	if err := l.adminSession.Create(loginCtx, session); err != nil {
+	if err := l.createSession(loginCtx, session); err != nil {
 		return nil, apperorr.Wrap(err, apperorr.CodeInternal, "create admin session", http.StatusInternalServerError)
 	}
 
 	//redisKey := l.sessionRedisKey(sessionID)
 	redisKey := auth.SetSessionKey(sessionID, l.svc.Config.Auth)
-	if err := l.svc.Redis.Set(loginCtx, redisKey, refreshTokenHash, l.auth.RefreshTTL()); err != nil {
+	if err := l.cacheSession(loginCtx, redisKey, refreshTokenHash, l.auth.RefreshTTL()); err != nil {
 		rollbackCtx, rollbackCancel := context.WithTimeout(context.WithoutCancel(ctx), loginTimeout)
 		defer rollbackCancel()
 		if revokeErr := l.adminSession.Revoke(rollbackCtx, sessionID, now); revokeErr != nil && l.svc.Logger != nil {
@@ -137,7 +165,7 @@ func (l *LogicService) Login(ctx context.Context, req *adminv1.LoginRequest) (*a
 		if l.svc.Logger != nil {
 			l.svc.Logger.Warn("encode admin profile cache", zap.Error(marshalErr))
 		}
-	} else if cacheErr := l.svc.Redis.Set(loginCtx, adminProfileRedisKey(adminID), profileData, l.auth.AccessTTL()); cacheErr != nil && l.svc.Logger != nil {
+	} else if cacheErr := l.cacheAdminProfile(loginCtx, adminID, profileData, l.auth.AccessTTL()); cacheErr != nil && l.svc.Logger != nil {
 		// 用户资料缓存可以从数据库重建，因此写入失败不应该让一次合法登录失败。
 		l.svc.Logger.Warn("cache admin profile", zap.Error(cacheErr))
 	}
@@ -203,4 +231,196 @@ func stringValue(value *string) string {
 		return ""
 	}
 	return *value
+}
+
+func (l *LogicService) findAdminByUsername(
+	ctx context.Context,
+	username string,
+) (admin *model.AdminModel, returnErr error) {
+	ctx, span := l.tracer.Start(
+		ctx,
+		"mysql.admin.find_by_username",
+		trace.WithSpanKind(trace.SpanKindInternal),
+		trace.WithAttributes(
+			attribute.String("db.system", "mysql"),
+			attribute.String("db.operation", "SELECT"),
+			attribute.String("db.table", "admins"),
+		),
+	)
+	defer func() {
+		if returnErr != nil {
+			tracing.RecordError(span, returnErr, "find admin by username failed")
+		}
+		span.End()
+	}()
+
+	admin, returnErr = l.adminModel.FindByUsername(ctx, username)
+	if returnErr != nil {
+		return nil, returnErr
+	}
+	if admin != nil {
+		// 只记录内部ID，不记录用户名、密码或Token等敏感内容。
+		span.SetAttributes(attribute.Int64("admin.id", int64(admin.ID)))
+	}
+	return admin, nil
+}
+
+// 角色查询
+func (l *LogicService) findAdminRoles(
+	ctx context.Context,
+	adminID uint,
+) (roles []*model.RoleModel, returnErr error) {
+	ctx, span := l.tracer.Start(
+		ctx,
+		"mysql.role.find_by_admin_id",
+		trace.WithSpanKind(trace.SpanKindInternal),
+		trace.WithAttributes(
+			attribute.String("db.system", "mysql"),
+			attribute.String("db.operation", "SELECT"),
+			attribute.String("db.table", "roles"),
+			attribute.Int64("admin.id", int64(adminID)),
+		),
+	)
+	defer func() {
+		if returnErr != nil {
+			tracing.RecordError(span, returnErr, "find admin roles failed")
+		}
+		span.End()
+	}()
+
+	roles, returnErr = l.roleModel.FindByAdminID(ctx, adminID)
+	if returnErr != nil {
+		return nil, returnErr
+	}
+	span.SetAttributes(
+		attribute.Int("role.count", len(roles)),
+	)
+	return roles, nil
+}
+
+// 封装密码验证及span
+func (l *LogicService) verifyPassword(
+	ctx context.Context,
+	passwordHash string,
+	password string,
+) (returnErr error) {
+	_, span := l.tracer.Start(
+		ctx,
+		"bcrypt.verify_password",
+		trace.WithSpanKind(trace.SpanKindInternal),
+	)
+	defer func() {
+		if returnErr != nil {
+			tracing.RecordError(span, returnErr, "verify password failed")
+		}
+		span.End()
+	}()
+
+	returnErr = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
+	if returnErr != nil {
+		return returnErr
+	}
+	return nil
+}
+
+// 封装MySQL创建Session
+func (l *LogicService) createSession(
+	ctx context.Context,
+	session *model.AdminSessionModel,
+) (returnErr error) {
+	ctx, span := l.tracer.Start(
+		ctx,
+		"mysql.session.create",
+		trace.WithSpanKind(trace.SpanKindInternal),
+		trace.WithAttributes(
+			attribute.String("db.system", "mysql"),
+			attribute.String("db.operation", "INSERT"),
+			attribute.String("db.table", "admin_sessions"),
+			attribute.Int64("admin.id", int64(session.AdminID)),
+		),
+	)
+	defer func() {
+		if returnErr != nil {
+			tracing.RecordError(span, returnErr, "create admin session failed")
+		}
+		span.End()
+	}()
+
+	returnErr = l.adminSession.Create(ctx, session)
+	if returnErr != nil {
+		return returnErr
+	}
+	return nil
+}
+
+// 封装Redis Session写入
+func (l *LogicService) cacheSession(
+	ctx context.Context,
+	key string,
+	refreshTokenHash string,
+	ttl time.Duration,
+) (returnErr error) {
+	ctx, span := l.tracer.Start(
+		ctx,
+		"redis.session.set",
+		trace.WithSpanKind(trace.SpanKindInternal),
+		trace.WithAttributes(
+			attribute.String("db.system", "redis"),
+			attribute.String("db.operation", "SET"),
+			attribute.String("cache.type", "admin_session"),
+			attribute.Int64("cache.ttl_seconds", int64(ttl.Seconds())),
+		),
+	)
+	defer func() {
+		if returnErr != nil {
+			tracing.RecordError(span, returnErr, "cache admin session failed")
+		}
+		span.End()
+	}()
+
+	returnErr = l.svc.Redis.Set(ctx, key, refreshTokenHash, ttl)
+	if returnErr != nil {
+		return returnErr
+	}
+
+	return nil
+}
+
+// 封装管理员资料缓存
+func (l *LogicService) cacheAdminProfile(
+	ctx context.Context,
+	adminID string,
+	profileData []byte,
+	ttl time.Duration,
+) (returnErr error) {
+	ctx, span := l.tracer.Start(
+		ctx,
+		"redis.admin_profile.set",
+		trace.WithSpanKind(trace.SpanKindInternal),
+		trace.WithAttributes(
+			attribute.String("db.system", "redis"),
+			attribute.String("db.operation", "SET"),
+			attribute.String("cache.type", "admin_profile"),
+			attribute.String("admin.id", adminID),
+			attribute.Int64("cache.ttl_seconds", int64(ttl.Seconds())),
+		),
+	)
+	defer func() {
+		if returnErr != nil {
+			tracing.RecordError(span, returnErr, "cache admin profile failed")
+		}
+		span.End()
+	}()
+
+	returnErr = l.svc.Redis.Set(
+		ctx,
+		adminProfileRedisKey(adminID),
+		profileData,
+		ttl,
+	)
+	if returnErr != nil {
+		return returnErr
+	}
+
+	return nil
 }

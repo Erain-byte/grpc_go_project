@@ -28,6 +28,7 @@ type Config struct {
 	Shutdown    ShutdownConfig   `yaml:"shutdown" mapstructure:"shutdown"`
 	GRPC        GRPCServerConfig `yaml:"grpc" mapstructure:"grpc"`
 	Tracing     TracingConfig    `yaml:"tracing" mapstructure:"tracing"`
+	RateLimit   RateLimitConfig  `yaml:"rate_limit" mapstructure:"rate_limit"`
 }
 
 // RabbitMQConfig 定义 Admin 服务的连接参数、发布确认、消费限速和操作日志拓扑。
@@ -204,6 +205,20 @@ type Auth struct {
 	AccessExpire string `yaml:"access_secret_file" mapstructure:"access_secret_file"`
 }
 
+// 限流配置
+type RateLimitConfig struct {
+	Enabled      bool          `yaml:"enabled" mapstructure:"enabled"`
+	RedisTimeout string        `yaml:"redis_timeout" mapstructure:"redis_timeout"`
+	KeyPrefix    string        `yaml:"key_prefix" mapstructure:"key_prefix"`
+	Login        RateLimitRule `yaml:"login" mapstructure:"login"`
+	RefreshToken RateLimitRule `yaml:"refresh_token" mapstructure:"refresh_token"`
+	Default      RateLimitRule `yaml:"default" mapstructure:"default"`
+}
+type RateLimitRule struct {
+	Limit  int64  `yaml:"limit" mapstructure:"limit"`
+	Window string `yaml:"window" mapstructure:"window"`
+}
+
 func (c Config) IsProduction() bool {
 	environment := strings.ToLower(strings.TrimSpace(c.Environment))
 	return environment == "prod" || environment == "production"
@@ -265,6 +280,16 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("consul.port", 8500)
 	v.SetDefault("consul.scheme", "http")
 	v.SetDefault("shutdown.timeout", "10s")
+	//限流配置
+	v.SetDefault("rate_limit.enabled", true)
+	v.SetDefault("rate_limit.redis_timeout", "300ms")
+	v.SetDefault("rate_limit.key_prefix", "admin:rate_limit:")
+	v.SetDefault("rate_limit.login.limit", 10)
+	v.SetDefault("rate_limit.login.window", "1m")
+	v.SetDefault("rate_limit.refresh_token.limit", 20)
+	v.SetDefault("rate_limit.refresh_token.window", "1m")
+	v.SetDefault("rate_limit.default.limit", 100)
+	v.SetDefault("rate_limit.default.window", "1m")
 }
 
 func applyEnvironment(cfg *Config) {
@@ -286,6 +311,43 @@ func applyEnvironment(cfg *Config) {
 	if value := os.Getenv("ADMIN_ACCESS_TOKEN_SECRET"); value != "" {
 		cfg.Auth.AccessToken.Secret = value
 	}
+}
+func validateRateLimitConfig(cfg RateLimitConfig) error {
+	if !cfg.Enabled {
+		return nil
+	}
+	if strings.TrimSpace(cfg.KeyPrefix) == "" {
+		return fmt.Errorf("rate-limit key prefix is empty")
+	}
+	redisTimeout, err := time.ParseDuration(cfg.RedisTimeout)
+	if err != nil || redisTimeout <= 0 {
+		return fmt.Errorf(
+			"rate-limit Redis timeout %q is invalid",
+			cfg.RedisTimeout,
+		)
+	}
+	rules := map[string]RateLimitRule{
+		"login":         cfg.Login,
+		"refresh_token": cfg.RefreshToken,
+		"default":       cfg.Default,
+	}
+	for name, rule := range rules {
+		if rule.Limit <= 0 {
+			return fmt.Errorf(
+				"rate-limit %s limit must be positive",
+				name,
+			)
+		}
+		window, err := time.ParseDuration(rule.Window)
+		if err != nil || window <= 0 {
+			return fmt.Errorf(
+				"rate-limit %s window %q is invalid",
+				name,
+				rule.Window,
+			)
+		}
+	}
+	return nil
 }
 
 // Validate checks fields required before application dependencies are created.
@@ -368,6 +430,9 @@ func (c Config) Validate() error {
 	}
 	if c.GRPC.UseTLS && (strings.TrimSpace(c.GRPC.CertFile) == "" || strings.TrimSpace(c.GRPC.KeyFile) == "") {
 		return fmt.Errorf("admin gRPC certificate and private key are required when TLS is enabled")
+	}
+	if err := validateRateLimitConfig(c.RateLimit); err != nil {
+		return err
 	}
 	return nil
 }

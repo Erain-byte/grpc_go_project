@@ -124,3 +124,26 @@ tracing:
   cert_file: ""
   key_file: ""
   server_name: "jaeger" # 仅启用 TLS 时参与服务端证书名称验证
+rate_limit:
+  enabled: true
+
+  # 每次限流查询 Redis 的最大等待时间。
+  redis_timeout: "300ms"
+
+  # Redis Key 前缀，用来隔离不同业务。
+  key_prefix: "admin:rate_limit:"
+
+  # 同一用户名一分钟最多尝试登录10次。
+  login:
+    limit: 10
+    window: "1m"
+
+  # 同一个 Refresh Token 一分钟最多刷新20次。
+  refresh_token:
+    limit: 20
+    window: "1m"
+
+  # 已登录管理员访问同一个RPC方法的默认限制。
+  default:
+    limit: 100
+    window: "1m"

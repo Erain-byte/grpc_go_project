@@ -10,6 +10,7 @@ import (
 
 	grpcclient "gateway/internal/grpc"
 	"gateway/internal/middleware"
+	"gateway/internal/ratelimit"
 	"gateway/internal/svc"
 	"gateway/pkg/apperror"
 
@@ -17,12 +18,13 @@ import (
 )
 
 type HTTPServer struct {
-	engine            *gin.Engine
-	svcCtx            *svc.ServiceContext
-	httpServer        *http.Server
-	clientManager     *grpcclient.ClientManager
-	jwtMiddleware     *middleware.JWTMiddleware
-	sessionMiddleware *middleware.SessionMiddleware
+	engine              *gin.Engine
+	svcCtx              *svc.ServiceContext
+	httpServer          *http.Server
+	clientManager       *grpcclient.ClientManager
+	jwtMiddleware       *middleware.JWTMiddleware
+	sessionMiddleware   *middleware.SessionMiddleware
+	rateLimitMiddleware *middleware.RateLimitMiddleware
 }
 
 // NewHTTPServer 创建并配置 Gateway 的 HTTP 入口服务。
@@ -64,12 +66,32 @@ func NewHTTPServer(svcCtx *svc.ServiceContext, clientManager *grpcclient.ClientM
 			http.StatusInternalServerError,
 		)
 	}
+	//限流中间件redis
+	distributedLimiter, err := ratelimit.NewRedisSlidingWindow(svcCtx.Redis)
+	if err != nil {
+		return nil, apperror.Wrap(
+			err,
+			apperror.CodeInternal,
+			"failed to create distributed limiter",
+			http.StatusInternalServerError,
+		)
+	}
+	rateLimitMiddleware, err := middleware.NewRateLimitMiddleware(svcCtx.Config.RateLimit, distributedLimiter)
+	if err != nil {
+		return nil, apperror.Wrap(
+			err,
+			apperror.CodeInternal,
+			"failed to create rate limit middleware",
+			http.StatusInternalServerError,
+		)
+	}
 	server := &HTTPServer{
-		engine:            engine,
-		svcCtx:            svcCtx,
-		clientManager:     clientManager,
-		jwtMiddleware:     jwtMiddleware,
-		sessionMiddleware: sessionMiddleware,
+		engine:              engine,
+		svcCtx:              svcCtx,
+		clientManager:       clientManager,
+		jwtMiddleware:       jwtMiddleware,
+		sessionMiddleware:   sessionMiddleware,
+		rateLimitMiddleware: rateLimitMiddleware,
 		httpServer: &http.Server{
 			Addr:    fmt.Sprintf("%s:%d", svcCtx.Config.Host, svcCtx.Config.Port),
 			Handler: engine,

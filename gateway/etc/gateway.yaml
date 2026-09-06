@@ -124,12 +124,18 @@ grpc:
 
 # Rate Limit Configuration (限流配置)
 rate_limit:
-  enabled: true                     # 是否启用限流
-  requests_per_second: 100          # 每秒允许的请求数
-  burst_size: 20                    # 令牌桶容量（允许突发流量）
-  by_ip: true                       # 按 IP 限流
-  by_api: false                     # 按 API 路径限流
-  fallback_to_local: true           # development: true; production: false
+  enabled: true                   # 是否启用限流
+  limit: 100                      # 每秒最大请求数
+  window: "1m"                    # 时间窗口大小
+  redis_timeout: "100ms"          # Redis 连接超时时间
+  fail_closed: false              # 开发环境建议 false，生产环境建议 true
+#登录接口
+login_rate_limit:
+  enabled: true                  # 是否启用限流
+  limit: 10
+  window: "1m"
+  redis_timeout: "100ms"
+  fail_closed: true
 
 # Circuit Breaker Configuration (熔断配置)
 circuit_breaker:

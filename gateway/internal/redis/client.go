@@ -23,6 +23,7 @@ type RedisClient interface {
 	Ping(ctx context.Context) error
 	Close() error
 	Raw() goredis.UniversalClient
+	Eval(ctx context.Context, script string, keys []string, args ...any) (any, error)
 }
 type redisClient struct {
 	raw goredis.UniversalClient
@@ -234,4 +235,14 @@ func nonNegative(value int) int {
 	}
 
 	return value
+}
+
+// Lua实现
+func (c *redisClient) Eval(ctx context.Context, script string, keys []string, args ...any) (any, error) {
+
+	result, err := c.raw.Eval(ctx, script, keys, args...).Result()
+	if err != nil {
+		return nil, apperror.Wrap(err, apperror.CodeUnavailable, "failed to execute Lua script in Redis", http.StatusServiceUnavailable)
+	}
+	return result, nil
 }

@@ -11,6 +11,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -65,7 +66,9 @@ func (p *Publisher) Publish(ctx context.Context, event OperationLogEvent) error 
 	ctx, span := otel.Tracer("admin/internal/mq").Start(ctx, "rabbitmq publish "+p.config.OperationLog.RoutingKey,
 		trace.WithSpanKind(trace.SpanKindProducer), trace.WithAttributes(
 			attribute.String("messaging.system", "rabbitmq"),
-			attribute.String("messaging.destination.name", p.config.OperationLog.Exchange)))
+			attribute.String("messaging.destination.name", p.config.OperationLog.Exchange),
+			attribute.String("messaging.rabbitmq.destination.routing_key", p.config.OperationLog.RoutingKey),
+			attribute.String("messaging.message.id", event.EventID)))
 	defer span.End()
 	// 注入 traceparent/tracestate，消费者可以继续同一条调用链。
 	headers := make(amqp.Table)
@@ -75,6 +78,7 @@ func (p *Publisher) Publish(ctx context.Context, event OperationLogEvent) error 
 		AppId: p.config.ConnectionName, Body: body}
 	if err := p.publish(ctx, p.config.OperationLog.Exchange, p.config.OperationLog.RoutingKey, message); err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "RabbitMQ publish failed")
 		return err
 	}
 	return nil
@@ -83,11 +87,35 @@ func (p *Publisher) Publish(ctx context.Context, event OperationLogEvent) error 
 // Republish 保留原消息内容和属性，只替换目标 Exchange、RoutingKey 与 Headers。
 // 消费失败时会用它把消息投递到重试队列或死信队列。
 func (p *Publisher) Republish(ctx context.Context, exchange, routingKey string, delivery amqp.Delivery, headers amqp.Table) error {
+	ctx, span := otel.Tracer("admin/internal/mq").Start(
+		ctx,
+		"rabbitmq publish "+routingKey,
+		trace.WithSpanKind(trace.SpanKindProducer),
+		trace.WithAttributes(
+			attribute.String("messaging.system", "rabbitmq"),
+			attribute.String("messaging.destination.name", exchange),
+			attribute.String("messaging.rabbitmq.destination.routing_key", routingKey),
+			attribute.String("messaging.message.id", delivery.MessageId),
+		),
+	)
+	defer span.End()
+
+	// 用当前重新发布 Span 更新 traceparent，使后续重试消费连接到本次发布节点。
+	if headers == nil {
+		headers = make(amqp.Table)
+	}
+	injectTraceContext(ctx, headers)
+
 	message := amqp.Publishing{Headers: headers, ContentType: delivery.ContentType, ContentEncoding: delivery.ContentEncoding,
 		DeliveryMode: amqp.Persistent, Priority: delivery.Priority, CorrelationId: delivery.CorrelationId,
 		ReplyTo: delivery.ReplyTo, MessageId: delivery.MessageId, Timestamp: delivery.Timestamp,
 		Type: delivery.Type, UserId: delivery.UserId, AppId: delivery.AppId, Body: delivery.Body}
-	return p.publish(ctx, exchange, routingKey, message)
+	if err := p.publish(ctx, exchange, routingKey, message); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "RabbitMQ republish failed")
+		return err
+	}
+	return nil
 }
 
 func (p *Publisher) publish(ctx context.Context, exchange, routingKey string, message amqp.Publishing) error {

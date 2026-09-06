@@ -30,7 +30,7 @@ func (s *HTTPServer) registerAdminRoutes() {
 	// 组内路由统一先执行 JWTMiddleware.Handle，验证失败时不会进入 Handler。
 	protected := admin.Group("")
 	// 必须先验证 JWT 并写入 Claims，再根据 Claims 调用 AuthService 验证 Session。
-	protected.Use(s.jwtMiddleware.Handle, s.sessionMiddleware.Handle)
+	protected.Use(s.jwtMiddleware.Handle, s.sessionMiddleware.Handle, s.rateLimitMiddleware.Handle)
 	protected.POST(
 		"/logout",
 		handler.NewGrpcHandler[
