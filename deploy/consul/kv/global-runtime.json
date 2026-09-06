@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "log": {
+    "level": "info"
+  },
+  "tracing": {
+    "enabled": true,
+    "sampling_ratio": 1.0
+  },
+  "system": {
+    "maintenance_mode": false
+  }
+}

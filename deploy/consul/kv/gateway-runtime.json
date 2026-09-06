@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "rate_limit": {
+    "enabled": true,
+    "limit": 100,
+    "window": "1m",
+    "redis_timeout": "100ms",
+    "fail_closed": false
+  },
+  "login_rate_limit": {
+    "enabled": true,
+    "limit": 10,
+    "window": "1m",
+    "redis_timeout": "100ms",
+    "fail_closed": true
+  },
+  "circuit_breaker": {
+    "enabled": true,
+    "max_failures": 5,
+    "timeout": "30s",
+    "min_requests": 10,
+    "interval": "60s"
+  },
+  "anti_replay": {
+    "enabled": false,
+    "timestamp_tolerance_seconds": 300,
+    "nonce_expire_seconds": 600,
+    "fail_closed": true
+  }
+}
