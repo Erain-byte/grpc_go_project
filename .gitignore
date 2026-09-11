@@ -17,5 +17,21 @@ go.work.sum
 **/logs/
 *.log
 
+# Python / LLM service local artifacts
+**/__pycache__/
+*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.venv/
+**/venv/
+**/.coverage
+**/htmlcov/
+
 # Local interview prototype and generated delivery archive
 /interview_luckyred/
+# Local third-party library learning experiments
+/learning/
+
+# Local integration-test scripts and output
+/test/

@@ -1,0 +1,25 @@
+# gRPC 与 Protobuf
+grpcio
+grpcio-health-checking
+grpcio-tools
+protobuf
+
+# 配置与数据校验
+pydantic
+pydantic-settings
+PyYAML
+
+# 结构化日志
+structlog
+
+# OpenTelemetry 链路追踪
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-exporter-otlp-proto-grpc
+opentelemetry-instrumentation-grpc
+
+# 开发与测试
+pytest
+pytest-asyncio
+ruff
+mypy

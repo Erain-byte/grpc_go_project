@@ -47,21 +47,14 @@ func NewGRPCServer(cfg *config.Config, svcCtx *svc.ServiceContext) (*GRPCServer,
 	if err != nil {
 		return nil, err
 	}
-	//初始化JWT
-	//tokenVerifier, err := auth.NewJWTVerifier(cfg.Auth.AccessToken)
-	/*if err != nil {
-		_ = listener.Close()
-		return nil, err
-	}*/
-	//authInterceptor := middleware.NewAuthInterceptor(tokenVerifier)
-	//初始化限流
+
 	redisLimiter, err := ratelimit.NewRedisSlidingWindow(svcCtx.Redis)
 	if err != nil {
 		_ = listener.Close()
 		return nil, err
 	}
 	//初始化限流拦截器
-	rateLimitInterceptor, err := middleware.NewRateLimitInterceptor(cfg.RateLimit, redisLimiter, svcCtx.Logger)
+	rateLimitInterceptor, err := middleware.NewRateLimitInterceptor(redisLimiter, svcCtx.Logger, svcCtx.Runtime)
 	if err != nil {
 		_ = listener.Close()
 		return nil, err

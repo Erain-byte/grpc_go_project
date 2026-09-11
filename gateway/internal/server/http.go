@@ -35,8 +35,11 @@ func NewHTTPServer(svcCtx *svc.ServiceContext, clientManager *grpcclient.ClientM
 	engine.Use(middleware.RequestID())
 	engine.Use(middleware.Tracing(svcCtx.Config.Tracing.ServiceName))
 	engine.Use(middleware.LoggerMiddleware(svcCtx.Config.Name))
-	CorsMiddelware := middleware.NewCorsMiddleware(svcCtx.Config.Cors)
-	engine.Use(CorsMiddelware.Handle)
+	corsMiddleware, err := middleware.NewCorsMiddleware(svcCtx.Runtime)
+	if err != nil {
+		return nil, apperror.Wrap(err, apperror.CodeInternal, "failed to create CORS middleware", http.StatusInternalServerError)
+	}
+	engine.Use(corsMiddleware.Handle)
 	// AuthService 当前由 Admin 进程实现，ClientManager 通过 Consul 找到其实例。
 	/*authClient, err := clientManager.AuthClient(context.Background())
 	if err != nil {
@@ -76,7 +79,7 @@ func NewHTTPServer(svcCtx *svc.ServiceContext, clientManager *grpcclient.ClientM
 			http.StatusInternalServerError,
 		)
 	}
-	rateLimitMiddleware, err := middleware.NewRateLimitMiddleware(svcCtx.Config.RateLimit, distributedLimiter)
+	rateLimitMiddleware, err := middleware.NewRateLimitMiddleware(distributedLimiter, svcCtx.Runtime)
 	if err != nil {
 		return nil, apperror.Wrap(
 			err,

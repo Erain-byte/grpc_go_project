@@ -1,18 +1,22 @@
 {
   "version": 1,
+  "cors": {
+    "allow_origins": [
+      "http://127.0.0.1:3000",
+      "http://localhost:3000"
+    ],
+    "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "allow_headers": ["Origin", "Content-Type", "Accept", "Authorization", "X-Request-ID"],
+    "expose_headers": ["Content-Length", "Content-Type", "X-Request-ID"],
+    "allow_credentials": true,
+    "max_age": 12
+  },
   "rate_limit": {
     "enabled": true,
     "limit": 100,
     "window": "1m",
     "redis_timeout": "100ms",
     "fail_closed": false
-  },
-  "login_rate_limit": {
-    "enabled": true,
-    "limit": 10,
-    "window": "1m",
-    "redis_timeout": "100ms",
-    "fail_closed": true
   },
   "circuit_breaker": {
     "enabled": true,
@@ -25,6 +29,7 @@
     "enabled": false,
     "timestamp_tolerance_seconds": 300,
     "nonce_expire_seconds": 600,
-    "fail_closed": true
+    "nonce_cache_size": 10000,
+    "fallback_to_local": true
   }
 }

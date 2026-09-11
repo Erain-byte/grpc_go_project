@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "grpc-go-project-llm"
+version = "0.1.0"
+description = "Internal Python gRPC service for LLM, MCP and RAG capabilities"
+requires-python = ">=3.12"
+dependencies = [
+    "grpcio",
+    "grpcio-health-checking",
+    "grpcio-tools",
+    "protobuf",
+    "pydantic",
+    "pydantic-settings",
+    "PyYAML",
+    "structlog",
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    "opentelemetry-exporter-otlp-proto-grpc",
+    "opentelemetry-instrumentation-grpc",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+    "mypy",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

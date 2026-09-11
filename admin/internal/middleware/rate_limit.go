@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"admin/internal/auth"
-	"admin/internal/config"
 	"admin/internal/ratelimit"
+	"admin/internal/runtimeconfig"
 	"context"
 	"crypto/sha256"
 	"fmt"
@@ -26,75 +26,25 @@ import (
 type RateLimitInterceptor struct {
 	limiter ratelimit.Limiter
 	logger  *zap.Logger
-	//开关
-	enabled          bool
-	redisTimeout     time.Duration
-	keyPrefix        string
-	loginRule        parsedRateLimitRule
-	refreshTokenRule parsedRateLimitRule
-	defaultRule      parsedRateLimitRule
-	tracer           trace.Tracer
+	store   *runtimeconfig.Store
+	tracer  trace.Tracer
 }
 
-type parsedRateLimitRule struct {
-	limit  int64
-	window time.Duration
-}
-
-func NewRateLimitInterceptor(cfg config.RateLimitConfig, limiter ratelimit.Limiter, logger *zap.Logger) (*RateLimitInterceptor, error) {
-	redisTimeout, err := time.ParseDuration(cfg.RedisTimeout)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"invalid rate-limit Redis timeout %q",
-			cfg.RedisTimeout,
-		)
+func NewRateLimitInterceptor(limiter ratelimit.Limiter, logger *zap.Logger, store *runtimeconfig.Store) (*RateLimitInterceptor, error) {
+	if limiter == nil {
+		return nil, fmt.Errorf("rate-limit limiter is nil")
 	}
-	loginRule, err := parseRateLimitRule("login", cfg.Login)
-	if err != nil {
-		return nil, err
+	if store == nil {
+		return nil, fmt.Errorf("rate-limit store is nil")
 	}
-	refreshTokenRule, err := parseRateLimitRule("refresh token", cfg.RefreshToken)
-	if err != nil {
-		return nil, err
-	}
-	defaultRule, err := parseRateLimitRule("default", cfg.Default)
-	if err != nil {
-		return nil, err
-	}
-	if cfg.Enabled && limiter == nil {
-		return nil, fmt.Errorf("rate-limit enabled but no limiter provided")
+	if logger == nil {
+		return nil, fmt.Errorf("rate-limit logger is nil")
 	}
 	return &RateLimitInterceptor{
-		limiter:          limiter,
-		logger:           logger,
-		enabled:          cfg.Enabled,
-		redisTimeout:     redisTimeout,
-		keyPrefix:        strings.TrimSpace(cfg.KeyPrefix),
-		loginRule:        loginRule,
-		refreshTokenRule: refreshTokenRule,
-		defaultRule:      defaultRule,
-		tracer:           otel.Tracer("admin/internal/middleware/ratelimit"),
-	}, nil
-}
-
-func parseRateLimitRule(name string, cfg config.RateLimitRule) (parsedRateLimitRule, error) {
-	if cfg.Limit <= 0 {
-		return parsedRateLimitRule{}, fmt.Errorf(
-			"invalid rate-limit %q: limit must be greater than 0",
-			name,
-		)
-	}
-	window, err := time.ParseDuration(cfg.Window)
-	if err != nil || window <= 0 {
-		return parsedRateLimitRule{}, fmt.Errorf(
-			"invalid rate-limit %q: invalid window %q",
-			name,
-			cfg.Window,
-		)
-	}
-	return parsedRateLimitRule{
-		limit:  cfg.Limit,
-		window: window,
+		limiter: limiter,
+		logger:  logger,
+		store:   store,
+		tracer:  otel.Tracer("admin/internal/middleware/ratelimit"),
 	}, nil
 }
 
@@ -105,18 +55,27 @@ func (m *RateLimitInterceptor) Unary() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (resp any, err error) {
-		if !m.enabled {
-			return handler(ctx, req)
-		}
+
 		//Consul 会频繁调用健康检查接口，所以这里需要过滤掉健康检查接口
 		if info.FullMethod == healthpb.Health_Check_FullMethodName {
 			return handler(ctx, req)
 		}
-		key, rule, err := m.ruleAndKey(ctx, req, info.FullMethod)
+		//获取快照
+		snapshot := m.store.Load()
+		if snapshot == nil {
+			return nil, status.Errorf(codes.Unavailable, "rate-limit snapshot is nil")
+		}
+		//当前一次prc 始终使用快照配置
+		ratelimitCfg := snapshot.RetLimit
+		if ratelimitCfg.Enabled == false {
+			return handler(ctx, req)
+		}
+
+		key, rule, err := m.ruleAndKey(ctx, req, info.FullMethod, ratelimitCfg)
 		if err != nil {
 			return nil, err
 		}
-		result, err := m.check(ctx, key, rule, info.FullMethod)
+		result, err := m.check(ctx, key, rule, ratelimitCfg.RedisTimeout, info.FullMethod)
 		if err != nil {
 			m.logger.Error(
 				"rate-limit Redis operation failed",
@@ -147,7 +106,8 @@ func (m *RateLimitInterceptor) Unary() grpc.UnaryServerInterceptor {
 func (m *RateLimitInterceptor) check(
 	ctx context.Context,
 	key string,
-	rule parsedRateLimitRule,
+	rule runtimeconfig.Rule,
+	redisTimeout time.Duration,
 	fullMethod string,
 ) (result ratelimit.Result, returnErr error) {
 	spanCtx, span := m.tracer.Start(
@@ -156,8 +116,8 @@ func (m *RateLimitInterceptor) check(
 		trace.WithSpanKind(trace.SpanKindInternal),
 		trace.WithAttributes(
 			attribute.String("rate_limit.backend", "redis"),
-			attribute.Int64("rate_limit.limit", rule.limit),
-			attribute.String("rate_limit.window", rule.window.String()),
+			attribute.Int64("rate_limit.limit", rule.Limit),
+			attribute.String("rate_limit.window", rule.Window.String()),
 			attribute.String("rpc.method", fullMethod),
 		),
 	)
@@ -174,61 +134,61 @@ func (m *RateLimitInterceptor) check(
 		span.End()
 	}()
 
-	redisCtx, cancel := context.WithTimeout(spanCtx, m.redisTimeout)
+	redisCtx, cancel := context.WithTimeout(spanCtx, redisTimeout)
 	defer cancel()
 
-	return m.limiter.Allow(redisCtx, key, rule.limit, rule.window)
+	return m.limiter.Allow(redisCtx, key, rule.Limit, rule.Window)
 }
 
-func (m *RateLimitInterceptor) ruleAndKey(ctx context.Context, req any, fullMethod string) (string, parsedRateLimitRule, error) {
+func (m *RateLimitInterceptor) ruleAndKey(ctx context.Context, req any, fullMethod string, ratelimitCfg runtimeconfig.RateLimitSnapshot) (string, runtimeconfig.Rule, error) {
 	switch fullMethod {
 	//登录接口需要限流
 	case adminv1.AdminService_Login_FullMethodName:
 		loginRequest, ok := req.(*adminv1.LoginRequest)
 		if !ok {
-			return "", parsedRateLimitRule{}, status.Error(codes.Internal, "invalid login request")
+			return "", runtimeconfig.Rule{}, status.Error(codes.Internal, "invalid login request")
 		}
 		username := strings.ToLower(strings.TrimSpace(loginRequest.GetUsername()))
 		if username == "" {
-			return "", parsedRateLimitRule{}, status.Error(codes.InvalidArgument, "username is required")
+			return "", runtimeconfig.Rule{}, status.Error(codes.InvalidArgument, "username is required")
 		}
-		return m.makeKey("login", username, fullMethod), m.loginRule, nil
+		return m.makeKey(ratelimitCfg.KeyPrefix, "login", username, fullMethod), ratelimitCfg.Login, nil
 	// 刷新令牌接口需要限流
 	case adminv1.AdminService_RefreshToken_FullMethodName:
 		refreshRequest, ok := req.(*adminv1.RefreshTokenRequest)
 		if !ok {
-			return "", parsedRateLimitRule{}, status.Error(codes.Internal, "invalid refresh token request")
+			return "", runtimeconfig.Rule{}, status.Error(codes.Internal, "invalid refresh token request")
 		}
 		refreshToken := strings.TrimSpace(refreshRequest.GetRefreshToken())
 		if refreshToken == "" {
-			return "", parsedRateLimitRule{}, status.Error(codes.InvalidArgument, "refresh token is required")
+			return "", runtimeconfig.Rule{}, status.Error(codes.InvalidArgument, "refresh token is required")
 		}
-		return m.makeKey("refresh token", refreshToken, fullMethod), m.refreshTokenRule, nil
+		return m.makeKey(ratelimitCfg.KeyPrefix, "refresh token", refreshToken, fullMethod), ratelimitCfg.RefreshToken, nil
 	// 验证会话接口不需要限流
 	case authv1.AuthService_ValidateSession_FullMethodName:
 		sessionRequest, ok := req.(*authv1.ValidateSessionRequest)
 		if !ok {
-			return "", parsedRateLimitRule{}, status.Error(codes.Internal, "invalid session request")
+			return "", runtimeconfig.Rule{}, status.Error(codes.Internal, "invalid session request")
 		}
 		identity := sessionRequest.GetSubjectType() + ":" + sessionRequest.GetSubjectId()
-		return m.makeKey("session", identity, fullMethod), m.defaultRule, nil
+		return m.makeKey(ratelimitCfg.KeyPrefix, "session", identity, fullMethod), ratelimitCfg.Default, nil
 	default:
 		authInfo, ok := auth.FromContext(ctx)
 		if !ok || strings.TrimSpace(authInfo.AdminID) == "" {
-			return "", parsedRateLimitRule{}, status.Error(
+			return "", runtimeconfig.Rule{}, status.Error(
 				codes.Unauthenticated,
 				"authenticated admin identity is missing",
 			)
 		}
-		return m.makeKey("admin", authInfo.AdminID, fullMethod), m.defaultRule, nil
+		return m.makeKey(ratelimitCfg.KeyPrefix, "admin", authInfo.AdminID, fullMethod), ratelimitCfg.Default, nil
 	}
 
 }
 
-func (m *RateLimitInterceptor) makeKey(dimension string, identity string, fullMethod string) string {
+func (m *RateLimitInterceptor) makeKey(keyPrefix string, dimension string, identity string, fullMethod string) string {
 	//不把用户名、Refresh Token和AdminID明文写进Redis Key。
 	sum := sha256.Sum256(
 		[]byte(identity + "|" + fullMethod),
 	)
-	return fmt.Sprintf("%s:%s:%x", m.keyPrefix, dimension, sum[:16])
+	return fmt.Sprintf("%s:%s:%x", keyPrefix, dimension, sum[:16])
 }

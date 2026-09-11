@@ -6,6 +6,7 @@ import (
 	"admin/internal/database"
 	"admin/internal/mq"
 	"admin/internal/redis"
+	"admin/internal/runtimeconfig"
 
 	"go.uber.org/zap"
 )
@@ -22,6 +23,7 @@ type ServiceContext struct {
 	Consul *consul.ConsulRegistry
 	// OperationLogPublisher 由 app.Run 创建并注入，业务层不需要自行连接 RabbitMQ。
 	OperationLogPublisher mq.OperationLogPublisher
+	Runtime               *runtimeconfig.Store
 }
 
 func NewServiceContext(
@@ -31,6 +33,7 @@ func NewServiceContext(
 	log *zap.Logger,
 	consulRegistry *consul.ConsulRegistry,
 	operationLogPublisher mq.OperationLogPublisher,
+	runtime *runtimeconfig.Store,
 ) *ServiceContext {
 	// 这里没有创建新连接，只是把外部已经创建好的对象地址保存起来。
 	return &ServiceContext{
@@ -40,5 +43,6 @@ func NewServiceContext(
 		Logger:                log,
 		Consul:                consulRegistry,
 		OperationLogPublisher: operationLogPublisher,
+		Runtime:               runtime,
 	}
 }

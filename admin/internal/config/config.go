@@ -156,6 +156,8 @@ type ConsulConfig struct {
 	CheckInterval           string   `yaml:"check_interval" mapstructure:"check_interval"`
 	CheckTimeout            string   `yaml:"check_timeout" mapstructure:"check_timeout"`
 	DeregisterCriticalAfter string   `yaml:"deregister_critical_after" mapstructure:"deregister_critical_after"`
+	RuntimeConfigKey        string   `yaml:"runtime_config_key" default:"grpc-go/config/admin/runtime"`
+	RuntimeConfigRequired   bool     `yaml:"runtime_config_required" default:"false"`
 }
 
 func (c ConsulConfig) GetAddresses() []string {
@@ -207,16 +209,17 @@ type Auth struct {
 
 // 限流配置
 type RateLimitConfig struct {
-	Enabled      bool          `yaml:"enabled" mapstructure:"enabled"`
-	RedisTimeout string        `yaml:"redis_timeout" mapstructure:"redis_timeout"`
-	KeyPrefix    string        `yaml:"key_prefix" mapstructure:"key_prefix"`
-	Login        RateLimitRule `yaml:"login" mapstructure:"login"`
-	RefreshToken RateLimitRule `yaml:"refresh_token" mapstructure:"refresh_token"`
-	Default      RateLimitRule `yaml:"default" mapstructure:"default"`
+	Enabled      bool          `yaml:"enabled" mapstructure:"enabled" json:"enabled"`
+	RedisTimeout string        `yaml:"redis_timeout" mapstructure:"redis_timeout" json:"redis_timeout"`
+	KeyPrefix    string        `yaml:"key_prefix" mapstructure:"key_prefix" json:"key_prefix"`
+	Login        RateLimitRule `yaml:"login" mapstructure:"login" json:"login"`
+	RefreshToken RateLimitRule `yaml:"refresh_token" mapstructure:"refresh_token" json:"refresh_token"`
+	Default      RateLimitRule `yaml:"default" mapstructure:"default" json:"default"`
 }
+
 type RateLimitRule struct {
-	Limit  int64  `yaml:"limit" mapstructure:"limit"`
-	Window string `yaml:"window" mapstructure:"window"`
+	Limit  int64  `yaml:"limit" mapstructure:"limit" json:"limit"`
+	Window string `yaml:"window" mapstructure:"window" json:"window"`
 }
 
 func (c Config) IsProduction() bool {

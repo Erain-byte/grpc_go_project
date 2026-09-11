@@ -59,6 +59,8 @@ consul:
   ttl: "30s"
   deregister_critical_after: "90s"
   keepalive_interval: "10s"
+  runtime_config_key: "grpc-go/config/gateway/runtime"
+  runtime_config_required: true # CORS 只从 Consul KV 加载，缺失或非法时拒绝启动
 
 # Logger Configuration
 logger:
@@ -81,31 +83,8 @@ service:
     - "/health"
   auth_apis: []
 
-# HTTP CORS Configuration
-# NewHTTPServer 读取的是顶层 cors，而不是 service.cors。
-cors:
-  allow_origins:
-    - "http://127.0.0.1:3000"
-    - "http://localhost:3000"
-  allow_methods:
-    - "GET"
-    - "POST"
-    - "PUT"
-    - "DELETE"
-    - "OPTIONS"
-  allow_headers:
-    - "Origin"
-    - "Content-Type"
-    - "Accept"
-    - "Authorization"
-    - "X-Request-ID"
-  expose_headers:
-    - "Content-Length"
-    - "Content-Type"
-    - "X-Request-ID"
-  allow_credentials: true
-  max_age: 12
-
+# CORS 策略位于 Consul KV：grpc-go/config/gateway/runtime。
+# Gateway 启动时读取并校验，配置缺失或非法时拒绝启动。
 # HTTP 路由不从配置文件动态生成。
 # 请在 internal/server/routes_*.go 中按业务模块注册路由。
 
@@ -123,28 +102,7 @@ grpc:
   server_name: "admin-service"      # 验证 Admin gRPC 服务端证书中的名称
 
 # Rate Limit Configuration (限流配置)
-rate_limit:
-  enabled: true                   # 是否启用限流
-  limit: 100                      # 每秒最大请求数
-  window: "1m"                    # 时间窗口大小
-  redis_timeout: "100ms"          # Redis 连接超时时间
-  fail_closed: false              # 开发环境建议 false，生产环境建议 true
-#登录接口
-login_rate_limit:
-  enabled: true                  # 是否启用限流
-  limit: 10
-  window: "1m"
-  redis_timeout: "100ms"
-  fail_closed: true
-
 # Circuit Breaker Configuration (熔断配置)
-circuit_breaker:
-  enabled: true                     # 是否启用熔断
-  max_failures: 5                   # 最大连续失败次数
-  timeout: "30s"                    # 熔断器打开后的恢复等待时间
-  min_requests: 10                  # 半开状态下的最小请求数
-  interval: "60s"                   # 统计窗口时间
-
 # Tracing Configuration (链路追踪配置)
 tracing:
   enabled: true                     # 是否启用链路追踪
@@ -159,10 +117,3 @@ tracing:
   server_name: "jaeger"             # 仅启用 TLS 时参与服务端证书名称验证
 
 # Anti-Replay Configuration (防重放配置)
-anti_replay:
-  enabled: false                    # 是否启用防重放（开发环境建议关闭，生产环境启用）
-  secret: ""                        # HMAC signature secret; use GATEWAY_ANTI_REPLAY_SECRET in production
-  timestamp_tolerance: 300          # 时间戳容差（秒），默认5分钟
-  nonce_cache_size: 10000           # Nonce 缓存大小
-  nonce_expire_time: 600            # Nonce 过期时间（秒），默认10分钟
-  fallback_to_local: true           # development: true; production: false

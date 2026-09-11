@@ -11,6 +11,7 @@ import (
 	grpcclient "gateway/internal/grpc" //grpc客户端
 	"gateway/internal/logger"
 	redisclient "gateway/internal/redis"
+	"gateway/internal/runtimeconfig"
 	"gateway/internal/server"
 	"gateway/internal/svc"
 	"gateway/internal/tracer"
@@ -108,7 +109,32 @@ func Run() error {
 			http.StatusServiceUnavailable,
 		)
 	}
-	serviceContext := svc.NewServiceContext(*cfg, redisClient, consulRegistry)
+	// 启动阶段必须取得第一份有效配置；运行阶段的非法更新才会回退到该快照。
+	runtimeCtx, cancelRuntime := context.WithTimeout(context.Background(), 3*time.Second)
+	runtimeData, runtimeErr := consulRegistry.GetKV(runtimeCtx, cfg.Consul.RuntimeConfigKey)
+	cancelRuntime()
+	if runtimeErr != nil {
+		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to read Gateway runtime config", http.StatusServiceUnavailable)
+	}
+	parsedRuntime, runtimeErr := config.ParseRuntimeConfig(runtimeData)
+	if runtimeErr != nil {
+		return apperror.Wrap(runtimeErr, apperror.CodeInternal, "failed to parse Gateway runtime config", http.StatusInternalServerError)
+	}
+	initialSnapshot, runtimeErr := runtimeconfig.BuildSnapshot(parsedRuntime)
+	if runtimeErr != nil {
+		return apperror.Wrap(runtimeErr, apperror.CodeInternal, "failed to build Gateway runtime snapshot", http.StatusInternalServerError)
+	}
+	runtimeStore, runtimeErr := runtimeconfig.NewStore(initialSnapshot)
+	if runtimeErr != nil {
+		return apperror.Wrap(runtimeErr, apperror.CodeInternal, "failed to create Gateway runtime store", http.StatusInternalServerError)
+	}
+	runtimeManager, runtimeErr := runtimeconfig.NewManager(cfg.Consul.RuntimeConfigKey, consulRegistry, runtimeStore, logger.Logger)
+	if runtimeErr != nil {
+		return apperror.Wrap(runtimeErr, apperror.CodeInternal, "failed to create Gateway runtime manager", http.StatusInternalServerError)
+	}
+	logger.SugaredLogger.Infof("loaded Gateway runtime config from Consul KV: %s", cfg.Consul.RuntimeConfigKey)
+
+	serviceContext := svc.NewServiceContext(*cfg, redisClient, consulRegistry, runtimeStore)
 	//依赖注入ClientManager
 	grpcClientManager := grpcclient.NewClientManager(
 		consulRegistry,
@@ -183,6 +209,8 @@ func Run() error {
 		syscall.SIGTERM,
 	)
 	defer stopSignals()
+	// Manager 与应用共用退出 Context；退出时会取消正在阻塞的 Consul 查询。
+	go runtimeManager.Run(signalCtx)
 	//启动TLs证书自动检测
 	go grpcClientManager.MonitorCertificate(
 		signalCtx,

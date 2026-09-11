@@ -1,0 +1,29 @@
+environment: development
+service_name: llm-service
+host: 127.0.0.1
+grpc_port: 9083
+
+model:
+  provider: mock
+  default_model: mock-chat
+  timeout: 30s
+
+consul:
+  address: 127.0.0.1:8500
+  scheme: http
+  check_host: host.docker.internal
+  check_interval: 10s
+  check_timeout: 5s
+  deregister_critical_after: 90s
+
+tracing:
+  enabled: true
+  endpoint: 127.0.0.1:4317
+  sampling_ratio: 1.0
+
+logging:
+  level: INFO
+  format: json
+
+shutdown:
+  timeout: 10s

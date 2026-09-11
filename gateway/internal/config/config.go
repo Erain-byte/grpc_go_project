@@ -103,6 +103,8 @@ type ConsulConfig struct {
 	TTL                     string   `yaml:"ttl" default:"30s"`
 	DeregisterCriticalAfter string   `yaml:"deregister_critical_after" default:"90s"`
 	KeepAliveInterval       string   `yaml:"keepalive_interval" default:"10s"`
+	RuntimeConfigKey        string   `yaml:"runtime_config_key" default:"grpc-go/config/gateway/runtime"`
+	RuntimeConfigRequired   bool     `yaml:"runtime_config_required" default:"false"`
 }
 
 // GetAddresses 获取Consul地址列表，优先使用集群地址
@@ -136,12 +138,12 @@ type ServiceConfig struct {
 
 // CORSConfig CORS配置
 type CORSConfig struct {
-	AllowOrigins     []string `yaml:"allow_origins"`
-	AllowMethods     []string `yaml:"allow_methods"`
-	AllowHeaders     []string `yaml:"allow_headers"`
-	ExposeHeaders    []string `yaml:"expose_headers"`
-	AllowCredentials bool     `yaml:"allow_credentials"`
-	MaxAge           int      `yaml:"max_age"`
+	AllowOrigins     []string `yaml:"allow_origins" json:"allow_origins"`
+	AllowMethods     []string `yaml:"allow_methods" json:"allow_methods"`
+	AllowHeaders     []string `yaml:"allow_headers" json:"allow_headers"`
+	ExposeHeaders    []string `yaml:"expose_headers" json:"expose_headers"`
+	AllowCredentials bool     `yaml:"allow_credentials" json:"allow_credentials"`
+	MaxAge           int      `yaml:"max_age" json:"max_age"`
 }
 
 // ShutdownConfig 关闭配置
@@ -161,20 +163,20 @@ type GrpcConfig struct {
 
 // RateLimitConfig 限流配置
 type RateLimitConfig struct {
-	Enabled      bool   `yaml:"enabled"`
-	Limit        int64  `yaml:"limit"`
-	Window       string `yaml:"window"`
-	RedisTimeout string `yaml:"redis_timeout"`
-	FailClosed   bool   `yaml:"fail_closed"`
+	Enabled      bool   `yaml:"enabled" json:"enabled"`
+	Limit        int64  `yaml:"limit" json:"limit"`
+	Window       string `yaml:"window" json:"window"`
+	RedisTimeout string `yaml:"redis_timeout" json:"redis_timeout"`
+	FailClosed   bool   `yaml:"fail_closed" json:"fail_closed"`
 }
 
 // CircuitBreakerConfig 熔断器配置
 type CircuitBreakerConfig struct {
-	Enabled     bool   `yaml:"enabled" default:"false"`
-	MaxFailures uint32 `yaml:"max_failures" default:"5"`
-	Timeout     string `yaml:"timeout" default:"30s"`
-	MinRequests uint32 `yaml:"min_requests" default:"10"`
-	Interval    string `yaml:"interval" default:"60s"`
+	Enabled     bool   `yaml:"enabled" json:"enabled" default:"false"`
+	MaxFailures uint32 `yaml:"max_failures" json:"max_failures" default:"5"`
+	Timeout     string `yaml:"timeout" json:"timeout" default:"30s"`
+	MinRequests uint32 `yaml:"min_requests" json:"min_requests" default:"10"`
+	Interval    string `yaml:"interval" json:"interval" default:"60s"`
 }
 
 // TracingConfig 链路追踪配置

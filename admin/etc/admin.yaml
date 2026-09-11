@@ -93,6 +93,8 @@ consul:
   check_interval: "10s"
   check_timeout: "5s"
   deregister_critical_after: "90s"
+  runtime_config_key: "grpc-go/config/admin/runtime"
+  runtime_config_required: true # CORS 只从 Consul KV 加载，缺失或非法时拒绝启动
 
 logger:
   level: "info"

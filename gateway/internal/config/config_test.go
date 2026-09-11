@@ -41,8 +41,14 @@ func TestInitConfigLoadsAuthConfiguration(t *testing.T) {
 	if got := cfg.Tracing.ServiceName; got != "gateway-service" {
 		t.Errorf("tracing service name = %q, want gateway-service", got)
 	}
-	if got := len(cfg.Cors.AllowOrigins); got != 2 {
-		t.Errorf("CORS allow origin count = %d, want 2", got)
+	if got := cfg.Consul.RuntimeConfigKey; got != "grpc-go/config/gateway/runtime" {
+		t.Errorf("Consul runtime config key = %q", got)
+	}
+	if !cfg.Consul.RuntimeConfigRequired {
+		t.Error("Consul runtime config should be required")
+	}
+	if got := len(cfg.Cors.AllowOrigins); got != 0 {
+		t.Errorf("local CORS config should be empty, got %d origins", got)
 	}
 }
 

@@ -18,7 +18,7 @@ func TestNewServiceContextInjectsDependencies(t *testing.T) {
 	rdb := redisclient.NewRedisClient(cfg.Redis)
 	t.Cleanup(func() { _ = rdb.Close() })
 
-	serviceContext := NewServiceContext(cfg, rdb, nil)
+	serviceContext := NewServiceContext(cfg, rdb, nil, nil)
 
 	if serviceContext.Config.Name != cfg.Name {
 		t.Fatalf("config name = %q, want %q", serviceContext.Config.Name, cfg.Name)

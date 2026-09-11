@@ -10,6 +10,7 @@ import (
 	"admin/internal/mqhandler"
 	"admin/internal/redis"
 	"admin/internal/repository"
+	"admin/internal/runtimeconfig"
 	"admin/internal/server"
 	"admin/internal/svc"
 	"admin/internal/tracer"
@@ -137,6 +138,29 @@ func Run() error {
 			}
 		}()
 	}
+	// 启动阶段必须取得第一份有效配置；运行阶段的非法更新才会回退到该快照。
+	runtimeCtx, cancelRuntime := context.WithTimeout(context.Background(), 3*time.Second)
+	runtimeData, runtimeErr := consulClenit.GetKv(runtimeCtx, cfg.Consul.RuntimeConfigKey)
+	cancelRuntime()
+	if runtimeErr != nil {
+		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to read Gateway runtime config", http.StatusServiceUnavailable)
+	}
+	parsedRuntime, runtimeErr := config.ParseRuntimeConfig(runtimeData)
+	if runtimeErr != nil {
+		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to parse Gateway runtime config", http.StatusServiceUnavailable)
+	}
+	initialSnapshot, runtimeErr := runtimeconfig.BuildSnapshot(parsedRuntime)
+	if runtimeErr != nil {
+		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to build Gateway runtime config snapshot", http.StatusServiceUnavailable)
+	}
+	runtimeStore, runtimeErr := runtimeconfig.NewStore(initialSnapshot)
+	if runtimeErr != nil {
+		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to initialize Gateway runtime config store", http.StatusServiceUnavailable)
+	}
+	runtimeManager, runtimeErr := runtimeconfig.NewManager(cfg.Consul.RuntimeConfigKey, runtimeStore, logger.Logger, consulClenit)
+	if runtimeErr != nil {
+		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to initialize Gateway runtime config manager", http.StatusServiceUnavailable)
+	}
 	//svc
 	severice := svc.NewServiceContext(
 		cfg,
@@ -145,6 +169,7 @@ func Run() error {
 		logger.Logger,
 		consulClenit,
 		operationLogPublisher,
+		runtimeStore,
 	)
 	tracerCtx, traceCtxCancel := context.WithTimeout(context.Background(), dependencyCheckTimeout)
 	//tacer
@@ -230,6 +255,8 @@ func Run() error {
 			}
 		}()
 	}
+	//依赖检查 Manager 与应用共用退出 Context；退出时会取消正在阻塞的 Consul 查询。
+	go runtimeManager.Run(signlCatxh)
 	//监控证书
 	go grpcServer.MonitorCertificate(
 		signlCatxh,
