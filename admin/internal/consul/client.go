@@ -61,9 +61,17 @@ func (c *ConsulRegistry) Close() {
 	c.httpClient.CloseIdleConnections()
 }
 
-func (c *ConsulRegistry) RegisterGRPC(name string, host string, port int, userTls bool) error {
+func (c *ConsulRegistry) RegisterGRPC(name string, host string, port int, userTls bool, tlsServerName string) error {
 	name = strings.TrimSpace(name)
 	host = strings.TrimSpace(host)
+	// 开启 TLS 时明确配置证书身份，后续 User 等服务可使用各自的 SAN。
+	tlsServerName = strings.TrimSpace(tlsServerName)
+	if userTls && tlsServerName == "" {
+		return apperror.InvalidArgument("gRPC TLS server name is empty")
+	}
+	if !userTls {
+		tlsServerName = ""
+	}
 	if name == "" || host == "" {
 		return apperror.InvalidArgument("service name or host is empty")
 	}
@@ -88,6 +96,8 @@ func (c *ConsulRegistry) RegisterGRPC(name string, host string, port int, userTl
 		Check: &api.AgentServiceCheck{
 			GRPC:                           net.JoinHostPort(checkHost, strconv.Itoa(port)),
 			GRPCUseTLS:                     userTls,
+			TLSServerName:                  tlsServerName,
+			TLSSkipVerify:                  false,
 			Interval:                       c.config.CheckInterval,
 			Timeout:                        c.config.CheckTimeout,
 			DeregisterCriticalServiceAfter: c.config.DeregisterCriticalAfter,

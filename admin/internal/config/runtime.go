@@ -40,13 +40,13 @@ func ParseRuntimeConfig(data []byte) (*RuntimeConfig, error) {
 	if cfg.Version != 1 {
 		return nil, fmt.Errorf("invalid runtime config version: %d", cfg.Version)
 	}
-	if cfg.RateLimit != nil {
+	if cfg.RateLimit == nil {
 		return nil, fmt.Errorf(
 			"rate_limit config is required",
 		)
 	}
 	if err := validateRuntimeRateLimit(*cfg.RateLimit); err != nil {
-		return nil, fmt.Errorf("invalid rate-LIMIT:%W", err)
+		return nil, fmt.Errorf("invalid rate-LIMIT:%w", err)
 	}
 	return &cfg, nil
 }

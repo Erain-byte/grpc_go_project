@@ -11,6 +11,8 @@ services:
       - -bootstrap-expect=1
       - -client=0.0.0.0
       - -data-dir=/consul/data
+      # 加载健康检查客户端的 TLS 配置，不改变业务 KV 的配置方式。
+      - -config-file=/consul/config/health-tls.hcl
     ports:
       # Consul HTTP API 和管理页面：http://127.0.0.1:8500
       - "8500:8500"
@@ -20,6 +22,11 @@ services:
     volumes:
       # 保存 Consul KV、服务目录及 Raft 数据，重建容器后仍可恢复。
       - consul_data:/consul/data
+      - ./consul/health-tls.hcl:/consul/config/health-tls.hcl:ro
+      # 只挂载公共 CA 和 Consul 独立的客户端身份，绝不挂载 CA 私钥。
+      - D:/local-pki/ca.crt:/consul/certs/ca.crt:ro
+      - D:/local-pki/consul/client.crt:/consul/certs/client.crt:ro
+      - D:/local-pki/consul/client.key:/consul/certs/client.key:ro
     healthcheck:
       test: ["CMD", "consul", "members"]
       interval: 10s
@@ -68,4 +75,10 @@ services:
 
 volumes:
   consul_data:
+    # 固定当前已有卷；找不到就报错，避免因项目名变化创建空卷。
+    name: observability_consul_data
+    external: true
   rabbitmq_data:
+    # 外部卷不会被 Compose down -v 删除；仍需避免手动删除并做好备份。
+    name: observability_rabbitmq_data
+    external: true

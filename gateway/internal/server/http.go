@@ -3,10 +3,13 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	grpcclient "gateway/internal/grpc"
 	"gateway/internal/middleware"
@@ -29,6 +32,23 @@ type HTTPServer struct {
 
 // NewHTTPServer 创建并配置 Gateway 的 HTTP 入口服务。
 func NewHTTPServer(svcCtx *svc.ServiceContext, clientManager *grpcclient.ClientManager) (*HTTPServer, error) {
+	// 在注册 Consul 前验证证书，避免注册一个无法启动 HTTPS 的实例。
+	var tlsConfig *tls.Config
+	if svcCtx.Config.HTTP.TLS.Enabled {
+		certificate, err := tls.LoadX509KeyPair(svcCtx.Config.HTTP.TLS.CertFile, svcCtx.Config.HTTP.TLS.KeyFile)
+		if err != nil {
+			return nil, fmt.Errorf("load Gateway HTTPS certificate: %w", err)
+		}
+		leaf, err := x509.ParseCertificate(certificate.Certificate[0])
+		if err != nil {
+			return nil, fmt.Errorf("parse Gateway HTTPS certificate: %w", err)
+		}
+		now := time.Now()
+		if now.Before(leaf.NotBefore) || !now.Before(leaf.NotAfter) {
+			return nil, fmt.Errorf("Gateway HTTPS certificate is expired or not valid yet")
+		}
+		tlsConfig = &tls.Config{MinVersion: tls.VersionTLS12, Certificates: []tls.Certificate{certificate}}
+	}
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
 	engine.Use(middleware.ErrorHandler(slog.Default()))
@@ -96,8 +116,9 @@ func NewHTTPServer(svcCtx *svc.ServiceContext, clientManager *grpcclient.ClientM
 		sessionMiddleware:   sessionMiddleware,
 		rateLimitMiddleware: rateLimitMiddleware,
 		httpServer: &http.Server{
-			Addr:    fmt.Sprintf("%s:%d", svcCtx.Config.Host, svcCtx.Config.Port),
-			Handler: engine,
+			Addr:      fmt.Sprintf("%s:%d", svcCtx.Config.Host, svcCtx.Config.Port),
+			Handler:   engine,
+			TLSConfig: tlsConfig,
 		},
 	}
 	server.registerRoutes()
@@ -105,7 +126,14 @@ func NewHTTPServer(svcCtx *svc.ServiceContext, clientManager *grpcclient.ClientM
 }
 
 func (s *HTTPServer) Start() error {
-	if err := s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	var err error
+	if s.svcCtx.Config.HTTP.TLS.Enabled {
+		// 证书已经在构造时加载到 TLSConfig，不重复读取文件。
+		err = s.httpServer.ListenAndServeTLS("", "")
+	} else {
+		err = s.httpServer.ListenAndServe()
+	}
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return apperror.Wrap(
 			err,
 			apperror.CodeInternal,

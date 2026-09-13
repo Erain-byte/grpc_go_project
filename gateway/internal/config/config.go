@@ -15,6 +15,7 @@ type Config struct {
 	Host           string               `yaml:"host" default:"localhost"`
 	Port           int                  `yaml:"port" default:"8080"`
 	GRPCPort       int                  `yaml:"grpc_port" default:"9080"`
+	HTTP           HTTPConfig           `yaml:"http"`
 	Redis          RedisConfig          `yaml:"redis"`
 	Auth           AuthConfig           `yaml:"auth"`
 	Consul         ConsulConfig         `yaml:"consul"`
@@ -28,6 +29,18 @@ type Config struct {
 	AntiReplay     AntiReplayConfig     `yaml:"anti_replay"`
 	Cors           CORSConfig           `yaml:"cors"`
 	Pprof          PprofConfig          `yaml:"pprof"`
+}
+
+// HTTPConfig 是外部 HTTP/HTTPS 入口配置，与内部 gRPC 客户端 TLS 独立。
+type HTTPConfig struct {
+	TLS HTTPTLSConfig `yaml:"tls"`
+}
+
+type HTTPTLSConfig struct {
+	Enabled               bool   `yaml:"enabled"`
+	CertFile              string `yaml:"cert_file"`
+	KeyFile               string `yaml:"key_file"`
+	HealthCheckSkipVerify bool   `yaml:"health_check_skip_verify"`
 }
 
 // RedisConfig represents the configuration for Redis.

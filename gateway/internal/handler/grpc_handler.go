@@ -207,6 +207,9 @@ func writeGrpcError(c *gin.Context, err error) {
 		httpStatus = http.StatusForbidden
 	case codes.NotFound:
 		httpStatus = http.StatusNotFound
+	// 内部服务的限流拒绝应返回 429，不能落入默认的 500。
+	case codes.ResourceExhausted:
+		httpStatus = http.StatusTooManyRequests
 	case codes.Unavailable:
 		httpStatus = http.StatusServiceUnavailable
 	}

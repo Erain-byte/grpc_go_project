@@ -110,10 +110,15 @@ shutdown:
 
 # Inbound Admin gRPC transport security.
 grpc:
-  use_tls: false
-  cert_file: ""
-  key_file: ""
-  client_ca_file: ""
+  # Consul 探针验证的证书身份；其他服务应填写自己的证书 SAN。
+  tls_server_name: "admin-service"
+  # 证书生成后，与 Gateway 的 grpc.use_tls 同时改为 true，启用内部 mTLS。
+  use_tls: true
+  cert_file: "D:/grpc_go_project/admin/etc/certs/server.crt"
+  key_file: "D:/grpc_go_project/admin/etc/certs/server.key"
+  # 与 Gateway 信任同一个 CA；配置此字段后 Admin 要求客户端提供有效证书。
+  client_ca_file: "D:/grpc_go_project/admin/etc/certs/ca.crt"
+  # 本地测试约定：服务证书有效期90天，CA有效期5年；实际日期在签发时确定。
 
 tracing:
   enabled: true

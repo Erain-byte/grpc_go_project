@@ -156,8 +156,8 @@ type ConsulConfig struct {
 	CheckInterval           string   `yaml:"check_interval" mapstructure:"check_interval"`
 	CheckTimeout            string   `yaml:"check_timeout" mapstructure:"check_timeout"`
 	DeregisterCriticalAfter string   `yaml:"deregister_critical_after" mapstructure:"deregister_critical_after"`
-	RuntimeConfigKey        string   `yaml:"runtime_config_key" default:"grpc-go/config/admin/runtime"`
-	RuntimeConfigRequired   bool     `yaml:"runtime_config_required" default:"false"`
+	RuntimeConfigKey        string   `yaml:"runtime_config_key" mapstructure:"runtime_config_key"`
+	RuntimeConfigRequired   bool     `yaml:"runtime_config_required" mapstructure:"runtime_config_required"`
 }
 
 func (c ConsulConfig) GetAddresses() []string {
@@ -183,10 +183,12 @@ type ShutdownConfig struct {
 
 // GRPCServerConfig controls the Admin inbound gRPC transport.
 type GRPCServerConfig struct {
-	UseTLS       bool   `yaml:"use_tls" mapstructure:"use_tls"`
-	CertFile     string `yaml:"cert_file" mapstructure:"cert_file"`
-	KeyFile      string `yaml:"key_file" mapstructure:"key_file"`
-	ClientCAFile string `yaml:"client_ca_file" mapstructure:"client_ca_file"`
+	// TLSServerName 是 Consul 健康检查验证的服务端证书 SAN，不是连接地址。
+	TLSServerName string `yaml:"tls_server_name" mapstructure:"tls_server_name"`
+	UseTLS        bool   `yaml:"use_tls" mapstructure:"use_tls"`
+	CertFile      string `yaml:"cert_file" mapstructure:"cert_file"`
+	KeyFile       string `yaml:"key_file" mapstructure:"key_file"`
+	ClientCAFile  string `yaml:"client_ca_file" mapstructure:"client_ca_file"`
 }
 
 type TracingConfig struct {

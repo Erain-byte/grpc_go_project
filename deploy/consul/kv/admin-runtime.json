@@ -16,13 +16,5 @@
       "limit": 100,
       "window": "1m"
     }
-  },
-  "rabbitmq": {
-    "operation_log_enabled": true,
-    "max_retries": 3,
-    "retry_delay": "5s"
-  },
-  "database": {
-    "slow_query_threshold": "200ms"
   }
 }

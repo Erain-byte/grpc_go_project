@@ -68,6 +68,11 @@ func (r *ConsulRegistry) RegisterHTTP(name string, host string, port int, cfg *c
 		return err
 	}
 	checkHost := r.healthCheckHost(host)
+	// Consul 自身连接协议与被检查的 Gateway 协议是两回事。
+	checkScheme := "http"
+	if cfg.HTTP.TLS.Enabled {
+		checkScheme = "https"
+	}
 	registration := &api.AgentServiceRegistration{
 		ID:      buildServiceID(name, ProtocolHTTP, host, port),
 		Name:    fmt.Sprintf("%s-http", name),
@@ -78,13 +83,13 @@ func (r *ConsulRegistry) RegisterHTTP(name string, host string, port int, cfg *c
 		//服务检查
 		Check: &api.AgentServiceCheck{
 			//實際檢查地址
-			HTTP:     fmt.Sprintf("%s://%s:%d/health", r.config.Scheme, checkHost, port),
+			HTTP:     fmt.Sprintf("%s://%s:%d/health", checkScheme, checkHost, port),
 			Interval: r.config.CheckInterval,
 			//服务检查间隔
 			Timeout:                        r.config.CheckTimeout,
 			DeregisterCriticalServiceAfter: r.config.DeregisterCriticalAfter,
 			//跳过TLS验证
-			TLSSkipVerify: true,
+			TLSSkipVerify: cfg.HTTP.TLS.Enabled && cfg.HTTP.TLS.HealthCheckSkipVerify,
 		},
 	}
 

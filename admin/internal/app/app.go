@@ -143,23 +143,23 @@ func Run() error {
 	runtimeData, runtimeErr := consulClenit.GetKv(runtimeCtx, cfg.Consul.RuntimeConfigKey)
 	cancelRuntime()
 	if runtimeErr != nil {
-		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to read Gateway runtime config", http.StatusServiceUnavailable)
+		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to read admin runtime config", http.StatusServiceUnavailable)
 	}
 	parsedRuntime, runtimeErr := config.ParseRuntimeConfig(runtimeData)
 	if runtimeErr != nil {
-		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to parse Gateway runtime config", http.StatusServiceUnavailable)
+		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to parse admin runtime config", http.StatusServiceUnavailable)
 	}
 	initialSnapshot, runtimeErr := runtimeconfig.BuildSnapshot(parsedRuntime)
 	if runtimeErr != nil {
-		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to build Gateway runtime config snapshot", http.StatusServiceUnavailable)
+		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to build admin runtime config snapshot", http.StatusServiceUnavailable)
 	}
 	runtimeStore, runtimeErr := runtimeconfig.NewStore(initialSnapshot)
 	if runtimeErr != nil {
-		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to initialize Gateway runtime config store", http.StatusServiceUnavailable)
+		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to initialize admin runtime config store", http.StatusServiceUnavailable)
 	}
 	runtimeManager, runtimeErr := runtimeconfig.NewManager(cfg.Consul.RuntimeConfigKey, runtimeStore, logger.Logger, consulClenit)
 	if runtimeErr != nil {
-		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to initialize Gateway runtime config manager", http.StatusServiceUnavailable)
+		return apperror.Wrap(runtimeErr, apperror.CodeUnavailable, "failed to initialize admin runtime config manager", http.StatusServiceUnavailable)
 	}
 	//svc
 	severice := svc.NewServiceContext(
@@ -216,6 +216,7 @@ func Run() error {
 		cfg.Host,
 		cfg.GRPCPort,
 		cfg.GRPC.UseTLS,
+		cfg.GRPC.TLSServerName,
 	); err != nil {
 		return apperror.Wrap(
 			err,

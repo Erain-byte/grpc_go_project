@@ -4,6 +4,15 @@ name: "gateway-service"
 host: "127.0.0.1"
 port: 9080
 grpc_port: 9081
+# 外部浏览器/客户端连接 Gateway 的 HTTPS 配置；证书准备好后开启。
+http:
+  tls:
+    enabled: false
+    cert_file: "D:/grpc_go_project/gateway/etc/certs/server.crt"
+    key_file: "D:/grpc_go_project/gateway/etc/certs/server.key"
+    # 仅本地测试 CA 使用；生产需让 Consul 信任 CA 并改为 false。
+    health_check_skip_verify: true
+    # 证书 SAN 包含 localhost、127.0.0.1；有效期由签发时决定。
 #pprof configuration
 pprof:
   enabled: true
@@ -94,12 +103,16 @@ shutdown:
 
 # gRPC Client Configuration
 grpc:
-  use_tls: false                    # 是否启用 TLS（生产环境建议启用）
-  insecure_skip_verify: false       # 跳过证书验证（仅用于开发/测试）
-  cert_file: ""                     # 客户端证书文件路径（默认：/etc/certs/gateway/client.crt）
-  key_file: ""                      # 客户端私钥文件路径（默认：/etc/certs/gateway/client.key）
-  ca_file: ""                       # CA 证书文件路径（默认：/etc/certs/gateway/ca.crt）
-  server_name: "admin-service"      # 验证 Admin gRPC 服务端证书中的名称
+  # 这是 Gateway 调用 Admin 的客户端配置，不是外部 HTTP 入口的 HTTPS 配置。
+  # 证书生成后，与 Admin 的 grpc.use_tls 同时改为 true。
+  use_tls: true
+  insecure_skip_verify: false
+  cert_file: "D:/grpc_go_project/gateway/etc/certs/client.crt"
+  key_file: "D:/grpc_go_project/gateway/etc/certs/client.key"
+  ca_file: "D:/grpc_go_project/gateway/etc/certs/ca.crt"
+  # Admin 服务端证书的 DNS SAN 必须包含 admin-service。
+  server_name: "admin-service"
+  # 本地测试约定：客户端证书有效期90天，CA有效期5年；实际日期在签发时确定。
 
 # Rate Limit Configuration (限流配置)
 # Circuit Breaker Configuration (熔断配置)

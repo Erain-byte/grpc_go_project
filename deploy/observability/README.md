@@ -113,3 +113,16 @@ docker logs -f grpc-go-rabbitmq
 Test-NetConnection 127.0.0.1 -Port 5672
 Test-NetConnection 127.0.0.1 -Port 15672
 ```
+# Consul 的 mTLS 健康检查
+
+Consul 使用 `consul/health-tls.hcl` 中的 Agent TLS 配置执行 HTTP/gRPC 检查；这不是业务 KV 热更新配置。Compose 只读挂载 `D:/local-pki/ca.crt` 与 `D:/local-pki/consul/client.crt`、`client.key`，不挂载 CA 私钥。启动前必须准备这些文件。
+
+Admin 的 `grpc.tls_server_name` 为 `admin-service`，注册时传给 `TLSServerName`，保持 `TLSSkipVerify=false`。后续 User 服务填写自己的证书 SAN。Gateway 的入站明文 HTTP/gRPC 检查不需要套用 Admin 的 TLS 服务名。
+
+在项目根目录应用配置（仅重建 Consul，不删除数据卷）：
+
+```powershell
+& "C:/Program Files/Docker/Docker/resources/bin/docker.exe" compose -f deploy/observability/compose.yaml up -d consul
+```
+
+随后重启 Admin 以重新注册检查；Gateway 调用 Admin 时也必须设置 `grpc.use_tls: true`。到 Consul UI 查看 Admin 检查是否为 `passing`，再测试登录。这里未实现业务 TLS 证书热更新；更换证书后需重新加载或重建 Consul，并重启使用固定 TLS 凭证的业务服务。

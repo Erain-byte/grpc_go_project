@@ -13,6 +13,10 @@ go.work
 go.work.sum
 .env
 
+# Local TLS certificates and private keys; never commit signing material.
+/gateway/etc/certs/
+/admin/etc/certs/
+
 # Runtime logs are local artifacts and must not be committed.
 **/logs/
 *.log
