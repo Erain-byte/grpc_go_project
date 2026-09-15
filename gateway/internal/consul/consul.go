@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/hashicorp/consul/api"
@@ -18,8 +19,10 @@ import (
 // \gateway\internal\consul\consul.go
 // 定义结构体
 type ConsulRegistry struct {
-	client *api.Client // Consul 客户端
-	config config.ConsulConfig
+	registrationMu sync.Mutex // 保护成功注册后保存的模板。
+	registrations  map[string]*api.AgentServiceRegistration
+	client         *api.Client // Consul 客户端
+	config         config.ConsulConfig
 }
 
 // 构造函数
@@ -93,7 +96,7 @@ func (r *ConsulRegistry) RegisterHTTP(name string, host string, port int, cfg *c
 		},
 	}
 
-	if err := r.client.Agent().ServiceRegister(registration); err != nil {
+	if err := r.registerAndRemember(registration); err != nil {
 		return apperror.Wrap(err, apperror.CodeUnavailable, "failed to register HTTP service with Consul", http.StatusServiceUnavailable)
 	}
 	logInfof("registered HTTP service %s with Consul", name)
@@ -134,7 +137,7 @@ func (r *ConsulRegistry) RegisterGRPC(name string, host string, port int, cfg *c
 		},
 	}
 
-	if err := r.client.Agent().ServiceRegister(registration); err != nil {
+	if err := r.registerAndRemember(registration); err != nil {
 		return apperror.Wrap(err, apperror.CodeUnavailable, "failed to register gRPC service with Consul", http.StatusServiceUnavailable)
 	}
 	logInfof("registered gRPC service %s with Consul", name)

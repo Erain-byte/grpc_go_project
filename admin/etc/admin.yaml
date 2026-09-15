@@ -52,7 +52,7 @@ rabbitmq:
   vhost: "/grpc-go"
   connection_name: "admin-service"
   heartbeat: "30s"
-  dial_timeout: "5s"
+  dial_timeout: "15s"
   reconnect_interval: "5s"
   publish_confirm_timeout: "5s"
   prefetch_count: 10

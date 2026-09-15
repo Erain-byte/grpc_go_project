@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/hashicorp/consul/api"
 )
@@ -18,9 +19,11 @@ const (
 )
 
 type ConsulRegistry struct {
-	client     *api.Client
-	httpClient *http.Client
-	config     config.ConsulConfig
+	registrationMu sync.Mutex // 保护成功注册后保存的模板。
+	registrations  map[string]*api.AgentServiceRegistration
+	client         *api.Client
+	httpClient     *http.Client
+	config         config.ConsulConfig
 }
 
 // 构造函数
@@ -104,7 +107,7 @@ func (c *ConsulRegistry) RegisterGRPC(name string, host string, port int, userTl
 		},
 	}
 	// 注册服务实例
-	err := c.client.Agent().ServiceRegister(registerGrpc)
+	err := c.registerAndRemember(registerGrpc)
 	if err != nil {
 		return apperror.Wrap(err, apperror.CodeInternal, "failed to register service", http.StatusInternalServerError)
 	}

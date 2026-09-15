@@ -209,6 +209,9 @@ func Run() error {
 		syscall.SIGTERM,
 	)
 	defer stopSignals()
+	// 先停止并等待维护，再注销；也覆盖 Server 异常退出。
+	stopRegistration := consulRegistry.StartRegistrationMaintenance(signalCtx, logger.Logger)
+	defer stopRegistration()
 	// Manager 与应用共用退出 Context；退出时会取消正在阻塞的 Consul 查询。
 	go runtimeManager.Run(signalCtx)
 	//启动TLs证书自动检测
@@ -260,6 +263,7 @@ func Run() error {
 	}
 
 	// 两个 Server 共用一个关闭期限，并发关闭可避免关闭时间相加。
+	stopRegistration()
 	shutdownCtx, cancelShutdown := context.WithTimeout(
 		context.Background(),
 		parseShutdownTimeout(cfg.Shutdown.Timeout),

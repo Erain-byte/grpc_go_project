@@ -232,6 +232,9 @@ func Run() error {
 		syscall.SIGTERM,
 	)
 	defer signalCtxCancel()
+	// 注销前停止维护，避免刚注销又被后台注册回来。
+	stopRegistration := consulClenit.StartRegistrationMaintenance(signlCatxh, logger.Logger)
+	defer stopRegistration()
 	if cfg.RabbitMQ.Enabled {
 		// 消费链路：Consumer 解码消息 -> Handler 转换模型 -> Repository 幂等写库。
 		operationLogRepository := repository.NewOperationLogRepository(severice)
@@ -278,6 +281,7 @@ func Run() error {
 		)
 	}
 	//注销GRPC
+	stopRegistration()
 	deregisterErr := consulClenit.DeregisterGRPC(cfg.Name, cfg.Host, cfg.GRPCPort)
 	if deregisterErr != nil {
 		logger.SugaredLogger.Errorf("Failed to deregister grpc server: %v", deregisterErr)

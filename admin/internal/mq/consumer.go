@@ -66,6 +66,9 @@ func (c *Consumer) Start(ctx context.Context) error {
 			return nil
 		}
 		if err := c.client.Reconnect(ctx); err != nil {
+			if errors.Is(err, ErrClientClosed) {
+				return err
+			}
 			c.logger.Error("RabbitMQ reconnect failed", zap.Error(err))
 		}
 	}

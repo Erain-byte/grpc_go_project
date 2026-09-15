@@ -12,7 +12,12 @@ import (
 )
 
 // ErrClientClosed 表示 RabbitMQ 客户端已被永久关闭，不能继续创建 Channel 或重连。
-var ErrClientClosed = errors.New("RabbitMQ client is closed")
+// var ErrClientClosed = errors.New("RabbitMQ client is closed")
+// ErrClientClosed 表示客户端已被主动永久关闭，不能重连。
+var ErrClientClosed = errors.New("RabbitMQ client is permanently closed")
+
+// ErrConnectionClosed 表示底层连接不可用，可以尝试重连。
+var ErrConnectionClosed = errors.New("RabbitMQ connection is unavailable")
 
 // Client 统一管理一条长期存在的 AMQP Connection。
 // Channel 是基于 Connection 创建的短生命周期对象，使用完后由调用方关闭。
@@ -71,8 +76,14 @@ func (c *rabbitMQClient) OpenChannel() (*amqp.Channel, error) {
 	// 这里只读取连接状态和连接指针，所以使用读锁。
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	if c.closed || c.conn == nil || c.conn.IsClosed() {
+	/*if c.closed || c.conn == nil || c.conn.IsClosed() {
 		return nil, ErrClientClosed
+	}*/
+	if c.closed {
+		return nil, ErrClientClosed
+	}
+	if c.conn == nil || c.conn.IsClosed() {
+		return nil, ErrConnectionClosed
 	}
 	channel, err := c.conn.Channel()
 	if err != nil {

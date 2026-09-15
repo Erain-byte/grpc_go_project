@@ -133,6 +133,8 @@ func (r *grpcResolver) updateAddresses(entries []*api.ServiceEntry) error {
 	}
 	state := resolver.State{Addresses: addresses}
 	if err := r.clientConn.UpdateState(state); err != nil {
+		// 清空缓存，让下一次健康地址重新发布。
+		r.lastAddresses = nil
 		return fmt.Errorf("update gRPC resolver state for %q: %w", r.serviceName, err)
 	}
 	r.lastAddresses = slices.Clone(addresses)
