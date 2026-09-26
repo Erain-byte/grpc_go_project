@@ -28,6 +28,7 @@ dev = [
     "pytest-asyncio",
     "ruff",
     "mypy",
+    "types-grpcio",
 ]
 
 [tool.setuptools.packages.find]

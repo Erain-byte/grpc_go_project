@@ -1,7 +1,28 @@
+# 启动配置约定；需要 config.py 加载，再由 app.py 传给 Server 和注册器。
+# config.py 已实现加载和校验；尚需 app.py 调用，热更新未实现。
 environment: development
 service_name: llm-service
-host: 127.0.0.1
+version: "1.0.0"
+
+# 监听所有 IPv4 网卡，供本机客户端和 Docker Consul 的健康检查访问。
+host: "0.0.0.0"
 grpc_port: 9083
+# 写入 Consul Service.Address。当前 Gateway/Admin 与 LLM 都运行在 Windows。
+# 迁移到其他机器或容器后，应改成调用方能访问的地址，不能填写 0.0.0.0。
+advertise_host: "127.0.0.1"
+
+grpc:
+  # 第一阶段本机明文调试；与启用 TLS 的 Gateway 对接前必须统一传输配置。
+  use_tls: false
+  # 相对证书路径以本 YAML 所在目录为基准；开启 TLS 时校验文件是否存在。
+  cert_file: ""
+  key_file: ""
+  client_ca_file: ""
+  tls_server_name: "llm-service"
+  health:
+    enabled: true
+    # 标准 Health/Check 查询的服务名；空字符串表示整体健康状态。
+    service: ""
 
 model:
   provider: mock
@@ -9,12 +30,31 @@ model:
   timeout: 30s
 
 consul:
-  address: 127.0.0.1:8500
+  enabled: true
+  address: "127.0.0.1:8500"
   scheme: http
-  check_host: host.docker.internal
-  check_interval: 10s
-  check_timeout: 5s
-  deregister_critical_after: 90s
+  # ACL Token 从 LLM_CONSUL_TOKEN 环境变量读取，不在 YAML 中保存密钥。
+  service_name: "llm-service-grpc"
+  # 对应当前 advertise_host 和 grpc_port；多个实例必须使用不同 ID。
+  service_id: "llm-service-grpc-127.0.0.1-9083"
+  tags: ["llm-service", "grpc"]
+  request_timeout: "5s"
+  # Consul 在 Docker 内，通过此地址访问 Windows 上的 LLM。
+  # Check.GRPC 使用 check_host:grpc_port，与 Service.Address 分开构造。
+  check_host: "host.docker.internal"
+  check_interval: "10s"
+  check_timeout: "5s"
+  deregister_critical_after: "90s"
+  # Check.GRPCUseTLS 应跟随 grpc.use_tls；开启后验证 tls_server_name。
+  # 保持证书校验，Consul 的 CA/客户端证书由它自身的 Agent 配置提供。
+  tls_skip_verify: false
+  registration_maintenance:
+    enabled: true
+    interval: "30s"
+    max_backoff: "2m"
+  # 注册器需实现：启动注册失败时让启动失败，退出时注销自身实例。
+  registration_required: true
+  deregister_on_shutdown: true
 
 tracing:
   enabled: true

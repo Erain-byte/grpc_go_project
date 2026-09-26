@@ -1,6 +1,6 @@
 # gRPC 与 Protobuf
-grpcio
-grpcio-health-checking
+grpcio>=1.48.0
+grpcio-health-checking>=1.48.0
 grpcio-tools
 protobuf
 
@@ -18,8 +18,13 @@ opentelemetry-sdk
 opentelemetry-exporter-otlp-proto-grpc
 opentelemetry-instrumentation-grpc
 
+# 服务注册与发现
+py-consul
+
 # 开发与测试
 pytest
 pytest-asyncio
 ruff
 mypy
+types-grpcio
+

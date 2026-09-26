@@ -4,6 +4,9 @@
 
 ## 目录结构
 
+详细的文件放置、当前实现状态和调用流程见 [目录结构与文件职责说明](目录结构与文件职责说明.md)。
+中间件目录是 `src/llm_service/middleware/`，目前只有 `__init__.py`，尚未实现 gRPC Interceptor。
+
 ```text
 llm/
 |-- config/
@@ -16,7 +19,7 @@ llm/
 |       |-- main.py              进程入口
 |       |-- app.py               依赖初始化与生命周期
 |       |-- config.py            配置模型与加载
-|       |-- server/              gRPC Server 与服务注册
+|       |-- server/              gRPC Server、Handler 和 Health 挂载
 |       |-- handler/             Proto 请求、响应适配
 |       |-- service/             对话与模型调用编排
 |       |-- domain/              领域对象和接口
@@ -48,6 +51,23 @@ python -m venv .\llm\.venv
 python -m pip install --upgrade pip
 python -m pip install -r .\llm\requirements.txt
 ```
+
+## 启动配置读取
+
+`src/llm_service/config.py` 提供 `load_config()`。默认读取 `llm/config/llm.yaml`，不依赖 PowerShell 当前目录；也可以传入配置文件路径。此加载函数尚需在 `app.py` 的启动流程中调用。
+
+```python
+from llm_service.config import duration_seconds, load_config
+
+cfg = load_config()
+listen_address = f"{cfg.host}:{cfg.grpc_port}"
+consul_address = cfg.consul.address
+request_timeout = duration_seconds(cfg.consul.request_timeout)
+```
+
+时间保留 `5s`、`2m`、`100ms` 等单单位字符串，需要数值超时时用 `duration_seconds()` 转为秒。拼错字段、非法端口、非正时长以及不一致的注册配置会抛出 `ConfigError`。启用 TLS 时要求证书和私钥文件存在；相对路径以 YAML 文件目录为基准，证书内容由后续 TLS 初始化校验。
+
+Consul ACL Token 只读取进程环境变量 `LLM_CONSUL_TOKEN`，不允许写入 YAML，也不会包含在配置的 `repr()` 或 `model_dump()` 中。调用 Consul 客户端时通过 `cfg.consul.token.get_secret_value()` 获取；不要打印该值。当前没有自动读取 `.env` 文件或热更新。
 
 ## 分层约束
 
