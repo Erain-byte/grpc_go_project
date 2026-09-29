@@ -10,6 +10,7 @@ from llm_service.handler.chat import ChatHandler
 from llm_service.middleware.auth import AuthMiddleware
 from llm_service.middleware.error_recovery import ErrorRecoveryMiddleware
 from llm_service.middleware.logger import LoggerMiddleware
+from llm_service.middleware.trace import TraceInterceptorMiddleware
 
 class GrpcServer:
     def __init__(self, cfg: AppConfig) -> None:
@@ -25,9 +26,13 @@ class GrpcServer:
         #创建异步gRPC服务实列
         server = grpc.aio.server(
             interceptors=(
-                ErrorRecoveryMiddleware(),
-                LoggerMiddleware(),
+                 
+                TraceInterceptorMiddleware(),
                 AuthMiddleware(),
+                LoggerMiddleware(),
+                ErrorRecoveryMiddleware(),
+                
+               
             )
         )
         llm_pb2_grpc.add_LlmServiceServicer_to_server(ChatHandler(), server)#注册服务
