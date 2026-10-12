@@ -1,0 +1,25 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4.3.5-management
+    container_name: grpc-go-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: grpc_app
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?set RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_DEFAULT_VHOST: /grpc-go
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  rabbitmq-data:
+    name: observability_rabbitmq_data
+    external: true

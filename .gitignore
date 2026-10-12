@@ -12,6 +12,11 @@
 go.work
 go.work.sum
 .env
+.env.prod
+
+# Raw Keycloak CLI exports may contain confidential client secrets.
+/deploy/identity/realm/*.json
+!/deploy/identity/realm/*.template.json
 
 # Local TLS certificates and private keys; never commit signing material.
 /gateway/etc/certs/

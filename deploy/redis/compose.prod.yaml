@@ -1,0 +1,33 @@
+# Standalone production template. It is loaded only when explicitly selected.
+services:
+  redis:
+    image: redis:8.2.10-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD}
+    command:
+      - sh
+      - -c
+      - exec redis-server --appendonly yes --appendfsync everysec --requirepass "$${REDIS_PASSWORD}"
+    ports:
+      # Keep Redis private; same-host processes connect through loopback.
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data-prod:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$$REDIS_PASSWORD\" ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - shared-prod
+
+networks:
+  shared-prod:
+    name: grpc-go-shared-prod
+    driver: bridge
+
+volumes:
+  redis-data-prod:
+    name: grpc-go-redis-prod

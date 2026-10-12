@@ -9,8 +9,6 @@ import (
 	"admin/pkg/apperorr"
 	"context"
 	"encoding/json"
-	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -44,58 +42,38 @@ func (s *GetAdminInfoService) GetAdminInfo(
 	ctx context.Context,
 	req *adminv1.GetAdminInfoRequest,
 ) (_ *adminv1.GetAdminInfoResponse, returnErr error) {
-	ctx, span := s.tracer.Start(
-		ctx,
-		"admin.get_admin_info",
-		trace.WithSpanKind(trace.SpanKindInternal),
-	)
+	ctx, span := s.tracer.Start(ctx, "admin.get_admin_info", trace.WithSpanKind(trace.SpanKindInternal))
 	defer func() {
 		if returnErr != nil {
 			tracing.RecordError(span, returnErr, "get admin information failed")
 		}
 		span.End()
 	}()
-
 	if req == nil {
 		return nil, apperorr.InvalidArgument("request is nil")
 	}
 	requestCtx, cancel := context.WithTimeout(ctx, getAdminInfoTimeout)
 	defer cancel()
-
 	identity, ok := auth.FromContext(requestCtx)
 	if !ok {
 		return nil, apperorr.Unauthorized("authentication information is missing")
 	}
-	adminIDText := strings.TrimSpace(identity.AdminID)
-	parsedID, err := strconv.ParseUint(adminIDText, 10, strconv.IntSize)
-	if err != nil || parsedID == 0 {
-		return nil, apperorr.Unauthorized("invalid admin ID")
+	// Keycloak subjects are UUIDs. The verified preferred_username links the
+	// Keycloak identity to the existing local administrator during migration.
+	subject := strings.TrimSpace(identity.AdminID)
+	username := strings.TrimSpace(identity.Username)
+	if subject == "" || username == "" {
+		return nil, apperorr.Unauthorized("Keycloak administrator identity is incomplete")
 	}
-	if strings.TrimSpace(identity.SessionID) == "" {
-		return nil, apperorr.Unauthorized("session ID is missing")
-	}
-
-	// JWT 签名正确并不代表 Session 仍然有效；退出后 Redis Key 会被删除。
-	sessionKey := auth.SetSessionKey(identity.SessionID, s.svc.Config.Auth)
-	active, err := s.sessionActive(requestCtx, sessionKey)
-	if err != nil {
-		return nil, apperorr.Wrap(err, apperorr.CodeUnavailable, "check admin session", http.StatusServiceUnavailable)
-	}
-	if !active {
-		return nil, apperorr.Unauthorized("session has expired or been revoked")
-	}
-
-	profileKey := adminProfileRedisKey(adminIDText)
+	profileKey := adminProfileRedisKey(subject)
 	profile, hit, cacheErr := s.profileFromCache(requestCtx, profileKey)
 	if cacheErr != nil && s.svc.Logger != nil {
-		// 资料缓存可由 MySQL 重建，因此缓存读取失败只记录告警并继续查询数据库。
 		s.svc.Logger.Warn("read admin profile cache", zap.Error(cacheErr))
 	}
 	if hit {
 		return getAdminInfoResponse(profile), nil
 	}
-
-	admin, err := s.findByID(requestCtx, uint(parsedID))
+	admin, err := s.adminModel.FindByUsername(requestCtx, username)
 	if err != nil || admin == nil {
 		return nil, apperorr.Unauthorized("admin account does not exist")
 	}
@@ -106,15 +84,8 @@ func (s *GetAdminInfoService) GetAdminInfo(
 	if err != nil {
 		return nil, err
 	}
-	profile = cachedAdminProfile{
-		ID:       adminIDText,
-		Username: admin.Username,
-		Email:    stringValue(admin.Email),
-		Role:     roleValue,
-		RoleCode: roleCode,
-	}
+	profile = cachedAdminProfile{ID: subject, Username: admin.Username, Email: stringValue(admin.Email), Role: roleValue, RoleCode: roleCode}
 	if cacheErr := s.cacheProfile(requestCtx, profileKey, profile); cacheErr != nil && s.svc.Logger != nil {
-		// 回填失败不影响本次已经从 MySQL 获得的有效响应。
 		s.svc.Logger.Warn("write admin profile cache", zap.Error(cacheErr))
 	}
 	return getAdminInfoResponse(profile), nil

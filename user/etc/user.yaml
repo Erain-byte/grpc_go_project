@@ -1,0 +1,168 @@
+# User Go service configuration.
+# 密钥只允许通过环境变量注入，不得写入本文件或提交到 Git。
+environment: "development"
+name: "user-service"
+version: "1.0.0"
+
+# gRPC Server 监听地址。
+host: "0.0.0.0"
+grpc_port: 9084
+
+# 注册到 Consul 的服务地址。0.0.0.0 只能用于监听，不能用于服务发现。
+# 当前服务运行在 Windows，调用方也运行在本机，因此使用 127.0.0.1。
+advertise_host: "127.0.0.1"
+
+# 用户资料和账户凭证持久化。
+# 密码从 USER_DB_PASSWORD 环境变量读取。
+database:
+  enabled: false
+  driver: "mysql"
+  host: "127.0.0.1"
+  port: 3306
+  username: "userdb"
+  dbname: "userdb"
+  charset: "utf8mb4"
+  parse_time: true
+  location: "Local"
+  read_write_split_enabled: false
+  replica_addresses: []
+  max_idle_conns: 10
+  max_open_conns: 100
+  conn_max_idle_time: "10m"
+  conn_max_lifetime: "1h"
+
+# 用户缓存、分布式限流和短期状态存储。
+# 密码从 USER_REDIS_PASSWORD 环境变量读取。
+redis:
+  enabled: false
+  host: "127.0.0.1"
+  port: 6379
+  cluster_addresses: []
+  db: 0
+  pool_size: 100
+  min_idle_conns: 10
+  max_idle_conns: 50
+  conn_max_idle_time: "30m"
+  conn_max_lifetime: "1h"
+  dial_timeout: "5s"
+  read_timeout: "3s"
+  write_timeout: "3s"
+  pool_timeout: "4s"
+  health_required: false
+
+# 用户事件和通知任务的异步队列。
+# 密码从 USER_RABBITMQ_PASSWORD 环境变量读取。
+rabbitmq:
+  enabled: false
+  host: "127.0.0.1"
+  port: 5672
+  username: "grpc_app"
+  vhost: "/grpc-go"
+  connection_name: "user-service"
+  heartbeat: "30s"
+  dial_timeout: "15s"
+  reconnect_interval: "5s"
+  publish_confirm_timeout: "5s"
+  prefetch_count: 5
+
+  task:
+    exchange: "user.tasks"
+    exchange_type: "topic"
+    routing_key: "user.task.created"
+    queue: "user.task"
+    retry_exchange: "user.tasks.retry"
+    retry_routing_key: "user.task.retry"
+    retry_queue: "user.task.retry"
+    retry_delay: "10s"
+    max_retries: 3
+    dead_letter_exchange: "user.tasks.dlx"
+    dead_letter_routing_key: "user.task.dead"
+    dead_letter_queue: "user.task.dlq"
+
+# User 入站 gRPC 配置。
+grpc:
+  # 第一阶段保持与现有服务部署方式兼容；接入 Consul Service Mesh 后，
+  # 服务间 mTLS 将由 Envoy 负责，应用侧可关闭 TLS。
+  use_tls: false
+  tls_server_name: "user-service"
+  cert_file: ""
+  key_file: ""
+  client_ca_file: ""
+
+  # 标准 grpc.health.v1.Health 服务配置。
+  health:
+    enabled: true
+    service: ""
+
+  # 防止异常大请求或响应耗尽服务内存。
+  max_recv_message_size: 4194304
+  max_send_message_size: 4194304
+
+consul:
+  enabled: true
+  host: "127.0.0.1"
+  port: 8500
+  # 非空时优先使用集群地址；为空时回退到 host:port。
+  addresses: []
+  scheme: "http"
+
+  # Consul 在 Docker 中运行，通过该地址检查 Windows 上的 User 服务。
+  check_host: "host.docker.internal"
+  check_interval: "10s"
+  check_timeout: "5s"
+  deregister_critical_after: "90s"
+
+  # 动态限流规则和功能开关从该 KV 读取。
+  runtime_config_key: "grpc-go/config/user/runtime"
+  # 第一阶段允许只使用本地配置；生产环境启用运行时配置后改为 true。
+  runtime_config_required: false
+
+  # 注册丢失后的周期性补注册。
+  registration_required: true
+  deregister_on_shutdown: true
+  registration_maintenance:
+    enabled: true
+    interval: "30s"
+    max_backoff: "2m"
+
+logger:
+  level: "info"
+  format: "json"
+  filename: "logs/user.log"
+  max_size: 100
+  max_backups: 10
+  max_age: 30
+  compress: true
+
+tracing:
+  enabled: true
+  service_name: "user-service"
+  endpoint: "127.0.0.1:4317"
+  sampler_type: "const"
+  sampler_param: 1.0
+  use_tls: false
+  ca_file: ""
+  cert_file: ""
+  key_file: ""
+  server_name: "jaeger"
+
+# USER 接口限流。启用时依赖 Redis。
+rate_limit:
+  enabled: false
+  redis_timeout: "300ms"
+  key_prefix: "user:rate_limit:"
+
+  login:
+    limit: 60
+    window: "1m"
+
+  register:
+    limit: 30
+    window: "1m"
+
+  default:
+    limit: 100
+    window: "1m"
+
+shutdown:
+  timeout: "10s"

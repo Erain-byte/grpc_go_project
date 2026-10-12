@@ -3,6 +3,8 @@ syntax = "proto3";
 package admin.v1;
 
 import "common/v1/security.proto";
+import "llm/v1/llm.proto";
+import "user/v1/user.proto";
 
 option go_package = "github.com/Erain-byte/grpc_go_project/proto/admin/v1;adminv1";
 
@@ -39,6 +41,36 @@ service AdminService {
   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
     option (common.v1.auth) = {
       public: true
+    };
+  }
+
+  // User management operations forwarded by Admin to UserService.
+  rpc GetUserInfo(user.v1.GetUserInfoRequest) returns (user.v1.GetUserInfoResponse) {
+    option (common.v1.auth) = {
+      roles: "admin"
+      roles: "super_admin"
+    };
+  }
+
+  rpc GetUserList(user.v1.GetUserListRequest) returns (user.v1.GetUserListResponse) {
+    option (common.v1.auth) = {
+      roles: "admin"
+      roles: "super_admin"
+    };
+  }
+
+  // Model operations forwarded by Admin to LlmService.
+  rpc Chat(llm.v1.ChatRequest) returns (llm.v1.ChatResponse) {
+    option (common.v1.auth) = {
+      roles: "admin"
+      roles: "super_admin"
+    };
+  }
+
+  rpc StreamChat(llm.v1.StreamChatRequest) returns (stream llm.v1.StreamChatResponse) {
+    option (common.v1.auth) = {
+      roles: "admin"
+      roles: "super_admin"
     };
   }
 }

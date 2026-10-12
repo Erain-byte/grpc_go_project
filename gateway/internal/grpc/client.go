@@ -15,9 +15,6 @@ import (
 	"sync"
 	"time"
 
-	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
-	pbAuth "github.com/Erain-byte/grpc_go_project/proto/auth/v1"
-	pbLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/balancer/roundrobin"
@@ -373,10 +370,8 @@ func (cm *ClientManager) MonitorCertificate(
 }
 
 // 泛型定义通用客户端工厂函数类型
-type ClientFactory[T any] func(grpc.ClientConnInterface) T
-
 // 泛型定义通用客户端创建函数
-func CreateClient[T any](ctx context.Context, manager *ClientManager, serviceName string, factory ClientFactory[T]) (T, error) {
+/*func CreateClient[T any](ctx context.Context, manager *ClientManager, serviceName string, factory func(grpc.ClientConnInterface) T) (T, error) {
 	var zero T
 	if manager == nil {
 		return zero, apperror.ToGRPC(apperror.InvalidArgument("client manager is nil"))
@@ -389,23 +384,7 @@ func CreateClient[T any](ctx context.Context, manager *ClientManager, serviceNam
 		return zero, err
 	}
 	return factory(conn), nil
-}
-
-// admin	service
-func (cm *ClientManager) AdminClient(ctx context.Context) (pbAdmin.AdminServiceClient, error) {
-	return CreateClient(ctx, cm, "admin-service", pbAdmin.NewAdminServiceClient)
-}
-
-// AuthClient 创建 AuthService 客户端。
-// 当前 AuthService 注册在 admin-service；以后拆成独立服务时只需调整服务名。
-func (cm *ClientManager) AuthClient(ctx context.Context, serviceName string) (pbAuth.AuthServiceClient, error) {
-	return CreateClient(ctx, cm, serviceName, pbAuth.NewAuthServiceClient)
-}
-
-// LLM service
-func (cm *ClientManager) LlmClient(ctx context.Context) (pbLlm.LlmServiceClient, error) {
-	return CreateClient(ctx, cm, "llm-service", pbLlm.NewLlmServiceClient)
-}
+}*/
 
 // 后续需要的服务。。。
 //

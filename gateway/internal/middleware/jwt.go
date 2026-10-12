@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -8,60 +9,83 @@ import (
 	"gateway/internal/config"
 	"gateway/pkg/apperror"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
-	ContextUserID    = "auth.user_id"
-	ContextRole      = "auth.role"
-	ContextSessionID = "auth.session_id"
-	ContextTokenID   = "auth.token_id"
-	ContextClaims    = "auth.claims"
+	ContextUserID              = "auth.user_id"
+	ContextUsername            = "auth.username"
+	ContextRole                = "auth.role"
+	ContextSessionID           = "auth.session_id"
+	ContextTokenID             = "auth.token_id"
+	ContextClaims              = "auth.claims"
+	forwardedAccessTokenHeader = "X-Forwarded-Access-Token"
 )
 
-// AccessTokenClaims contains the identity propagated by an access JWT.
+type RealmAccess struct {
+	Roles []string `json:"roles"`
+}
+
+// AccessTokenClaims contains the Keycloak identity propagated by an access token.
 type AccessTokenClaims struct {
-	Role      string `json:"role"`
-	SessionID string `json:"session_id"`
+	SessionID         string      `json:"sid"`
+	PreferredUsername string      `json:"preferred_username"`
+	RealmAccess       RealmAccess `json:"realm_access"`
 	jwt.RegisteredClaims
 }
 
+// PrimaryRole selects the first configured application role present in the token.
+func (c *AccessTokenClaims) PrimaryRole(priority []string) string {
+	roles := make(map[string]struct{}, len(c.RealmAccess.Roles))
+	for _, role := range c.RealmAccess.Roles {
+		roles[role] = struct{}{}
+	}
+	for _, role := range priority {
+		if _, ok := roles[role]; ok {
+			return role
+		}
+	}
+	return ""
+}
+
 type JWTMiddleware struct {
-	secret         []byte
-	algorithm      string
-	audience       string
-	allowedIssuers map[string]struct{}
+	verifier     *oidc.IDTokenVerifier
+	rolePriority []string
 }
 
 func NewJWTMiddleware(cfg config.AuthConfig) (*JWTMiddleware, error) {
 	accessConfig := cfg.AccessToken
-	if len(accessConfig.Secret) < 32 {
-		return nil, fmt.Errorf("access token secret must contain at least 32 bytes")
-	}
-	if accessConfig.Algorithm != jwt.SigningMethodHS256.Alg() {
+	if accessConfig.Algorithm != oidc.RS256 {
 		return nil, fmt.Errorf("unsupported JWT algorithm %q", accessConfig.Algorithm)
 	}
 	if strings.TrimSpace(accessConfig.Audience) == "" {
 		return nil, fmt.Errorf("access token audience is empty")
 	}
-
-	allowedIssuers := make(map[string]struct{}, len(accessConfig.Issuers))
-	for _, issuer := range accessConfig.Issuers {
-		issuer = strings.TrimSpace(issuer)
-		if issuer != "" {
-			allowedIssuers[issuer] = struct{}{}
+	if len(accessConfig.Issuers) != 1 || strings.TrimSpace(accessConfig.Issuers[0]) == "" {
+		return nil, fmt.Errorf("exactly one access token issuer is required")
+	}
+	jwksURL := strings.TrimSpace(accessConfig.JWKSURL)
+	if jwksURL == "" {
+		return nil, fmt.Errorf("access token JWKS URL is empty")
+	}
+	rolePriority := make([]string, 0, len(accessConfig.RolePriority))
+	for _, role := range accessConfig.RolePriority {
+		if role = strings.TrimSpace(role); role != "" {
+			rolePriority = append(rolePriority, role)
 		}
 	}
-	if len(allowedIssuers) == 0 {
-		return nil, fmt.Errorf("access token issuers are empty")
+	if len(rolePriority) == 0 {
+		return nil, fmt.Errorf("access token role priority is empty")
 	}
-	return &JWTMiddleware{
-		secret:         []byte(accessConfig.Secret),
-		algorithm:      accessConfig.Algorithm,
-		audience:       accessConfig.Audience,
-		allowedIssuers: allowedIssuers,
-	}, nil
+
+	keySet := oidc.NewRemoteKeySet(context.Background(), jwksURL)
+	verifier := oidc.NewVerifier(strings.TrimSpace(accessConfig.Issuers[0]), keySet, &oidc.Config{
+		ClientID:             accessConfig.Audience,
+		SupportedSigningAlgs: []string{oidc.RS256},
+	})
+	return &JWTMiddleware{verifier: verifier, rolePriority: rolePriority}, nil
 }
 
 func extractBearerToken(authorization string) (string, error) {
@@ -75,67 +99,55 @@ func extractBearerToken(authorization string) (string, error) {
 	return parts[1], nil
 }
 
-// ValidateJWT verifies the signature and registered claims, then checks that
-// the issuer belongs to one of the configured identity services.
-func (m *JWTMiddleware) ValidateJWT(tokenString string) (*AccessTokenClaims, error) {
-	claims := new(AccessTokenClaims)
-	token, err := jwt.ParseWithClaims(
-		tokenString,
-		claims,
-		func(token *jwt.Token) (any, error) {
-			if token.Method.Alg() != m.algorithm {
-				return nil, fmt.Errorf("unexpected JWT algorithm %q", token.Method.Alg())
-			}
-			return m.secret, nil
-		},
-		jwt.WithValidMethods([]string{m.algorithm}),
-		jwt.WithAudience(m.audience),
-		jwt.WithExpirationRequired(),
-		jwt.WithIssuedAt(),
-	)
+func extractRequestToken(c *gin.Context) (string, error) {
+	if authorization := strings.TrimSpace(c.GetHeader("Authorization")); authorization != "" {
+		return extractBearerToken(authorization)
+	}
+	if token := strings.TrimSpace(c.GetHeader(forwardedAccessTokenHeader)); token != "" {
+		return token, nil
+	}
+	return "", apperror.Unauthorized("access token is missing")
+}
+
+func (m *JWTMiddleware) validateJWT(ctx context.Context, tokenString string) (*AccessTokenClaims, error) {
+	idToken, err := m.verifier.Verify(ctx, tokenString)
 	if err != nil {
-		return nil, apperror.Wrap(
-			err,
-			apperror.CodeUnauthorized,
-			"invalid or expired access token",
-			http.StatusUnauthorized,
-		)
+		return nil, apperror.Wrap(err, apperror.CodeUnauthorized, "invalid or expired access token", http.StatusUnauthorized)
 	}
-	if !token.Valid {
-		return nil, apperror.Unauthorized("invalid access token")
+	claims := new(AccessTokenClaims)
+	if err := idToken.Claims(claims); err != nil {
+		return nil, apperror.Wrap(err, apperror.CodeUnauthorized, "invalid access token claims", http.StatusUnauthorized)
 	}
-	if claims.Subject == "" {
+	if strings.TrimSpace(claims.Subject) == "" {
 		return nil, apperror.Unauthorized("access token subject is empty")
 	}
-	if claims.SessionID == "" {
-		return nil, apperror.Unauthorized("access token session is empty")
-	}
-	if claims.ID == "" {
+	if strings.TrimSpace(claims.ID) == "" {
 		return nil, apperror.Unauthorized("access token ID is empty")
 	}
-	if _, ok := m.allowedIssuers[claims.Issuer]; !ok {
-		return nil, apperror.Unauthorized("access token issuer is not allowed")
+	if claims.PrimaryRole(m.rolePriority) == "" {
+		return nil, apperror.Unauthorized("access token has no application role")
 	}
 	return claims, nil
 }
 
-// Handle authenticates only the route groups where it is explicitly added.
-// Public routes do not register this handler and therefore need no whitelist.
+func (m *JWTMiddleware) ValidateJWT(tokenString string) (*AccessTokenClaims, error) {
+	return m.validateJWT(context.Background(), tokenString)
+}
+
 func (m *JWTMiddleware) Handle(c *gin.Context) {
-	tokenString, err := extractBearerToken(c.GetHeader("Authorization"))
+	tokenString, err := extractRequestToken(c)
 	if err != nil {
 		Fail(c, err)
 		return
 	}
-
-	claims, err := m.ValidateJWT(tokenString)
+	claims, err := m.validateJWT(c.Request.Context(), tokenString)
 	if err != nil {
 		Fail(c, err)
 		return
 	}
-
 	c.Set(ContextUserID, claims.Subject)
-	c.Set(ContextRole, claims.Role)
+	c.Set(ContextUsername, claims.PreferredUsername)
+	c.Set(ContextRole, claims.PrimaryRole(m.rolePriority))
 	c.Set(ContextSessionID, claims.SessionID)
 	c.Set(ContextTokenID, claims.ID)
 	c.Set(ContextClaims, claims)

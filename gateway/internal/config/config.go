@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/go-viper/mapstructure/v2"
@@ -84,14 +85,32 @@ type AuthConfig struct {
 	RefreshToken RefreshTokenConfig `yaml:"refresh_token" mapstructure:"refresh_token"`
 }
 
-// AccessTokenConfig controls how the gateway validates short-lived JWTs.
-// Secret is intentionally loaded from the environment rather than YAML.
+// AccessTokenConfig controls how the gateway validates Keycloak access tokens.
 type AccessTokenConfig struct {
-	Issuers   []string `yaml:"issuers" mapstructure:"issuers"`
-	Audience  string   `yaml:"audience" mapstructure:"audience"`
-	Algorithm string   `yaml:"algorithm" mapstructure:"algorithm"`
-	Expire    string   `yaml:"expire" mapstructure:"expire"`
-	Secret    string   `yaml:"-" mapstructure:"-"`
+	Issuers      []string `yaml:"issuers" mapstructure:"issuers"`
+	Audience     string   `yaml:"audience" mapstructure:"audience"`
+	Algorithm    string   `yaml:"algorithm" mapstructure:"algorithm"`
+	JWKSURL      string   `yaml:"jwks_url" mapstructure:"jwks_url"`
+	RolePriority []string `yaml:"role_priority" mapstructure:"role_priority"`
+}
+
+// RolesMatching returns the configured base role and its prefixed variants.
+// For example, "admin" matches "admin" and "super-admin", while "user"
+// matches "user". QuoteMeta keeps role names from becoming regular expressions.
+func (a AccessTokenConfig) RolesMatching(name string) []string {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil
+	}
+	matcher := regexp.MustCompile(`(^|-)` + regexp.QuoteMeta(name) + `$`)
+	roles := make([]string, 0, len(a.RolePriority))
+	for _, role := range a.RolePriority {
+		role = strings.TrimSpace(role)
+		if role != "" && matcher.MatchString(role) {
+			roles = append(roles, role)
+		}
+	}
+	return roles
 }
 
 // RefreshTokenConfig describes the refresh-token policy. Refresh-token values
@@ -262,12 +281,6 @@ func applyEnvOverrides(cfg *Config) {
 	}
 	if v := os.Getenv("GATEWAY_REDIS_PASSWORD"); v != "" {
 		cfg.Redis.Password = v
-	}
-	if v := os.Getenv("GATEWAY_ACCESS_TOKEN_SECRET"); v != "" {
-		cfg.Auth.AccessToken.Secret = v
-	} else if v := os.Getenv("GATEWAY_JWT_SECRET"); v != "" {
-
-		cfg.Auth.AccessToken.Secret = v
 	}
 	if v := os.Getenv("GATEWAY_ANTI_REPLAY_SECRET"); v != "" {
 		cfg.AntiReplay.Secret = v

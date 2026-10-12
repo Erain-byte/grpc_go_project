@@ -9,6 +9,7 @@ import (
 
 type AuthInfo struct {
 	AdminID   string
+	Username  string
 	Role      string
 	SessionID string
 	TokenID   string

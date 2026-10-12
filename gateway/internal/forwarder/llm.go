@@ -18,12 +18,16 @@ type LlmForwarder struct {
 
 func NewLlmForwarder(clinMgnager *clien.ClientManager) *LlmForwarder {
 	return &LlmForwarder{
-		base: NewBaseForwarder[bpLlm.LlmServiceClient](
-			bpLlm.NewLlmServiceClient,
-			clinMgnager,
-			"llm-service",
-		),
+		base: NewBaseForwarder(clinMgnager, "llm-service", bpLlm.NewLlmServiceClient),
 	}
+}
+
+func (l *LlmForwarder) OpenStreamChat(ctx context.Context, req *bpLlm.StreamChatRequest) (bpLlm.LlmService_StreamChatClient, error) {
+	client, err := l.base.GetClient(ctx)
+	if err != nil {
+		return nil, apperror.ToGRPC(err)
+	}
+	return client.StreamChat(ctx, req)
 }
 
 // Chat 实现llm服务的接口

@@ -16,6 +16,7 @@ func TestWithMetadataPropagatesVerifiedIdentity(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 	ctx.Request = httptest.NewRequest(http.MethodGet, "/admin/info", nil)
 	ctx.Set(middleware.ContextUserID, "2")
+	ctx.Set(middleware.ContextUsername, "admin-test")
 	ctx.Set(middleware.ContextRole, "admin")
 	ctx.Set(middleware.ContextSessionID, "session-1")
 	ctx.Set(middleware.ContextTokenID, "token-1")
@@ -26,6 +27,7 @@ func TestWithMetadataPropagatesVerifiedIdentity(t *testing.T) {
 	}
 	checks := map[string]string{
 		"x-user-id":    "2",
+		"x-user-name":  "admin-test",
 		"x-user-role":  "admin",
 		"x-session-id": "session-1",
 		"x-token-id":   "token-1",

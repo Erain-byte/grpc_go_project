@@ -1,0 +1,35 @@
+services:
+  consul:
+    image: hashicorp/consul:latest
+    container_name: grpc-go-consul
+    command:
+      - agent
+      - -server
+      - -ui
+      - -node=consul-server-1
+      - -bootstrap-expect=1
+      - -client=0.0.0.0
+      - -data-dir=/consul/data
+      - -config-file=/consul/config/health-tls.hcl
+    ports:
+      - "8500:8500"
+      - "8600:8600/tcp"
+      - "8600:8600/udp"
+    volumes:
+      - consul-data:/consul/data
+      - ./health-tls.hcl:/consul/config/health-tls.hcl:ro
+      - D:/local-pki/ca.crt:/consul/certs/ca.crt:ro
+      - D:/local-pki/consul/client.crt:/consul/certs/client.crt:ro
+      - D:/local-pki/consul/client.key:/consul/certs/client.key:ro
+    healthcheck:
+      test: ["CMD", "consul", "members", "-http-addr=http://127.0.0.1:8500"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  consul-data:
+    name: observability_consul_data
+    external: true

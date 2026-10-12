@@ -26,7 +26,6 @@ type HTTPServer struct {
 	httpServer          *http.Server
 	clientManager       *grpcclient.ClientManager
 	jwtMiddleware       *middleware.JWTMiddleware
-	sessionMiddleware   *middleware.SessionMiddleware
 	rateLimitMiddleware *middleware.RateLimitMiddleware
 }
 
@@ -60,32 +59,12 @@ func NewHTTPServer(svcCtx *svc.ServiceContext, clientManager *grpcclient.ClientM
 		return nil, apperror.Wrap(err, apperror.CodeInternal, "failed to create CORS middleware", http.StatusInternalServerError)
 	}
 	engine.Use(corsMiddleware.Handle)
-	// AuthService 当前由 Admin 进程实现，ClientManager 通过 Consul 找到其实例。
-	/*authClient, err := clientManager.AuthClient(context.Background())
-	if err != nil {
-		return nil, apperror.Wrap(
-			err,
-			apperror.CodeUnavailable,
-			"failed to create authentication client",
-			http.StatusServiceUnavailable,
-		)
-	}*/
-	// JWT 中间件只验证 Token；Session 中间件单独调用 AuthService 检查登录状态。
 	jwtMiddleware, jwtErr := middleware.NewJWTMiddleware(svcCtx.Config.Auth)
 	if jwtErr != nil {
 		return nil, apperror.Wrap(
 			jwtErr,
 			apperror.CodeInternal,
 			"failed to create JWT middleware",
-			http.StatusInternalServerError,
-		)
-	}
-	sessionMiddleware, sessionErr := middleware.NewSessionMiddleware(clientManager)
-	if sessionErr != nil {
-		return nil, apperror.Wrap(
-			sessionErr,
-			apperror.CodeInternal,
-			"failed to create session middleware",
 			http.StatusInternalServerError,
 		)
 	}
@@ -113,7 +92,6 @@ func NewHTTPServer(svcCtx *svc.ServiceContext, clientManager *grpcclient.ClientM
 		svcCtx:              svcCtx,
 		clientManager:       clientManager,
 		jwtMiddleware:       jwtMiddleware,
-		sessionMiddleware:   sessionMiddleware,
 		rateLimitMiddleware: rateLimitMiddleware,
 		httpServer: &http.Server{
 			Addr:      fmt.Sprintf("%s:%d", svcCtx.Config.Host, svcCtx.Config.Port),

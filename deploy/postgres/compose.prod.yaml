@@ -1,0 +1,30 @@
+# Standalone production template. It is loaded only when explicitly selected.
+services:
+  keycloak-postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?set KEYCLOAK_DB_PASSWORD}
+    volumes:
+      - keycloak-postgres-data-prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      identity-prod:
+        aliases:
+          - keycloak-postgres
+
+networks:
+  identity-prod:
+    name: grpc-go-identity-prod
+    external: true
+
+volumes:
+  keycloak-postgres-data-prod:
+    name: grpc-go-keycloak-postgres-prod

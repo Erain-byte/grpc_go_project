@@ -7,6 +7,7 @@ import (
 
 	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
 	bpLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
+	pbUser "github.com/Erain-byte/grpc_go_project/proto/user/v1"
 	"google.golang.org/grpc"
 )
 
@@ -19,10 +20,16 @@ func RegisterAllGRPCServices(grpcSrvc *grpc.Server, grpcClien *clien.ClientManag
 	// 创建各个服务的转发器
 	AdminForwarder := NewAdminForwarder(grpcClien)
 	LlmForwarder := NewLlmForwarder(grpcClien)
+	UserForwarder := NewUserForwarder(grpcClien)
+
 	// 注册服务到网关
 	pbAdmin.RegisterAdminServiceServer(grpcSrvc, AdminForwarder)
 	logger.SugaredLogger.Infof("Admin service registered")
 	bpLlm.RegisterLlmServiceServer(grpcSrvc, LlmForwarder)
 	logger.SugaredLogger.Infof("Llm service registered")
+	pbUser.RegisterUserServiceServer(grpcSrvc, UserForwarder)
+	logger.SugaredLogger.Infof("User service registered")
 	//后续注册的服务。。。
+	// userForwarder := NewUserForwarder(grpcClien)
+
 }

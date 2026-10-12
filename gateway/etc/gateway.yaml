@@ -1,7 +1,7 @@
 # Gateway Service Configuration
 environment: "development" # development, staging, production
 name: "gateway-service"
-host: "127.0.0.1"
+host: "0.0.0.0" # Allow Docker OAuth2 Proxy to reach Gateway through host.docker.internal.
 port: 9080
 grpc_port: 9081
 # 外部浏览器/客户端连接 Gateway 的 HTTPS 配置；证书准备好后开启。
@@ -38,16 +38,19 @@ redis:
   pool_timeout: "4s"
   health_required: false # set true in production, or use environment: production
 
-# Gateway authentication configuration. Token values are never stored here.
-# Set the JWT verification secret through GATEWAY_ACCESS_TOKEN_SECRET.
+# Gateway validates Keycloak access tokens with the realm's public JWKS keys.
 auth:
   access_token:
     issuers:
-      - "admin-service"
-      - "user-service"
-    audience: "gateway"
-    algorithm: "HS256"
-    expire: "15m"
+      - "http://localhost:8180/realms/grpc-project"
+    audience: "grpc-api"
+    algorithm: "RS256"
+    jwks_url: "http://localhost:8180/realms/grpc-project/protocol/openid-connect/certs"
+    # Existing gRPC metadata carries one role; the first matching role wins.
+    role_priority:
+      - "super-admin"
+      - "admin"
+      - "user"
   refresh_token:
     expire: "168h"
     rotate: true

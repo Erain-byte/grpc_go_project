@@ -92,7 +92,7 @@ go test ./admin/...
 如果本机尚未安装 Buf，可在 `proto` 目录使用 `protoc`：
 
 ```powershell
-protoc -I . --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:. admin/v1/admin.proto auth/v1/auth.proto common/v1/security.proto gateway/v1/gateway.proto llm/v1/llm.proto user/v1/user.proto
+protoc -I . --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:. admin/v1/admin.proto common/v1/security.proto gateway/v1/gateway.proto llm/v1/llm.proto user/v1/user.proto
 ```
 
 ## 版本发布

@@ -20,12 +20,11 @@ docker compose -f deploy\observability\compose.yaml up -d
 
 ```powershell
 cd D:\grpc_go_project\gateway
-$env:GATEWAY_ACCESS_TOKEN_SECRET = "请替换为本地测试密钥"
 $env:GATEWAY_REDIS_PASSWORD = "123123"
 go run ./cmd/gateway
 ```
 
-`GATEWAY_ACCESS_TOKEN_SECRET` 必须与 Admin 的 `ADMIN_ACCESS_TOKEN_SECRET` 完全一致，否则 Admin 生成的 JWT 无法通过 Gateway 验证。
+Gateway 使用 Keycloak Realm 的 JWKS 公钥验证 RS256 Access Token，不再配置共享 JWT Secret。启动前需保证 `http://localhost:8180/realms/grpc-project` 可访问。
 
 健康检查和日志：
 
@@ -603,7 +602,7 @@ internal/grpc/client.go
 
 ```go
 func (cm *ClientManager) UserClient(ctx context.Context) (userv1.UserServiceClient, error) {
-    return CreateClient(ctx, cm, "user-service", userv1.NewUserServiceClient)
+    return createClient(ctx, cm, "user-service", userv1.NewUserServiceClient)
 }
 ```
 
@@ -627,14 +626,9 @@ type UserForwarder struct {
     base *BaseForwarder[userv1.UserServiceClient]
 }
 
-func NewUserForwarder(svcCtx *svc.ServiceContext, manager *grpcclient.ClientManager) *UserForwarder {
+func NewUserForwarder(manager *grpcclient.ClientManager) *UserForwarder {
     return &UserForwarder{
-        base: NewBaseForwarder(
-            svcCtx,
-            userv1.NewUserServiceClient,
-            manager,
-            "user-service",
-        ),
+        base: NewBaseForwarder(manager.UserClient),
     }
 }
 

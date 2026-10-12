@@ -19,6 +19,7 @@ import (
 
 const (
 	metadataUserID    = "x-user-id"
+	metadataUsername  = "x-user-name"
 	metadataUserRole  = "x-user-role"
 	metadataSessionID = "x-session-id"
 	metadataTokenID   = "x-token-id"
@@ -114,6 +115,7 @@ func authInfoFromMetadata(ctx context.Context) (auth.AuthInfo, error) {
 	}
 	return auth.AuthInfo{
 		AdminID:   adminID,
+		Username:  firstMetadataValue(md, metadataUsername),
 		Role:      role,
 		SessionID: firstMetadataValue(md, metadataSessionID),
 		TokenID:   firstMetadataValue(md, metadataTokenID),
@@ -142,7 +144,7 @@ func roleAllowed(role string, roles []string) bool {
 		return true
 	}
 	for _, allowedRole := range roles {
-		if role == allowedRole {
+		if strings.ReplaceAll(role, "_", "-") == strings.ReplaceAll(allowedRole, "_", "-") {
 			return true
 		}
 	}

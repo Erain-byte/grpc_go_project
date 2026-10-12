@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"errors"
-	clien "gateway/internal/grpc"
 	"gateway/internal/middleware"
 	"io"
 	"net/http"
@@ -47,12 +46,12 @@ func (h *GrpcHandlerFunc[Req, Resp]) Handle(c *gin.Context) {
 
 // 流式处理
 type LlmHTTPHandler struct {
-	clientManager *clien.ClientManager
+	openStream func(context.Context, *pbLlm.StreamChatRequest) (pbLlm.LlmService_StreamChatClient, error)
 }
 
-func NewLlmHTTPHandler(clientManager *clien.ClientManager) *LlmHTTPHandler {
+func NewLlmHTTPHandler(openStream func(context.Context, *pbLlm.StreamChatRequest) (pbLlm.LlmService_StreamChatClient, error)) *LlmHTTPHandler {
 	return &LlmHTTPHandler{
-		clientManager: clientManager,
+		openStream: openStream,
 	}
 }
 
@@ -65,16 +64,8 @@ func (h *LlmHTTPHandler) StreamChat(c *gin.Context) {
 	}
 
 	//调用gRPC方法
-	client, err := h.clientManager.LlmClient(c.Request.Context())
-	if err != nil {
-		writeGrpcError(c, err)
-		return
-	}
 	grpcCtx := WithMetadata(c)
-	stream, err := client.StreamChat(
-		grpcCtx,
-		&req,
-	)
+	stream, err := h.openStream(grpcCtx, &req)
 	if err != nil {
 		writeGrpcError(c, err)
 		return
@@ -171,6 +162,7 @@ func (h *UploadedFileHandler[Req, Resp]) Handle(c *gin.Context) {
 func WithMetadata(c *gin.Context) context.Context {
 	ctx := c.Request.Context()
 	userID := c.GetString(middleware.ContextUserID)
+	username := c.GetString(middleware.ContextUsername)
 	role := c.GetString(middleware.ContextRole)
 	sessionID := c.GetString(middleware.ContextSessionID)
 	tokenID := c.GetString(middleware.ContextTokenID)
@@ -181,6 +173,7 @@ func WithMetadata(c *gin.Context) context.Context {
 	return metadata.AppendToOutgoingContext(
 		ctx,
 		"x-user-id", userID,
+		"x-user-name", username,
 		"x-user-role", role,
 		"x-session-id", sessionID,
 		"x-token-id", tokenID,

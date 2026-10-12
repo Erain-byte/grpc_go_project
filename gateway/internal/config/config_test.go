@@ -3,25 +3,25 @@ package config
 import "testing"
 
 func TestInitConfigLoadsAuthConfiguration(t *testing.T) {
-	t.Setenv("GATEWAY_ACCESS_TOKEN_SECRET", "test-access-secret")
-	t.Setenv("GATEWAY_JWT_SECRET", "")
-
 	cfg, err := InitConfig("../../etc/gateway.yaml")
 	if err != nil {
 		t.Fatalf("InitConfig() error = %v", err)
 	}
 
-	if got := cfg.Auth.AccessToken.Secret; got != "test-access-secret" {
-		t.Fatalf("access token secret = %q, want environment value", got)
+	if got := cfg.Auth.AccessToken.Algorithm; got != "RS256" {
+		t.Errorf("access token algorithm = %q, want RS256", got)
 	}
-	if got := cfg.Auth.AccessToken.Algorithm; got != "HS256" {
-		t.Errorf("access token algorithm = %q, want HS256", got)
+	if got := cfg.Auth.AccessToken.Audience; got != "grpc-api" {
+		t.Errorf("access token audience = %q, want grpc-api", got)
 	}
-	if got := cfg.Auth.AccessToken.Expire; got != "15m" {
-		t.Errorf("access token expire = %q, want 15m", got)
+	if got := len(cfg.Auth.AccessToken.Issuers); got != 1 {
+		t.Errorf("access token issuer count = %d, want 1", got)
 	}
-	if got := len(cfg.Auth.AccessToken.Issuers); got != 2 {
-		t.Errorf("access token issuer count = %d, want 2", got)
+	if got := cfg.Auth.AccessToken.JWKSURL; got != "http://localhost:8180/realms/grpc-project/protocol/openid-connect/certs" {
+		t.Errorf("JWKS URL = %q", got)
+	}
+	if got := len(cfg.Auth.AccessToken.RolePriority); got != 3 {
+		t.Errorf("role priority count = %d, want 3", got)
 	}
 	if !cfg.Auth.RefreshToken.Rotate {
 		t.Error("refresh token rotation should be enabled")
@@ -52,16 +52,20 @@ func TestInitConfigLoadsAuthConfiguration(t *testing.T) {
 	}
 }
 
-func TestInitConfigSupportsLegacyJWTSecretEnvironment(t *testing.T) {
-	t.Setenv("GATEWAY_ACCESS_TOKEN_SECRET", "")
-	t.Setenv("GATEWAY_JWT_SECRET", "legacy-secret")
+func TestAccessTokenConfigRolesMatching(t *testing.T) {
+	cfg := AccessTokenConfig{RolePriority: []string{"super-admin", "admin", "user"}}
 
-	cfg, err := InitConfig("../../etc/gateway.yaml")
-	if err != nil {
-		t.Fatalf("InitConfig() error = %v", err)
+	adminRoles := cfg.RolesMatching("admin")
+	if len(adminRoles) != 2 || adminRoles[0] != "super-admin" || adminRoles[1] != "admin" {
+		t.Fatalf("admin roles = %v", adminRoles)
 	}
 
-	if got := cfg.Auth.AccessToken.Secret; got != "legacy-secret" {
-		t.Fatalf("access token secret = %q, want legacy environment value", got)
+	userRoles := cfg.RolesMatching("user")
+	if len(userRoles) != 1 || userRoles[0] != "user" {
+		t.Fatalf("user roles = %v", userRoles)
+	}
+
+	if roles := cfg.RolesMatching(""); roles != nil {
+		t.Fatalf("empty role name returned %v", roles)
 	}
 }

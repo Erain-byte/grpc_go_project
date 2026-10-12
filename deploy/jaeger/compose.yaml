@@ -1,0 +1,11 @@
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: grpc-go-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "16686:16686"
+    restart: unless-stopped

@@ -16,16 +16,12 @@ type AdminForwarder struct {
 
 func NewAdminForwarder(clinMgnager *clien.ClientManager) *AdminForwarder {
 	return &AdminForwarder{
-		base: NewBaseForwarder[pbAdmin.AdminServiceClient](
-			pbAdmin.NewAdminServiceClient,
-			clinMgnager,
-			"admin-service",
-		),
+		base: NewBaseForwarder(clinMgnager, "admin-service", pbAdmin.NewAdminServiceClient),
 	}
 }
 
 // log
-func (a *AdminForwarder) Login(ctx context.Context, req *pbAdmin.LoginRequest) (*pbAdmin.LoginResponse, error) {
+/*func (a *AdminForwarder) Login(ctx context.Context, req *pbAdmin.LoginRequest) (*pbAdmin.LoginResponse, error) {
 	if ctx == nil {
 		//return nil, ErrNilContext
 		return nil, apperror.ToGRPC(apperror.InvalidArgument("is empty ctx"))
@@ -54,7 +50,7 @@ func (a *AdminForwarder) Logout(ctx context.Context, req *pbAdmin.LogoutRequest)
 		return nil, apperror.ToGRPC(err)
 	}
 	return client.Logout(ctx, req)
-}
+}*/
 
 // GetAdminInfo
 func (a *AdminForwarder) GetAdminInfo(ctx context.Context, req *pbAdmin.GetAdminInfoRequest) (*pbAdmin.GetAdminInfoResponse, error) {
@@ -105,18 +101,17 @@ func (a *AdminForwarder) GetAdminList(ctx context.Context, req *pbAdmin.GetAdmin
 }
 
 // RefreshToken
-func (a *AdminForwarder) RefreshToken(ctx context.Context, req *pbAdmin.RefreshTokenRequest) (*pbAdmin.RefreshTokenResponse, error) {
-	if ctx == nil {
-		//return nil, ErrNilContext
-		return nil, apperror.ToGRPC(apperror.InvalidArgument("is empty ctx"))
-	}
-	if req == nil {
-		return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
-	}
-	client, err := a.base.GetClient(ctx)
-	if err != nil {
-		return nil, apperror.ToGRPC(err)
-
-	}
-	return client.RefreshToken(ctx, req)
+/*func (a *AdminForwarder) RefreshToken(ctx context.Context, req *pbAdmin.RefreshTokenRequest) (*pbAdmin.RefreshTokenResponse, error) {
+if ctx == nil {
+	//return nil, ErrNilContext
+	return nil, apperror.ToGRPC(apperror.InvalidArgument("is empty ctx"))
 }
+if req == nil {
+	return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
+}
+client, err := a.base.GetClient(ctx)
+if err != nil {
+	return nil, apperror.ToGRPC(err)
+
+}
+*/

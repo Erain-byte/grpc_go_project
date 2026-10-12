@@ -5,5 +5,6 @@ package server
 func (s *HTTPServer) registerRoutes() {
 	s.registerHealthRoutes()
 	s.registerAdminRoutes()
+	s.registerUserRoutes()
 	s.registerLLMRoutes()
 }

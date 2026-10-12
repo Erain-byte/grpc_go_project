@@ -11,7 +11,6 @@ import (
 	"time"
 
 	adminv1 "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
-	authv1 "github.com/Erain-byte/grpc_go_project/proto/auth/v1"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	otelcodes "go.opentelemetry.io/otel/codes"
@@ -164,14 +163,6 @@ func (m *RateLimitInterceptor) ruleAndKey(ctx context.Context, req any, fullMeth
 			return "", runtimeconfig.Rule{}, status.Error(codes.InvalidArgument, "refresh token is required")
 		}
 		return m.makeKey(ratelimitCfg.KeyPrefix, "refresh token", refreshToken, fullMethod), ratelimitCfg.RefreshToken, nil
-	// 验证会话接口不需要限流
-	case authv1.AuthService_ValidateSession_FullMethodName:
-		sessionRequest, ok := req.(*authv1.ValidateSessionRequest)
-		if !ok {
-			return "", runtimeconfig.Rule{}, status.Error(codes.Internal, "invalid session request")
-		}
-		identity := sessionRequest.GetSubjectType() + ":" + sessionRequest.GetSubjectId()
-		return m.makeKey(ratelimitCfg.KeyPrefix, "session", identity, fullMethod), ratelimitCfg.Default, nil
 	default:
 		authInfo, ok := auth.FromContext(ctx)
 		if !ok || strings.TrimSpace(authInfo.AdminID) == "" {
