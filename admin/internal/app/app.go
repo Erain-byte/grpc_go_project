@@ -5,6 +5,7 @@ import (
 	"admin/internal/config"
 	"admin/internal/consul"
 	"admin/internal/database"
+	"admin/internal/grpcclient"
 	"admin/internal/logger"
 	"admin/internal/mq"
 	"admin/internal/mqhandler"
@@ -109,6 +110,12 @@ func Run() error {
 			http.StatusInternalServerError,
 		)
 	}
+	grpcClientManager := grpcclient.NewClientManager(consulClenit, &grpcclient.GrpcConfig{
+		UseTLS:   cfg.GRPC.UseTLS,
+		CertFile: cfg.GRPC.CertFile,
+		KeyFile:  cfg.GRPC.KeyFile,
+		CaFile:   cfg.GRPC.ClientCAFile,
+	})
 	// RabbitMQ 是可选依赖。启用后共用一条 Connection，Publisher 和 Consumer
 	// 分别持有自己的 Channel，避免在并发发布和消费之间共享 Channel 状态。
 	var mqClient mq.Client
@@ -168,9 +175,11 @@ func Run() error {
 		gormDB,
 		logger.Logger,
 		consulClenit,
+		grpcClientManager,
 		operationLogPublisher,
 		runtimeStore,
 	)
+	defer severice.Close()
 	tracerCtx, traceCtxCancel := context.WithTimeout(context.Background(), dependencyCheckTimeout)
 	//tacer
 	tracerClient, tracerErr := tracer.NewTracerProvider(tracerCtx, cfg.Tracing)
