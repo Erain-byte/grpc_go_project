@@ -1,11 +1,11 @@
 package server
 
 import (
-	"admin/pkg/apperorr"
 	"context"
 	"errors"
 	"fmt"
 	"gateway/internal/config"
+	"gateway/pkg/apperror"
 	"net"
 	"net/http"
 	_ "net/http/pprof"
@@ -20,7 +20,7 @@ func NewPprofServer(cfg config.PprofConfig) (*PprofServer, error) {
 		return nil, nil
 	}
 	if cfg.Port <= 0 || cfg.Port > 65535 {
-		return nil, apperorr.InvalidArgument("pprof port must be between 1 and 65535")
+		return nil, apperror.InvalidArgument("pprof port must be between 1 and 65535")
 	}
 	host := cfg.Host
 	if host == "" {
