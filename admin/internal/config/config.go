@@ -132,11 +132,13 @@ type AuthConfig struct {
 }
 
 type AccessTokenConfig struct {
-	Issuer    string `yaml:"issuer" mapstructure:"issuer"`
-	Audience  string `yaml:"audience" mapstructure:"audience"`
-	Algorithm string `yaml:"algorithm" mapstructure:"algorithm"`
-	Expire    string `yaml:"expire" mapstructure:"expire"`
-	Secret    string `yaml:"-" mapstructure:"-"`
+	Issuer       string   `yaml:"issuer" mapstructure:"issuer"`
+	Audience     string   `yaml:"audience" mapstructure:"audience"`
+	Algorithm    string   `yaml:"algorithm" mapstructure:"algorithm"`
+	JWKSURL      string   `yaml:"jwks_url" mapstructure:"jwks_url"`
+	RolePriority []string `yaml:"role_priority" mapstructure:"role_priority"`
+	Expire       string   `yaml:"expire" mapstructure:"expire"`
+	Secret       string   `yaml:"-" mapstructure:"-"`
 }
 
 type RefreshTokenConfig struct {
@@ -432,6 +434,15 @@ func (c Config) Validate() error {
 	}
 	if strings.TrimSpace(c.Auth.AccessToken.Audience) == "" {
 		return fmt.Errorf("admin access-token audience is empty")
+	}
+	if strings.TrimSpace(c.Auth.AccessToken.Algorithm) != "RS256" {
+		return fmt.Errorf("admin access-token algorithm must be RS256")
+	}
+	if strings.TrimSpace(c.Auth.AccessToken.JWKSURL) == "" {
+		return fmt.Errorf("admin access-token JWKS URL is empty")
+	}
+	if len(c.Auth.AccessToken.RolePriority) == 0 {
+		return fmt.Errorf("admin access-token role priority is empty")
 	}
 	if c.GRPC.UseTLS && (strings.TrimSpace(c.GRPC.CertFile) == "" || strings.TrimSpace(c.GRPC.KeyFile) == "") {
 		return fmt.Errorf("admin gRPC certificate and private key are required when TLS is enabled")

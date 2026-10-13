@@ -1,4 +1,7 @@
-# gRPC Go Project 交接文档
+﻿# gRPC Go Project 交接文档
+
+内部 gRPC 服务身份、mTLS、RPC 白名单及后续 Consul KV 热更新方案见
+[`INTERNAL_GRPC_SECURITY.md`](INTERNAL_GRPC_SECURITY.md)。
 
 更新时间：2026-10-07
 
@@ -121,3 +124,4 @@ Admin 不直接查询 User 数据库；跨服务查询通过 User gRPC API，并
 5. 再继续 LLM Provider、流式输出、会话、配额、RAG 与 Tool Calling。
 
 修改前先执行 `git status --short`，保留用户现有未提交内容。不要把历史 IAM 探索文档当成最终架构依据。
+

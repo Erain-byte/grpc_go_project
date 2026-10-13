@@ -23,12 +23,25 @@ type Config struct {
 	Database      DatabaseConfig  `yaml:"database" mapstructure:"database"`
 	Redis         RedisConfig     `yaml:"redis" mapstructure:"redis"`
 	RabbitMQ      RabbitMQConfig  `yaml:"rabbitmq" mapstructure:"rabbitmq"`
+	Auth          AuthConfig      `yaml:"auth" mapstructure:"auth"`
 	GRPC          GRPCConfig      `yaml:"grpc" mapstructure:"grpc"`
 	Consul        ConsulConfig    `yaml:"consul" mapstructure:"consul"`
 	Logger        LoggerConfig    `yaml:"logger" mapstructure:"logger"`
 	Tracing       TracingConfig   `yaml:"tracing" mapstructure:"tracing"`
 	RateLimit     RateLimitConfig `yaml:"rate_limit" mapstructure:"rate_limit"`
 	Shutdown      ShutdownConfig  `yaml:"shutdown" mapstructure:"shutdown"`
+}
+
+type AuthConfig struct {
+	AccessToken AccessTokenConfig `yaml:"access_token" mapstructure:"access_token"`
+}
+
+type AccessTokenConfig struct {
+	Issuer       string   `yaml:"issuer" mapstructure:"issuer"`
+	Audience     string   `yaml:"audience" mapstructure:"audience"`
+	Algorithm    string   `yaml:"algorithm" mapstructure:"algorithm"`
+	JWKSURL      string   `yaml:"jwks_url" mapstructure:"jwks_url"`
+	RolePriority []string `yaml:"role_priority" mapstructure:"role_priority"`
 }
 
 type DatabaseConfig struct {
@@ -263,6 +276,11 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("rabbitmq.port", 5672)
 	v.SetDefault("rabbitmq.vhost", "/grpc-go")
 	v.SetDefault("rabbitmq.connection_name", "user-service")
+	v.SetDefault("auth.access_token.issuer", "http://localhost:8180/realms/grpc-project")
+	v.SetDefault("auth.access_token.audience", "grpc-api")
+	v.SetDefault("auth.access_token.algorithm", "RS256")
+	v.SetDefault("auth.access_token.jwks_url", "http://localhost:8180/realms/grpc-project/protocol/openid-connect/certs")
+	v.SetDefault("auth.access_token.role_priority", []string{"super-admin", "admin", "user"})
 	v.SetDefault("consul.enabled", true)
 	v.SetDefault("consul.host", "127.0.0.1")
 	v.SetDefault("consul.port", 8500)
@@ -435,6 +453,26 @@ func (c Config) Validate() error {
 	}
 	if c.GRPC.UseTLS && strings.TrimSpace(c.GRPC.TLSServerName) == "" {
 		return fmt.Errorf("gRPC TLS server name is required when TLS is enabled")
+	}
+	if strings.TrimSpace(c.Auth.AccessToken.Issuer) == "" {
+		return fmt.Errorf("USER access-token issuer is empty")
+	}
+	if strings.TrimSpace(c.Auth.AccessToken.Audience) == "" {
+		return fmt.Errorf("USER access-token audience is empty")
+	}
+	if strings.TrimSpace(c.Auth.AccessToken.Algorithm) != "RS256" {
+		return fmt.Errorf("USER access-token algorithm must be RS256")
+	}
+	if strings.TrimSpace(c.Auth.AccessToken.JWKSURL) == "" {
+		return fmt.Errorf("USER access-token JWKS URL is empty")
+	}
+	if len(c.Auth.AccessToken.RolePriority) == 0 {
+		return fmt.Errorf("USER access-token role priority is empty")
+	}
+	for _, role := range c.Auth.AccessToken.RolePriority {
+		if strings.TrimSpace(role) == "" {
+			return fmt.Errorf("USER access-token role priority contains an empty role")
+		}
 	}
 	if c.GRPC.MaxRecvMessageSize <= 0 || c.GRPC.MaxSendMessageSize <= 0 {
 		return fmt.Errorf("gRPC message-size limits must be positive")

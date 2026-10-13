@@ -33,7 +33,7 @@ func (u *UserForwarder) GetUserInfo(ctx context.Context, req *pbUser.GetUserInfo
 	if err != nil {
 		return nil, apperror.ToGRPC(err)
 	}
-	return clien.GetUserInfo(ctx, req)
+	return clien.GetUserInfo(OutgoingContext(ctx), req)
 }
 
 // GetUserList
@@ -48,5 +48,5 @@ func (u *UserForwarder) GetUserList(ctx context.Context, req *pbUser.GetUserList
 	if err != nil {
 		return nil, apperror.ToGRPC(err)
 	}
-	return clien.GetUserList(ctx, req)
+	return clien.GetUserList(OutgoingContext(ctx), req)
 }

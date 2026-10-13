@@ -100,6 +100,30 @@ class GrpcConfig(ConfigModel):
         return self
 
 
+class AccessTokenConfig(ConfigModel):
+    issuer: NonEmpty = "http://localhost:8180/realms/grpc-project"
+    audience: NonEmpty = "grpc-api"
+    algorithm: Literal["RS256"] = "RS256"
+    jwks_url: NonEmpty = (
+        "http://localhost:8180/realms/grpc-project/protocol/openid-connect/certs"
+    )
+    role_priority: list[NonEmpty] = Field(
+        default_factory=lambda: ["super-admin", "admin", "user"]
+    )
+
+    @model_validator(mode="after")
+    def validate_roles(self) -> "AccessTokenConfig":
+        if not self.role_priority:
+            raise ValueError("role_priority must not be empty")
+        if len(set(self.role_priority)) != len(self.role_priority):
+            raise ValueError("role_priority must not contain duplicates")
+        return self
+
+
+class AuthConfig(ConfigModel):
+    access_token: AccessTokenConfig = Field(default_factory=AccessTokenConfig)
+
+
 class ModelConfig(ConfigModel):
     provider: NonEmpty = "mock"
     default_model: NonEmpty = "mock-chat"
@@ -163,6 +187,7 @@ class AppConfig(ConfigModel):
     grpc_port: int = Field(default=9083, ge=1, le=65535)
     advertise_host: Host = "127.0.0.1"
     grpc: GrpcConfig = Field(default_factory=GrpcConfig)
+    auth: AuthConfig = Field(default_factory=AuthConfig)
     model: ModelConfig = Field(default_factory=ModelConfig)
     consul: ConsulConfig = Field(default_factory=ConsulConfig)
     tracing: TracingConfig = Field(default_factory=TracingConfig)

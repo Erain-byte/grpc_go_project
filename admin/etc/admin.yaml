@@ -74,9 +74,14 @@ rabbitmq:
 # ADMIN_ACCESS_TOKEN_SECRET must match the Gateway verification secret.
 auth:
   access_token:
-    issuer: "admin-service"
-    audience: "gateway"
-    algorithm: "HS256"
+    issuer: "http://localhost:8180/realms/grpc-project"
+    audience: "grpc-api"
+    algorithm: "RS256"
+    jwks_url: "http://localhost:8180/realms/grpc-project/protocol/openid-connect/certs"
+    role_priority:
+      - "super-admin"
+      - "admin"
+      - "user"
     expire: "15m"
   refresh_token:
     expire: "168h"

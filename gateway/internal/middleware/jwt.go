@@ -21,6 +21,7 @@ const (
 	ContextSessionID           = "auth.session_id"
 	ContextTokenID             = "auth.token_id"
 	ContextClaims              = "auth.claims"
+	ContextAccessToken         = "auth.access_token"
 	forwardedAccessTokenHeader = "X-Forwarded-Access-Token"
 )
 
@@ -28,7 +29,7 @@ type RealmAccess struct {
 	Roles []string `json:"roles"`
 }
 
-// AccessTokenClaims contains the Keycloak identity propagated by an access token.
+// 访问令牌声明包含由访问令牌传递的 Keycloak 身份信息。
 type AccessTokenClaims struct {
 	SessionID         string      `json:"sid"`
 	PreferredUsername string      `json:"preferred_username"`
@@ -151,5 +152,6 @@ func (m *JWTMiddleware) Handle(c *gin.Context) {
 	c.Set(ContextSessionID, claims.SessionID)
 	c.Set(ContextTokenID, claims.ID)
 	c.Set(ContextClaims, claims)
+	c.Set(ContextAccessToken, tokenString)
 	c.Next()
 }

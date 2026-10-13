@@ -58,6 +58,11 @@ func NewGRPCServer(cfg *config.Config, svcCtx *svc.ServiceContext) (*GRPCServer,
 		_ = listener.Close()
 		return nil, err
 	}
+	authInterceptor, err := middleware.NewAuthInterceptor(cfg.Auth)
+	if err != nil {
+		_ = listener.Close()
+		return nil, err
+	}
 	options := []grpc.ServerOption{
 		// StatsHandler 从 gRPC metadata 提取上游 Trace，并记录服务端 Span。
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
@@ -65,8 +70,11 @@ func NewGRPCServer(cfg *config.Config, svcCtx *svc.ServiceContext) (*GRPCServer,
 		grpc.ChainUnaryInterceptor(
 			middleware.RequestID(),
 			middleware.ErrorHandler(),
-			middleware.NewAuthInterceptor().Unary(),
+			authInterceptor.Unary(),
 			rateLimitInterceptor.Unary(),
+		),
+		grpc.ChainStreamInterceptor(
+			authInterceptor.Stream(),
 		),
 	}
 	if cfg.GRPC.UseTLS {

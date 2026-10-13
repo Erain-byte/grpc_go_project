@@ -7,6 +7,7 @@ import (
 	apperror "admin/pkg/apperorr"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 // BaseForwarder leaves service discovery, connection reuse, and protobuf
@@ -15,6 +16,20 @@ type BaseForwarder[T any] struct {
 	serviceName string
 
 	forwardClient *grpcclient.ForwardClient[T]
+}
+
+// OutgoingContext propagates the bearer token so each downstream service can
+// validate the original Keycloak access token independently.
+func OutgoingContext(ctx context.Context) context.Context {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ctx
+	}
+	values := md.Get("authorization")
+	if len(values) != 1 {
+		return ctx
+	}
+	return metadata.AppendToOutgoingContext(ctx, "authorization", values[0])
 }
 
 func NewBaseForwarder[T any](clientManager *grpcclient.ClientManager, serviceName string, factory func(grpc.ClientConnInterface) T) *BaseForwarder[T] {

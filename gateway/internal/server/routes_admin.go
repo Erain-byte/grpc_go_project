@@ -6,10 +6,13 @@ import (
 	"gateway/internal/middleware"
 
 	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
+	pbLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
+	pbUser "github.com/Erain-byte/grpc_go_project/proto/user/v1"
 )
 
 func (s *HTTPServer) registerAdminRoutes() {
 	adminForwarder := forwarder.NewAdminForwarder(s.clientManager)
+	streamHandler := handler.NewLlmHTTPHandler(adminForwarder.OpenStreamChat)
 	admin := s.engine.Group("/admin")
 
 	// 登录和刷新需要在没有 Access Token 时访问，因此不挂 JWT 中间件。
@@ -64,4 +67,26 @@ func (s *HTTPServer) registerAdminRoutes() {
 			pbAdmin.GetAdminListResponse,
 		](adminForwarder.GetAdminList).Handle,
 	)
+	protected.POST(
+		"/users/info",
+		handler.NewGrpcHandler[
+			pbUser.GetUserInfoRequest,
+			pbUser.GetUserInfoResponse,
+		](adminForwarder.GetUserInfo).Handle,
+	)
+	protected.POST(
+		"/users/list",
+		handler.NewGrpcHandler[
+			pbUser.GetUserListRequest,
+			pbUser.GetUserListResponse,
+		](adminForwarder.GetUserList).Handle,
+	)
+	protected.POST(
+		"/chat",
+		handler.NewGrpcHandler[
+			pbLlm.ChatRequest,
+			pbLlm.ChatResponse,
+		](adminForwarder.Chat).Handle,
+	)
+	protected.POST("/stream-chat", streamHandler.StreamChat)
 }

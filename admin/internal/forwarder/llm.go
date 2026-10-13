@@ -38,7 +38,7 @@ func (f *LlmForwarder) Chat(ctx context.Context, req *bpLlm.ChatRequest) (*bpLlm
 	if err != nil {
 		return nil, apperror.ToGRPC(err)
 	}
-	return client.Chat(ctx, req)
+	return client.Chat(OutgoingContext(ctx), req)
 }
 
 // StreamChat
@@ -55,7 +55,7 @@ func (f *LlmForwarder) StreamChat(req *bpLlm.StreamChatRequest, stream bpLlm.Llm
 		return apperror.ToGRPC(err)
 
 	}
-	respStream, err := client.StreamChat(ctx, req) //调用服务端接口
+	respStream, err := client.StreamChat(OutgoingContext(ctx), req) //调用服务端接口
 
 	if err != nil {
 		return apperror.ToGRPC(err)

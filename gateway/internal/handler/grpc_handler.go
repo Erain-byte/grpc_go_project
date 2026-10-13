@@ -166,6 +166,7 @@ func WithMetadata(c *gin.Context) context.Context {
 	role := c.GetString(middleware.ContextRole)
 	sessionID := c.GetString(middleware.ContextSessionID)
 	tokenID := c.GetString(middleware.ContextTokenID)
+	accessToken := c.GetString(middleware.ContextAccessToken)
 	// 登录、刷新等公开接口没有认证身份，不写入空 metadata。
 	if userID == "" {
 		return ctx
@@ -177,6 +178,7 @@ func WithMetadata(c *gin.Context) context.Context {
 		"x-user-role", role,
 		"x-session-id", sessionID,
 		"x-token-id", tokenID,
+		"authorization", "Bearer "+accessToken,
 	)
 }
 

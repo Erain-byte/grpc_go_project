@@ -13,43 +13,23 @@ import (
 
 type AdminHandler struct {
 	adminv1.UnimplementedAdminServiceServer
-	logic  *service.LogicService
-	logout *service.LogoutService
-	info   *service.GetAdminInfoService
-	user   *forwarder.UserForwarder
-	llm    *forwarder.LlmForwarder
+	info *service.GetAdminInfoService
+	user *forwarder.UserForwarder
+	llm  *forwarder.LlmForwarder
 }
 
 var _ adminv1.AdminServiceServer = (*AdminHandler)(nil)
 
 func NewAdminHandler(svcCtx *svc.ServiceContext) (*AdminHandler, error) {
-	logic, err := service.NewLogicService(svcCtx)
-	if err != nil {
-		return nil, err
-	}
-	logout, err := service.NewLogoutReq(svcCtx)
-	if err != nil {
-		return nil, err
-	}
 	info, err := service.NewGetAdminInfoService(svcCtx)
 	if err != nil {
 		return nil, err
 	}
 	return &AdminHandler{
-		logic:  logic,
-		logout: logout,
-		info:   info,
-		user:   forwarder.NewUserForwarder(svcCtx.GRPCClients),
-		llm:    forwarder.NewLlmForwarder(svcCtx.GRPCClients),
+		info: info,
+		user: forwarder.NewUserForwarder(svcCtx.GRPCClients),
+		llm:  forwarder.NewLlmForwarder(svcCtx.GRPCClients),
 	}, nil
-}
-
-func (h *AdminHandler) Login(ctx context.Context, req *adminv1.LoginRequest) (*adminv1.LoginResponse, error) {
-	return h.logic.Login(ctx, req)
-}
-
-func (h *AdminHandler) Logout(ctx context.Context, req *adminv1.LogoutRequest) (*adminv1.LogoutResponse, error) {
-	return h.logout.Logout(ctx, req)
 }
 
 func (h *AdminHandler) GetAdminInfo(ctx context.Context, req *adminv1.GetAdminInfoRequest) (*adminv1.GetAdminInfoResponse, error) {

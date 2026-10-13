@@ -39,6 +39,9 @@ def test_token_from_environment_is_not_exposed(tmp_path, monkeypatch):
     {"grpc": {"health": {"enabled": False}}},
     {"tracing": {"sampling_ratio": 2.0}},
     {"grpc": {"use_tls": True}},
+    {"auth": {"access_token": {"algorithm": "HS256"}}},
+    {"auth": {"access_token": {"role_priority": []}}},
+    {"auth": {"access_token": {"role_priority": ["admin", "admin"]}}},
 ])
 def test_invalid_config_is_rejected(tmp_path, data):
     with pytest.raises(ConfigError):

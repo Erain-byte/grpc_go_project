@@ -4,7 +4,9 @@ import (
 	"context"
 	clien "gateway/internal/grpc"
 	"gateway/pkg/apperror"
+	"io"
 
+	pbLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
 	pbUser "github.com/Erain-byte/grpc_go_project/proto/user/v1"
 )
 
@@ -64,4 +66,61 @@ func (u *UserForwarder) CreateUser(ctx context.Context, req *pbUser.CreateUserRe
 
 	}
 	return client.CreateUser(ctx, req)
+}
+
+func (u *UserForwarder) Chat(ctx context.Context, req *pbLlm.ChatRequest) (*pbLlm.ChatResponse, error) {
+	if ctx == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("ctx is nil"))
+	}
+	if req == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
+	}
+	client, err := u.base.GetClient(ctx)
+	if err != nil {
+		return nil, apperror.ToGRPC(err)
+	}
+	return client.Chat(ctx, req)
+}
+
+// OpenStreamChat opens the UserService stream used by the HTTP-to-SSE adapter.
+func (u *UserForwarder) OpenStreamChat(ctx context.Context, req *pbLlm.StreamChatRequest) (pbUser.UserService_StreamChatClient, error) {
+	if ctx == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("ctx is nil"))
+	}
+	if req == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
+	}
+	client, err := u.base.GetClient(ctx)
+	if err != nil {
+		return nil, apperror.ToGRPC(err)
+	}
+	return client.StreamChat(ctx, req)
+}
+
+func (u *UserForwarder) StreamChat(req *pbLlm.StreamChatRequest, stream pbUser.UserService_StreamChatServer) error {
+	if req == nil {
+		return apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
+	}
+	if stream == nil {
+		return apperror.ToGRPC(apperror.InvalidArgument("stream is nil"))
+	}
+	clientStream, err := u.OpenStreamChat(stream.Context(), req)
+	if err != nil {
+		return err
+	}
+	for {
+		resp, recvErr := clientStream.Recv()
+		if recvErr == io.EOF {
+			return nil
+		}
+		if recvErr != nil {
+			return apperror.ToGRPC(recvErr)
+		}
+		if sendErr := stream.Send(resp); sendErr != nil {
+			return apperror.ToGRPC(sendErr)
+		}
+		if resp.GetFinished() {
+			return nil
+		}
+	}
 }

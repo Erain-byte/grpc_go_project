@@ -24,6 +24,19 @@ grpc:
     # 标准 Health/Check 查询的服务名；空字符串表示整体健康状态。
     service: ""
 
+# LLM independently validates the original Keycloak access token forwarded by
+# Gateway, User, or Admin through gRPC authorization metadata.
+auth:
+  access_token:
+    issuer: "http://localhost:8180/realms/grpc-project"
+    audience: "grpc-api"
+    algorithm: "RS256"
+    jwks_url: "http://localhost:8180/realms/grpc-project/protocol/openid-connect/certs"
+    role_priority:
+      - "super-admin"
+      - "admin"
+      - "user"
+
 model:
   provider: mock
   default_model: mock-chat

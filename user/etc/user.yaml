@@ -79,6 +79,19 @@ rabbitmq:
     dead_letter_routing_key: "user.task.dead"
     dead_letter_queue: "user.task.dlq"
 
+# User independently validates the original Keycloak access token forwarded
+# through gRPC authorization metadata.
+auth:
+  access_token:
+    issuer: "http://localhost:8180/realms/grpc-project"
+    audience: "grpc-api"
+    algorithm: "RS256"
+    jwks_url: "http://localhost:8180/realms/grpc-project/protocol/openid-connect/certs"
+    role_priority:
+      - "super-admin"
+      - "admin"
+      - "user"
+
 # User 入站 gRPC 配置。
 grpc:
   # 第一阶段保持与现有服务部署方式兼容；接入 Consul Service Mesh 后，

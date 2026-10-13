@@ -20,17 +20,19 @@ func TestWithMetadataPropagatesVerifiedIdentity(t *testing.T) {
 	ctx.Set(middleware.ContextRole, "admin")
 	ctx.Set(middleware.ContextSessionID, "session-1")
 	ctx.Set(middleware.ContextTokenID, "token-1")
+	ctx.Set(middleware.ContextAccessToken, "access-token-1")
 
 	md, ok := metadata.FromOutgoingContext(WithMetadata(ctx))
 	if !ok {
 		t.Fatal("outgoing metadata is missing")
 	}
 	checks := map[string]string{
-		"x-user-id":    "2",
-		"x-user-name":  "admin-test",
-		"x-user-role":  "admin",
-		"x-session-id": "session-1",
-		"x-token-id":   "token-1",
+		"x-user-id":     "2",
+		"x-user-name":   "admin-test",
+		"x-user-role":   "admin",
+		"x-session-id":  "session-1",
+		"x-token-id":    "token-1",
+		"authorization": "Bearer access-token-1",
 	}
 	for key, want := range checks {
 		values := md.Get(key)
