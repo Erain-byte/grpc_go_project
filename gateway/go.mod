@@ -3,7 +3,7 @@ module gateway
 go 1.26.2
 
 require (
-	github.com/Erain-byte/grpc_go_project/proto v0.3.0
+	github.com/Erain-byte/grpc_go_project/proto v0.4.0
 	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
