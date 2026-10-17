@@ -15,21 +15,27 @@ advertise_host: "127.0.0.1"
 # 用户资料和账户凭证持久化。
 # 密码从 USER_DB_PASSWORD 环境变量读取。
 database:
-  enabled: false
-  driver: "mysql"
+  enabled: true
+  driver: "postgres"
   host: "127.0.0.1"
-  port: 3306
-  username: "userdb"
-  dbname: "userdb"
-  charset: "utf8mb4"
-  parse_time: true
-  location: "Local"
+  port: 5434
+  username: "user_service"
+  dbname: "user_service"
+  ssl_mode: "disable"
+  timezone: "Asia/Shanghai"
+  connect_timeout: "5s"
   read_write_split_enabled: false
   replica_addresses: []
   max_idle_conns: 10
   max_open_conns: 100
   conn_max_idle_time: "10m"
   conn_max_lifetime: "1h"
+
+  # 用户主表固定为 users_00 至 users_07。正式写入数据后不能修改 table_count。
+  sharding:
+    enabled: true
+    table_count: 8
+    table_prefix: "users_"
 
 # 用户缓存、分布式限流和短期状态存储。
 # 密码从 USER_REDIS_PASSWORD 环境变量读取。

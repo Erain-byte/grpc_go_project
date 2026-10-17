@@ -239,10 +239,10 @@ func (l *LogicService) findAdminByUsername(
 ) (admin *model.AdminModel, returnErr error) {
 	ctx, span := l.tracer.Start(
 		ctx,
-		"mysql.admin.find_by_username",
+		"db.admin.find_by_username",
 		trace.WithSpanKind(trace.SpanKindInternal),
 		trace.WithAttributes(
-			attribute.String("db.system", "mysql"),
+			attribute.String("db.system", "postgresql"),
 			attribute.String("db.operation", "SELECT"),
 			attribute.String("db.table", "admins"),
 		),
@@ -272,10 +272,10 @@ func (l *LogicService) findAdminRoles(
 ) (roles []*model.RoleModel, returnErr error) {
 	ctx, span := l.tracer.Start(
 		ctx,
-		"mysql.role.find_by_admin_id",
+		"db.role.find_by_admin_id",
 		trace.WithSpanKind(trace.SpanKindInternal),
 		trace.WithAttributes(
-			attribute.String("db.system", "mysql"),
+			attribute.String("db.system", "postgresql"),
 			attribute.String("db.operation", "SELECT"),
 			attribute.String("db.table", "roles"),
 			attribute.Int64("admin.id", int64(adminID)),
@@ -323,17 +323,17 @@ func (l *LogicService) verifyPassword(
 	return nil
 }
 
-// 封装MySQL创建Session
+// 创建数据库 Session 记录。
 func (l *LogicService) createSession(
 	ctx context.Context,
 	session *model.AdminSessionModel,
 ) (returnErr error) {
 	ctx, span := l.tracer.Start(
 		ctx,
-		"mysql.session.create",
+		"db.session.create",
 		trace.WithSpanKind(trace.SpanKindInternal),
 		trace.WithAttributes(
-			attribute.String("db.system", "mysql"),
+			attribute.String("db.system", "postgresql"),
 			attribute.String("db.operation", "INSERT"),
 			attribute.String("db.table", "admin_sessions"),
 			attribute.Int64("admin.id", int64(session.AdminID)),

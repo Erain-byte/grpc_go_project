@@ -5,7 +5,7 @@ import (
 	apperror "admin/pkg/apperorr"
 	"context"
 	"database/sql"
-	"fmt"
+	"math"
 	"net"
 	"net/http"
 	"net/url"
@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/plugin/dbresolver"
 )
@@ -26,7 +26,7 @@ type GormClient struct {
 
 func NewGormClient(cfg config.DatabaseConfig) (*GormClient, error) {
 	primaryAddress := net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port))
-	db, err := gorm.Open(mysql.Open(getDSN(cfg, primaryAddress)), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(getDSN(cfg, primaryAddress)), &gorm.Config{})
 	if err != nil {
 		return nil, apperror.Wrap(err, apperror.CodeInvalidArgument, "database connect error", http.StatusServiceUnavailable)
 	}
@@ -76,22 +76,25 @@ func getreplicaDSN(cfg config.DatabaseConfig) []gorm.Dialector {
 		if v == "" {
 			continue
 		}
-		replicas = append(replicas, mysql.Open(getDSN(cfg, v)))
+		replicas = append(replicas, postgres.Open(getDSN(cfg, v)))
 	}
 	return replicas
 }
 
 func getDSN(cfg config.DatabaseConfig, address string) string {
-	return fmt.Sprintf(
-		"%s:%s@tcp(%s)/%s?charset=%s&parseTime=%t&loc=%s",
-		cfg.Username,
-		cfg.Password,
-		address,
-		cfg.DBName,
-		cfg.Charset,
-		cfg.ParseTime,
-		url.QueryEscape(cfg.Location),
-	)
+	connectTimeout, _ := time.ParseDuration(cfg.ConnectTimeout)
+	dsn := &url.URL{
+		Scheme: "postgres",
+		User:   url.UserPassword(cfg.Username, cfg.Password),
+		Host:   address,
+		Path:   cfg.DBName,
+	}
+	query := dsn.Query()
+	query.Set("sslmode", cfg.SSLMode)
+	query.Set("TimeZone", cfg.TimeZone)
+	query.Set("connect_timeout", strconv.Itoa(int(math.Ceil(connectTimeout.Seconds()))))
+	dsn.RawQuery = query.Encode()
+	return dsn.String()
 }
 
 func (g *GormClient) Gorm() *gorm.DB {

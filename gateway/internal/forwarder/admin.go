@@ -23,38 +23,6 @@ func NewAdminForwarder(clinMgnager *clien.ClientManager) *AdminForwarder {
 	}
 }
 
-// log
-/*func (a *AdminForwarder) Login(ctx context.Context, req *pbAdmin.LoginRequest) (*pbAdmin.LoginResponse, error) {
-	if ctx == nil {
-		//return nil, ErrNilContext
-		return nil, apperror.ToGRPC(apperror.InvalidArgument("is empty ctx"))
-	}
-	if req == nil {
-		return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
-	}
-	client, err := a.base.GetClient(ctx)
-	if err != nil {
-		return nil, apperror.ToGRPC(err)
-	}
-	return client.Login(ctx, req)
-}
-
-// logout
-func (a *AdminForwarder) Logout(ctx context.Context, req *pbAdmin.LogoutRequest) (*pbAdmin.LogoutResponse, error) {
-	if ctx == nil {
-		//return nil, ErrNilContext
-		return nil, apperror.ToGRPC(apperror.InvalidArgument("is empty ctx"))
-	}
-	if req == nil {
-		return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
-	}
-	client, err := a.base.GetClient(ctx)
-	if err != nil {
-		return nil, apperror.ToGRPC(err)
-	}
-	return client.Logout(ctx, req)
-}*/
-
 // GetAdminInfo
 func (a *AdminForwarder) GetAdminInfo(ctx context.Context, req *pbAdmin.GetAdminInfoRequest) (*pbAdmin.GetAdminInfoResponse, error) {
 	if ctx == nil {
@@ -187,19 +155,3 @@ func (a *AdminForwarder) StreamChat(req *pbLlm.StreamChatRequest, stream pbAdmin
 		}
 	}
 }
-
-// RefreshToken
-/*func (a *AdminForwarder) RefreshToken(ctx context.Context, req *pbAdmin.RefreshTokenRequest) (*pbAdmin.RefreshTokenResponse, error) {
-if ctx == nil {
-	//return nil, ErrNilContext
-	return nil, apperror.ToGRPC(apperror.InvalidArgument("is empty ctx"))
-}
-if req == nil {
-	return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
-}
-client, err := a.base.GetClient(ctx)
-if err != nil {
-	return nil, apperror.ToGRPC(err)
-
-}
-*/

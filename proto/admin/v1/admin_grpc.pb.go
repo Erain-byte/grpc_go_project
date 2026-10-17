@@ -21,12 +21,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AdminService_Login_FullMethodName        = "/admin.v1.AdminService/Login"
-	AdminService_Logout_FullMethodName       = "/admin.v1.AdminService/Logout"
 	AdminService_GetAdminInfo_FullMethodName = "/admin.v1.AdminService/GetAdminInfo"
 	AdminService_CreateAdmin_FullMethodName  = "/admin.v1.AdminService/CreateAdmin"
 	AdminService_GetAdminList_FullMethodName = "/admin.v1.AdminService/GetAdminList"
-	AdminService_RefreshToken_FullMethodName = "/admin.v1.AdminService/RefreshToken"
 	AdminService_GetUserInfo_FullMethodName  = "/admin.v1.AdminService/GetUserInfo"
 	AdminService_GetUserList_FullMethodName  = "/admin.v1.AdminService/GetUserList"
 	AdminService_Chat_FullMethodName         = "/admin.v1.AdminService/Chat"
@@ -37,13 +34,9 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AdminServiceClient interface {
-	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
-	// 未声明 public，默认要求 Gateway 传递可信的用户身份。
-	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
 	GetAdminInfo(ctx context.Context, in *GetAdminInfoRequest, opts ...grpc.CallOption) (*GetAdminInfoResponse, error)
 	CreateAdmin(ctx context.Context, in *CreateAdminRequest, opts ...grpc.CallOption) (*CreateAdminResponse, error)
 	GetAdminList(ctx context.Context, in *GetAdminListRequest, opts ...grpc.CallOption) (*GetAdminListResponse, error)
-	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	// User management operations forwarded by Admin to UserService.
 	GetUserInfo(ctx context.Context, in *v1.GetUserInfoRequest, opts ...grpc.CallOption) (*v1.GetUserInfoResponse, error)
 	GetUserList(ctx context.Context, in *v1.GetUserListRequest, opts ...grpc.CallOption) (*v1.GetUserListResponse, error)
@@ -58,26 +51,6 @@ type adminServiceClient struct {
 
 func NewAdminServiceClient(cc grpc.ClientConnInterface) AdminServiceClient {
 	return &adminServiceClient{cc}
-}
-
-func (c *adminServiceClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LoginResponse)
-	err := c.cc.Invoke(ctx, AdminService_Login_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *adminServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LogoutResponse)
-	err := c.cc.Invoke(ctx, AdminService_Logout_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *adminServiceClient) GetAdminInfo(ctx context.Context, in *GetAdminInfoRequest, opts ...grpc.CallOption) (*GetAdminInfoResponse, error) {
@@ -104,16 +77,6 @@ func (c *adminServiceClient) GetAdminList(ctx context.Context, in *GetAdminListR
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAdminListResponse)
 	err := c.cc.Invoke(ctx, AdminService_GetAdminList_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *adminServiceClient) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RefreshTokenResponse)
-	err := c.cc.Invoke(ctx, AdminService_RefreshToken_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -173,13 +136,9 @@ type AdminService_StreamChatClient = grpc.ServerStreamingClient[v11.StreamChatRe
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility.
 type AdminServiceServer interface {
-	Login(context.Context, *LoginRequest) (*LoginResponse, error)
-	// 未声明 public，默认要求 Gateway 传递可信的用户身份。
-	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	GetAdminInfo(context.Context, *GetAdminInfoRequest) (*GetAdminInfoResponse, error)
 	CreateAdmin(context.Context, *CreateAdminRequest) (*CreateAdminResponse, error)
 	GetAdminList(context.Context, *GetAdminListRequest) (*GetAdminListResponse, error)
-	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	// User management operations forwarded by Admin to UserService.
 	GetUserInfo(context.Context, *v1.GetUserInfoRequest) (*v1.GetUserInfoResponse, error)
 	GetUserList(context.Context, *v1.GetUserListRequest) (*v1.GetUserListResponse, error)
@@ -196,12 +155,6 @@ type AdminServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAdminServiceServer struct{}
 
-func (UnimplementedAdminServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method Login not implemented")
-}
-func (UnimplementedAdminServiceServer) Logout(context.Context, *LogoutRequest) (*LogoutResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method Logout not implemented")
-}
 func (UnimplementedAdminServiceServer) GetAdminInfo(context.Context, *GetAdminInfoRequest) (*GetAdminInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAdminInfo not implemented")
 }
@@ -210,9 +163,6 @@ func (UnimplementedAdminServiceServer) CreateAdmin(context.Context, *CreateAdmin
 }
 func (UnimplementedAdminServiceServer) GetAdminList(context.Context, *GetAdminListRequest) (*GetAdminListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAdminList not implemented")
-}
-func (UnimplementedAdminServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method RefreshToken not implemented")
 }
 func (UnimplementedAdminServiceServer) GetUserInfo(context.Context, *v1.GetUserInfoRequest) (*v1.GetUserInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserInfo not implemented")
@@ -245,42 +195,6 @@ func RegisterAdminServiceServer(s grpc.ServiceRegistrar, srv AdminServiceServer)
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&AdminService_ServiceDesc, srv)
-}
-
-func _AdminService_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LoginRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AdminServiceServer).Login(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AdminService_Login_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).Login(ctx, req.(*LoginRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AdminService_Logout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LogoutRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AdminServiceServer).Logout(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AdminService_Logout_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).Logout(ctx, req.(*LogoutRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _AdminService_GetAdminInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -333,24 +247,6 @@ func _AdminService_GetAdminList_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).GetAdminList(ctx, req.(*GetAdminListRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AdminService_RefreshToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RefreshTokenRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AdminServiceServer).RefreshToken(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AdminService_RefreshToken_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).RefreshToken(ctx, req.(*RefreshTokenRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -428,14 +324,6 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AdminServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Login",
-			Handler:    _AdminService_Login_Handler,
-		},
-		{
-			MethodName: "Logout",
-			Handler:    _AdminService_Logout_Handler,
-		},
-		{
 			MethodName: "GetAdminInfo",
 			Handler:    _AdminService_GetAdminInfo_Handler,
 		},
@@ -446,10 +334,6 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAdminList",
 			Handler:    _AdminService_GetAdminList_Handler,
-		},
-		{
-			MethodName: "RefreshToken",
-			Handler:    _AdminService_RefreshToken_Handler,
 		},
 		{
 			MethodName: "GetUserInfo",

@@ -9,38 +9,23 @@ import "user/v1/user.proto";
 option go_package = "github.com/Erain-byte/grpc_go_project/proto/admin/v1;adminv1";
 
 service AdminService {
-  rpc Login(LoginRequest) returns (LoginResponse) {
-    option (common.v1.auth) = {
-      public: true
-    };
-  }
-
-  // 未声明 public，默认要求 Gateway 传递可信的用户身份。
-  rpc Logout(LogoutRequest) returns (LogoutResponse);
-
   rpc GetAdminInfo(GetAdminInfoRequest) returns (GetAdminInfoResponse) {
     option (common.v1.auth) = {
       roles: "admin"
-      roles: "super_admin"
+      roles: "super-admin"
     };
   }
 
   rpc CreateAdmin(CreateAdminRequest) returns (CreateAdminResponse) {
     option (common.v1.auth) = {
-      roles: "super_admin"
+      roles: "super-admin"
     };
   }
 
   rpc GetAdminList(GetAdminListRequest) returns (GetAdminListResponse) {
     option (common.v1.auth) = {
       roles: "admin"
-      roles: "super_admin"
-    };
-  }
-
-  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
-    option (common.v1.auth) = {
-      public: true
+      roles: "super-admin"
     };
   }
 
@@ -48,14 +33,14 @@ service AdminService {
   rpc GetUserInfo(user.v1.GetUserInfoRequest) returns (user.v1.GetUserInfoResponse) {
     option (common.v1.auth) = {
       roles: "admin"
-      roles: "super_admin"
+      roles: "super-admin"
     };
   }
 
   rpc GetUserList(user.v1.GetUserListRequest) returns (user.v1.GetUserListResponse) {
     option (common.v1.auth) = {
       roles: "admin"
-      roles: "super_admin"
+      roles: "super-admin"
     };
   }
 
@@ -63,24 +48,28 @@ service AdminService {
   rpc Chat(llm.v1.ChatRequest) returns (llm.v1.ChatResponse) {
     option (common.v1.auth) = {
       roles: "admin"
-      roles: "super_admin"
+      roles: "super-admin"
     };
   }
 
   rpc StreamChat(llm.v1.StreamChatRequest) returns (stream llm.v1.StreamChatResponse) {
     option (common.v1.auth) = {
       roles: "admin"
-      roles: "super_admin"
+      roles: "super-admin"
     };
   }
 }
 
 message LoginRequest {
+  option deprecated = true;
+
   string username = 1;
   string password = 2;
 }
 
 message LoginResponse {
+  option deprecated = true;
+
   string access_token = 1;
   string refresh_token = 2;
   string token_type = 3;
@@ -91,12 +80,16 @@ message LoginResponse {
 }
 
 message LogoutRequest {
+  option deprecated = true;
+
   // Access Token 改由 Gateway 通过受 mTLS 保护的 gRPC metadata 传递。
   reserved 1;
   reserved "access_token";
 }
 
 message LogoutResponse {
+  option deprecated = true;
+
   bool success = 1;
   string message = 2;
 }
@@ -152,10 +145,14 @@ enum AdminRole {
 }
 
 message RefreshTokenRequest {
+  option deprecated = true;
+
   string refresh_token = 1;
 }
 
 message RefreshTokenResponse {
+  option deprecated = true;
+
   string access_token = 1;
   string refresh_token = 2;
   string token_type = 3;

@@ -1,6 +1,6 @@
 # Identity 本地与生产配置
 
-本目录只管理 Keycloak。Keycloak 专用 PostgreSQL 已移到 `deploy/postgres`，其他基础组件也分别拥有独立目录。
+本目录只管理 Keycloak。Keycloak 专用 PostgreSQL 已移到 `deploy/postgres-keycloak`，其他基础组件也分别拥有独立目录。
 
 ## 文件说明
 
@@ -19,7 +19,7 @@
 ```powershell
 cd D:\grpc_go_project\deploy\identity
 Copy-Item .env.example .env  # 仅首次使用
-docker compose --env-file ..\postgres\.env -f ..\postgres\compose.yaml up -d
+docker compose --env-file ..\postgres-keycloak\.env -f ..\postgres-keycloak\compose.yaml up -d
 docker compose config --quiet
 docker compose up -d
 docker compose ps
@@ -101,13 +101,13 @@ docker compose --env-file .env.prod -f compose.prod.yaml up -d
 5. 创建并验证永久 `master` Realm 管理员，再停用 Bootstrap 临时管理员。
 6. 建立 PostgreSQL 备份与恢复演练。
 
-生产 PostgreSQL 的网络、数据卷、备份和启动方式见 `deploy/postgres/README.md`。
+生产 PostgreSQL 的网络、数据卷、备份和启动方式见 `deploy/postgres-keycloak/README.md`。
 
 ## 独立基础设施
 
 | 组件 | 文档 |
 |---|---|
-| PostgreSQL | `deploy/postgres/README.md` |
+| PostgreSQL | `deploy/postgres-keycloak/README.md` |
 | Redis | `deploy/redis/README.md` |
 | Consul | `deploy/consul/README.md` |
 | RabbitMQ | `deploy/rabbitmq/README.md` |

@@ -35,28 +35,13 @@ func (s *HTTPServer) registerUserRoutes() {
 			pbLlm.ChatResponse,
 		](userForwarder.Chat).Handle,
 	)
+	protected.POST(
+		"/initialize",
+		handler.NewGrpcHandler[
+			pbUser.InitializeUserRequest,
+			pbUser.InitializeUserResponse,
+		](userForwarder.InitializeUser).Handle,
+	)
 	protected.POST("/stream-chat", streamHandler.StreamChat)
 
-	// User administration requires an administrator role.
-	adminRoles := s.svcCtx.Config.Auth.AccessToken.RolesMatching("admin")
-	administration := user.Group("")
-	administration.Use(
-		s.jwtMiddleware.Handle,
-		middleware.RequireAnyRole(adminRoles...),
-		s.rateLimitMiddleware.Handle,
-	)
-	administration.POST(
-		"/create",
-		handler.NewGrpcHandler[
-			pbUser.CreateUserRequest,
-			pbUser.CreateUserResponse,
-		](userForwarder.CreateUser).Handle,
-	)
-	administration.POST(
-		"/list",
-		handler.NewGrpcHandler[
-			pbUser.GetUserListRequest,
-			pbUser.GetUserListResponse,
-		](userForwarder.GetUserList).Handle,
-	)
 }

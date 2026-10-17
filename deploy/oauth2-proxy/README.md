@@ -12,7 +12,7 @@
 ## 前置条件
 
 1. `deploy/redis` 已启动并创建网络 `grpc-go-shared`。
-2. `deploy/postgres` 已启动，并与 Keycloak 共用网络 `grpc-go-identity`。
+2. `deploy/postgres-keycloak` 已启动，并与 Keycloak 共用网络 `grpc-go-identity`。
 3. `deploy/identity` 已启动。
 4. Keycloak 已配置 `user-web`、`admin-web`、回调 URI、角色与 `grpc-api` Audience。
 5. 本目录 `.env` 的 Client Secret 与 Keycloak Credentials 页面完全一致。
@@ -21,7 +21,7 @@
 
 ```powershell
 docker compose -f deploy/redis/compose.yaml up -d
-docker compose --env-file deploy/postgres/.env -f deploy/postgres/compose.yaml up -d
+docker compose --env-file deploy/postgres-keycloak/.env -f deploy/postgres-keycloak/compose.yaml up -d
 docker compose -f deploy/identity/compose.yaml up -d
 docker compose --env-file deploy/oauth2-proxy/.env -f deploy/oauth2-proxy/compose.yaml config --quiet
 docker compose --env-file deploy/oauth2-proxy/.env -f deploy/oauth2-proxy/compose.yaml up -d

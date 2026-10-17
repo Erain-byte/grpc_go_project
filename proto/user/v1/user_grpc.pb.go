@@ -20,26 +20,24 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_Login_FullMethodName        = "/user.v1.UserService/Login"
-	UserService_Logout_FullMethodName       = "/user.v1.UserService/Logout"
-	UserService_GetUserInfo_FullMethodName  = "/user.v1.UserService/GetUserInfo"
-	UserService_CreateUser_FullMethodName   = "/user.v1.UserService/CreateUser"
-	UserService_GetUserList_FullMethodName  = "/user.v1.UserService/GetUserList"
-	UserService_RefreshToken_FullMethodName = "/user.v1.UserService/RefreshToken"
-	UserService_Chat_FullMethodName         = "/user.v1.UserService/Chat"
-	UserService_StreamChat_FullMethodName   = "/user.v1.UserService/StreamChat"
+	UserService_InitializeUser_FullMethodName = "/user.v1.UserService/InitializeUser"
+	UserService_GetUserInfo_FullMethodName    = "/user.v1.UserService/GetUserInfo"
+	UserService_CreateUser_FullMethodName     = "/user.v1.UserService/CreateUser"
+	UserService_GetUserList_FullMethodName    = "/user.v1.UserService/GetUserList"
+	UserService_Chat_FullMethodName           = "/user.v1.UserService/Chat"
+	UserService_StreamChat_FullMethodName     = "/user.v1.UserService/StreamChat"
 )
 
 // UserServiceClient is the client API for UserService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
-	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
-	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
+	// InitializeUser creates the local business user after Keycloak login.
+	// Repeated calls for the same authenticated subject are idempotent.
+	InitializeUser(ctx context.Context, in *InitializeUserRequest, opts ...grpc.CallOption) (*InitializeUserResponse, error)
 	GetUserInfo(ctx context.Context, in *GetUserInfoRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 	GetUserList(ctx context.Context, in *GetUserListRequest, opts ...grpc.CallOption) (*GetUserListResponse, error)
-	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	Chat(ctx context.Context, in *v1.ChatRequest, opts ...grpc.CallOption) (*v1.ChatResponse, error)
 	StreamChat(ctx context.Context, in *v1.StreamChatRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[v1.StreamChatResponse], error)
 }
@@ -52,20 +50,10 @@ func NewUserServiceClient(cc grpc.ClientConnInterface) UserServiceClient {
 	return &userServiceClient{cc}
 }
 
-func (c *userServiceClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+func (c *userServiceClient) InitializeUser(ctx context.Context, in *InitializeUserRequest, opts ...grpc.CallOption) (*InitializeUserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LoginResponse)
-	err := c.cc.Invoke(ctx, UserService_Login_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LogoutResponse)
-	err := c.cc.Invoke(ctx, UserService_Logout_FullMethodName, in, out, cOpts...)
+	out := new(InitializeUserResponse)
+	err := c.cc.Invoke(ctx, UserService_InitializeUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -96,16 +84,6 @@ func (c *userServiceClient) GetUserList(ctx context.Context, in *GetUserListRequ
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetUserListResponse)
 	err := c.cc.Invoke(ctx, UserService_GetUserList_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RefreshTokenResponse)
-	err := c.cc.Invoke(ctx, UserService_RefreshToken_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -145,12 +123,12 @@ type UserService_StreamChatClient = grpc.ServerStreamingClient[v1.StreamChatResp
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
 type UserServiceServer interface {
-	Login(context.Context, *LoginRequest) (*LoginResponse, error)
-	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
+	// InitializeUser creates the local business user after Keycloak login.
+	// Repeated calls for the same authenticated subject are idempotent.
+	InitializeUser(context.Context, *InitializeUserRequest) (*InitializeUserResponse, error)
 	GetUserInfo(context.Context, *GetUserInfoRequest) (*GetUserInfoResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error)
-	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	Chat(context.Context, *v1.ChatRequest) (*v1.ChatResponse, error)
 	StreamChat(*v1.StreamChatRequest, grpc.ServerStreamingServer[v1.StreamChatResponse]) error
 	mustEmbedUnimplementedUserServiceServer()
@@ -163,11 +141,8 @@ type UserServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedUserServiceServer struct{}
 
-func (UnimplementedUserServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method Login not implemented")
-}
-func (UnimplementedUserServiceServer) Logout(context.Context, *LogoutRequest) (*LogoutResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method Logout not implemented")
+func (UnimplementedUserServiceServer) InitializeUser(context.Context, *InitializeUserRequest) (*InitializeUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method InitializeUser not implemented")
 }
 func (UnimplementedUserServiceServer) GetUserInfo(context.Context, *GetUserInfoRequest) (*GetUserInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserInfo not implemented")
@@ -177,9 +152,6 @@ func (UnimplementedUserServiceServer) CreateUser(context.Context, *CreateUserReq
 }
 func (UnimplementedUserServiceServer) GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserList not implemented")
-}
-func (UnimplementedUserServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method RefreshToken not implemented")
 }
 func (UnimplementedUserServiceServer) Chat(context.Context, *v1.ChatRequest) (*v1.ChatResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Chat not implemented")
@@ -208,38 +180,20 @@ func RegisterUserServiceServer(s grpc.ServiceRegistrar, srv UserServiceServer) {
 	s.RegisterService(&UserService_ServiceDesc, srv)
 }
 
-func _UserService_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LoginRequest)
+func _UserService_InitializeUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InitializeUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).Login(ctx, in)
+		return srv.(UserServiceServer).InitializeUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserService_Login_FullMethodName,
+		FullMethod: UserService_InitializeUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).Login(ctx, req.(*LoginRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_Logout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LogoutRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).Logout(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_Logout_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).Logout(ctx, req.(*LogoutRequest))
+		return srv.(UserServiceServer).InitializeUser(ctx, req.(*InitializeUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -298,24 +252,6 @@ func _UserService_GetUserList_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_RefreshToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RefreshTokenRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).RefreshToken(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_RefreshToken_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).RefreshToken(ctx, req.(*RefreshTokenRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _UserService_Chat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(v1.ChatRequest)
 	if err := dec(in); err != nil {
@@ -353,12 +289,8 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*UserServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Login",
-			Handler:    _UserService_Login_Handler,
-		},
-		{
-			MethodName: "Logout",
-			Handler:    _UserService_Logout_Handler,
+			MethodName: "InitializeUser",
+			Handler:    _UserService_InitializeUser_Handler,
 		},
 		{
 			MethodName: "GetUserInfo",
@@ -371,10 +303,6 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserList",
 			Handler:    _UserService_GetUserList_Handler,
-		},
-		{
-			MethodName: "RefreshToken",
-			Handler:    _UserService_RefreshToken_Handler,
 		},
 		{
 			MethodName: "Chat",

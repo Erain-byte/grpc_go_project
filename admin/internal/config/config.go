@@ -81,9 +81,9 @@ type DatabaseConfig struct {
 	Username              string   `yaml:"username" mapstructure:"username"`
 	Password              string   `yaml:"-" mapstructure:"-"`
 	DBName                string   `yaml:"dbname" mapstructure:"dbname"`
-	Charset               string   `yaml:"charset" mapstructure:"charset"`
-	ParseTime             bool     `yaml:"parse_time" mapstructure:"parse_time"`
-	Location              string   `yaml:"location" mapstructure:"location"`
+	SSLMode               string   `yaml:"ssl_mode" mapstructure:"ssl_mode"`
+	TimeZone              string   `yaml:"timezone" mapstructure:"timezone"`
+	ConnectTimeout        string   `yaml:"connect_timeout" mapstructure:"connect_timeout"`
 	ReadWriteSplitEnabled bool     `yaml:"read_write_split_enabled" mapstructure:"read_write_split_enabled"`
 	ReplicaAddresses      []string `yaml:"replica_addresses" mapstructure:"replica_addresses"`
 	MaxIdleConns          int      `yaml:"max_idle_conns" mapstructure:"max_idle_conns"`
@@ -265,10 +265,10 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("version", "1.0.0")
 	v.SetDefault("host", "127.0.0.1")
 	v.SetDefault("grpc_port", 9081)
-	v.SetDefault("database.driver", "mysql")
-	v.SetDefault("database.charset", "utf8mb4")
-	v.SetDefault("database.parse_time", true)
-	v.SetDefault("database.location", "Local")
+	v.SetDefault("database.driver", "postgres")
+	v.SetDefault("database.ssl_mode", "disable")
+	v.SetDefault("database.timezone", "Asia/Shanghai")
+	v.SetDefault("database.connect_timeout", "5s")
 	v.SetDefault("database.read_write_split_enabled", false)
 	v.SetDefault("database.replica_addresses", []string{})
 	v.SetDefault("redis.host", "127.0.0.1")
@@ -367,6 +367,43 @@ func (c Config) Validate() error {
 	}
 	if c.GRPCPort < 1 || c.GRPCPort > 65535 {
 		return fmt.Errorf("admin gRPC port %d is outside 1..65535", c.GRPCPort)
+	}
+	if strings.ToLower(strings.TrimSpace(c.Database.Driver)) != "postgres" {
+		return fmt.Errorf("admin database driver must be postgres")
+	}
+	if strings.TrimSpace(c.Database.Host) == "" {
+		return fmt.Errorf("admin database host is empty")
+	}
+	if c.Database.Port < 1 || c.Database.Port > 65535 {
+		return fmt.Errorf("admin database port %d is outside 1..65535", c.Database.Port)
+	}
+	if strings.TrimSpace(c.Database.Username) == "" || strings.TrimSpace(c.Database.DBName) == "" {
+		return fmt.Errorf("admin database username and database name are required")
+	}
+	validSSLModes := map[string]struct{}{
+		"disable": {}, "allow": {}, "prefer": {}, "require": {}, "verify-ca": {}, "verify-full": {},
+	}
+	if _, ok := validSSLModes[strings.ToLower(strings.TrimSpace(c.Database.SSLMode))]; !ok {
+		return fmt.Errorf("admin database SSL mode %q is invalid", c.Database.SSLMode)
+	}
+	if strings.TrimSpace(c.Database.TimeZone) == "" {
+		return fmt.Errorf("admin database timezone is empty")
+	}
+	connectTimeout, err := time.ParseDuration(c.Database.ConnectTimeout)
+	if err != nil || connectTimeout <= 0 {
+		return fmt.Errorf("admin database connect timeout must be a positive duration")
+	}
+	if c.Database.MaxIdleConns < 0 || c.Database.MaxOpenConns <= 0 || c.Database.MaxIdleConns > c.Database.MaxOpenConns {
+		return fmt.Errorf("admin database connection pool limits are invalid")
+	}
+	for name, value := range map[string]string{
+		"maximum idle time": c.Database.ConnMaxIdleTime,
+		"maximum lifetime":  c.Database.ConnMaxLifetime,
+	} {
+		duration, err := time.ParseDuration(value)
+		if err != nil || duration <= 0 {
+			return fmt.Errorf("admin database %s must be a positive duration", name)
+		}
 	}
 	if c.Database.ReadWriteSplitEnabled {
 		if len(c.Database.ReplicaAddresses) == 0 {

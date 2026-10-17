@@ -26,17 +26,17 @@ docker volume create identity_keycloak-postgres-data
 ## 启动顺序
 
 ```powershell
-docker compose --env-file deploy/postgres/.env -f deploy/postgres/compose.yaml up -d
-docker compose --env-file deploy/postgres/.env -f deploy/postgres/compose.yaml ps
+docker compose --env-file deploy/postgres-keycloak/.env -f deploy/postgres-keycloak/compose.yaml up -d
+docker compose --env-file deploy/postgres-keycloak/.env -f deploy/postgres-keycloak/compose.yaml ps
 docker compose --env-file deploy/identity/.env -f deploy/identity/compose.yaml up -d
 ```
 
-`deploy/postgres/.env` 与 `deploy/identity/.env` 中的 `KEYCLOAK_DB_PASSWORD` 必须一致。拆分生命周期后，Keycloak 仍需数据库密码才能建立连接。
+`deploy/postgres-keycloak/.env` 与 `deploy/identity/.env` 中的 `KEYCLOAK_DB_PASSWORD` 必须一致。拆分生命周期后，Keycloak 仍需数据库密码才能建立连接。
 
 健康检查：
 
 ```powershell
-docker compose --env-file deploy/postgres/.env -f deploy/postgres/compose.yaml exec keycloak-postgres pg_isready -U keycloak -d keycloak
+docker compose --env-file deploy/postgres-keycloak/.env -f deploy/postgres-keycloak/compose.yaml exec keycloak-postgres pg_isready -U keycloak -d keycloak
 ```
 
 ## 生产模板
@@ -45,7 +45,7 @@ docker compose --env-file deploy/postgres/.env -f deploy/postgres/compose.yaml e
 
 ```powershell
 docker network create grpc-go-identity-prod
-docker compose --env-file deploy/postgres/.env.prod -f deploy/postgres/compose.prod.yaml up -d
+docker compose --env-file deploy/postgres-keycloak/.env.prod -f deploy/postgres-keycloak/compose.prod.yaml up -d
 docker compose --env-file deploy/identity/.env.prod -f deploy/identity/compose.prod.yaml up -d
 ```
 

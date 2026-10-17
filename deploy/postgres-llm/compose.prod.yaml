@@ -1,0 +1,31 @@
+name: grpc-go-postgres-llm-prod
+
+services:
+  llm-postgres:
+    image: postgres:17
+    container_name: grpc-go-llm-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${LLM_DB_NAME:-llm_service}
+      POSTGRES_USER: ${LLM_DB_USER:-llm_service}
+      POSTGRES_PASSWORD: ${LLM_DB_PASSWORD:?set LLM_DB_PASSWORD}
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - grpc-go-llm-postgres-data-prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - grpc-go-llm-database-prod
+
+volumes:
+  grpc-go-llm-postgres-data-prod:
+    external: true
+
+networks:
+  grpc-go-llm-database-prod:
+    external: true
+

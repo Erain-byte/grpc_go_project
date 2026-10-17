@@ -1,0 +1,31 @@
+name: grpc-go-postgres-user-prod
+
+services:
+  user-postgres:
+    image: postgres:17
+    container_name: grpc-go-user-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${USER_DB_NAME:-user_service}
+      POSTGRES_USER: ${USER_DB_USER:-user_service}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD:?set USER_DB_PASSWORD}
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - grpc-go-user-postgres-data-prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - grpc-go-user-database-prod
+
+volumes:
+  grpc-go-user-postgres-data-prod:
+    external: true
+
+networks:
+  grpc-go-user-database-prod:
+    external: true
+

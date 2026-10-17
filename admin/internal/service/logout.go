@@ -55,7 +55,7 @@ func (l *LogoutService) Logout(
 	}
 
 	// Redis is the online session authority. Delete it first so the current
-	// access token becomes unusable immediately, even if MySQL is unavailable.
+	// access token becomes unusable immediately, even if PostgreSQL is unavailable.
 	sessionKey := auth.SetSessionKey(sessionID, l.svc.Config.Auth)
 	if err := l.svc.Redis.Delete(logoutCtx, sessionKey); err != nil {
 		return nil, apperorr.Wrap(

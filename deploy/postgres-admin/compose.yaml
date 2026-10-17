@@ -1,0 +1,33 @@
+name: grpc-go-postgres-admin
+
+services:
+  admin-postgres:
+    image: postgres:17
+    container_name: grpc-go-admin-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: admin
+      POSTGRES_USER: admin_service
+      POSTGRES_PASSWORD: ${ADMIN_DB_PASSWORD:?set ADMIN_DB_PASSWORD}
+      TZ: Asia/Shanghai
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - grpc-go-admin-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin_service -d admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - grpc-go-admin-database
+
+volumes:
+  grpc-go-admin-postgres-data:
+    external: true
+
+networks:
+  grpc-go-admin-database:
+    external: true
+

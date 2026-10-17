@@ -45,22 +45,29 @@ type AccessTokenConfig struct {
 }
 
 type DatabaseConfig struct {
-	Enabled               bool     `yaml:"enabled" mapstructure:"enabled"`
-	Driver                string   `yaml:"driver" mapstructure:"driver"`
-	Host                  string   `yaml:"host" mapstructure:"host"`
-	Port                  int      `yaml:"port" mapstructure:"port"`
-	Username              string   `yaml:"username" mapstructure:"username"`
-	Password              string   `yaml:"-" mapstructure:"-"`
-	DBName                string   `yaml:"dbname" mapstructure:"dbname"`
-	Charset               string   `yaml:"charset" mapstructure:"charset"`
-	ParseTime             bool     `yaml:"parse_time" mapstructure:"parse_time"`
-	Location              string   `yaml:"location" mapstructure:"location"`
-	ReadWriteSplitEnabled bool     `yaml:"read_write_split_enabled" mapstructure:"read_write_split_enabled"`
-	ReplicaAddresses      []string `yaml:"replica_addresses" mapstructure:"replica_addresses"`
-	MaxIdleConns          int      `yaml:"max_idle_conns" mapstructure:"max_idle_conns"`
-	MaxOpenConns          int      `yaml:"max_open_conns" mapstructure:"max_open_conns"`
-	ConnMaxIdleTime       string   `yaml:"conn_max_idle_time" mapstructure:"conn_max_idle_time"`
-	ConnMaxLifetime       string   `yaml:"conn_max_lifetime" mapstructure:"conn_max_lifetime"`
+	Enabled               bool           `yaml:"enabled" mapstructure:"enabled"`
+	Driver                string         `yaml:"driver" mapstructure:"driver"`
+	Host                  string         `yaml:"host" mapstructure:"host"`
+	Port                  int            `yaml:"port" mapstructure:"port"`
+	Username              string         `yaml:"username" mapstructure:"username"`
+	Password              string         `yaml:"-" mapstructure:"-"`
+	DBName                string         `yaml:"dbname" mapstructure:"dbname"`
+	SSLMode               string         `yaml:"ssl_mode" mapstructure:"ssl_mode"`
+	TimeZone              string         `yaml:"timezone" mapstructure:"timezone"`
+	ConnectTimeout        string         `yaml:"connect_timeout" mapstructure:"connect_timeout"`
+	Sharding              ShardingConfig `yaml:"sharding" mapstructure:"sharding"`
+	ReadWriteSplitEnabled bool           `yaml:"read_write_split_enabled" mapstructure:"read_write_split_enabled"`
+	ReplicaAddresses      []string       `yaml:"replica_addresses" mapstructure:"replica_addresses"`
+	MaxIdleConns          int            `yaml:"max_idle_conns" mapstructure:"max_idle_conns"`
+	MaxOpenConns          int            `yaml:"max_open_conns" mapstructure:"max_open_conns"`
+	ConnMaxIdleTime       string         `yaml:"conn_max_idle_time" mapstructure:"conn_max_idle_time"`
+	ConnMaxLifetime       string         `yaml:"conn_max_lifetime" mapstructure:"conn_max_lifetime"`
+}
+
+type ShardingConfig struct {
+	Enabled     bool   `yaml:"enabled" mapstructure:"enabled"`
+	TableCount  int    `yaml:"table_count" mapstructure:"table_count"`
+	TablePrefix string `yaml:"table_prefix" mapstructure:"table_prefix"`
 }
 
 func (c DatabaseConfig) Address() string {
@@ -262,10 +269,13 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("grpc_port", 9083)
 	v.SetDefault("advertise_host", "127.0.0.1")
 	v.SetDefault("database.enabled", false)
-	v.SetDefault("database.driver", "mysql")
-	v.SetDefault("database.charset", "utf8mb4")
-	v.SetDefault("database.parse_time", true)
-	v.SetDefault("database.location", "Local")
+	v.SetDefault("database.driver", "postgres")
+	v.SetDefault("database.ssl_mode", "disable")
+	v.SetDefault("database.timezone", "Asia/Shanghai")
+	v.SetDefault("database.connect_timeout", "5s")
+	v.SetDefault("database.sharding.enabled", true)
+	v.SetDefault("database.sharding.table_count", 8)
+	v.SetDefault("database.sharding.table_prefix", "users_")
 	v.SetDefault("database.replica_addresses", []string{})
 	v.SetDefault("redis.enabled", false)
 	v.SetDefault("redis.host", "127.0.0.1")
@@ -364,7 +374,10 @@ func (c Config) Validate() error {
 	}
 
 	if c.Database.Enabled {
-		if strings.TrimSpace(c.Database.Driver) == "" || strings.TrimSpace(c.Database.Host) == "" ||
+		if strings.ToLower(strings.TrimSpace(c.Database.Driver)) != "postgres" {
+			return fmt.Errorf("USER database driver must be postgres")
+		}
+		if strings.TrimSpace(c.Database.Host) == "" ||
 			strings.TrimSpace(c.Database.Username) == "" || strings.TrimSpace(c.Database.DBName) == "" {
 			return fmt.Errorf("database connection configuration is incomplete")
 		}
@@ -381,6 +394,18 @@ func (c Config) Validate() error {
 		if err := validatePositiveDuration("database connection max lifetime", c.Database.ConnMaxLifetime); err != nil {
 			return err
 		}
+		validSSLModes := map[string]struct{}{
+			"disable": {}, "allow": {}, "prefer": {}, "require": {}, "verify-ca": {}, "verify-full": {},
+		}
+		if _, ok := validSSLModes[strings.ToLower(strings.TrimSpace(c.Database.SSLMode))]; !ok {
+			return fmt.Errorf("USER database SSL mode %q is invalid", c.Database.SSLMode)
+		}
+		if strings.TrimSpace(c.Database.TimeZone) == "" {
+			return fmt.Errorf("USER database timezone is empty")
+		}
+		if err := validatePositiveDuration("database connect timeout", c.Database.ConnectTimeout); err != nil {
+			return err
+		}
 		if c.Database.ReadWriteSplitEnabled && len(c.Database.ReplicaAddresses) == 0 {
 			return fmt.Errorf("database replica addresses are required when read/write splitting is enabled")
 		}
@@ -388,6 +413,14 @@ func (c Config) Validate() error {
 			if err := validateHostPort("database replica", address); err != nil {
 				return err
 			}
+		}
+	}
+	if c.Database.Sharding.Enabled {
+		if c.Database.Sharding.TableCount != 8 {
+			return fmt.Errorf("USER shard table count must remain 8")
+		}
+		if strings.TrimSpace(c.Database.Sharding.TablePrefix) != "users_" {
+			return fmt.Errorf("USER shard table prefix must be users_")
 		}
 	}
 

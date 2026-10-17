@@ -1,0 +1,33 @@
+name: grpc-go-postgres-llm
+
+services:
+  llm-postgres:
+    image: postgres:17
+    container_name: grpc-go-llm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: llm_service
+      POSTGRES_USER: llm_service
+      POSTGRES_PASSWORD: ${LLM_DB_PASSWORD:?set LLM_DB_PASSWORD}
+      TZ: Asia/Shanghai
+    ports:
+      - "127.0.0.1:5435:5432"
+    volumes:
+      - grpc-go-llm-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U llm_service -d llm_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - grpc-go-llm-database
+
+volumes:
+  grpc-go-llm-postgres-data:
+    external: true
+
+networks:
+  grpc-go-llm-database:
+    external: true
+

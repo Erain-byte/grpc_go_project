@@ -2,50 +2,71 @@ syntax = "proto3";
 
 package user.v1;
 
+import "common/v1/security.proto";
 import "google/protobuf/timestamp.proto";
 import "llm/v1/llm.proto";
 
 option go_package = "github.com/Erain-byte/grpc_go_project/proto/user/v1;userv1";
 
 service UserService {
-  rpc Login(LoginRequest) returns (LoginResponse);
-  rpc Logout(LogoutRequest) returns (LogoutResponse);
-  rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse);
-  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
-  rpc GetUserList(GetUserListRequest) returns (GetUserListResponse);
-  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
-  rpc Chat(llm.v1.ChatRequest) returns (llm.v1.ChatResponse);
-  rpc StreamChat(llm.v1.StreamChatRequest) returns (stream llm.v1.StreamChatResponse);
+  // InitializeUser creates the local business user after Keycloak login.
+  // Repeated calls for the same authenticated subject are idempotent.
+  rpc InitializeUser(InitializeUserRequest) returns (InitializeUserResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+    };
+  }
+
+  rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+      roles: "admin"
+      roles: "super-admin"
+    };
+  }
+
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
+    option (common.v1.auth) = {
+      roles: "admin"
+      roles: "super-admin"
+    };
+  }
+
+  rpc GetUserList(GetUserListRequest) returns (GetUserListResponse) {
+    option (common.v1.auth) = {
+      roles: "admin"
+      roles: "super-admin"
+    };
+  }
+
+  rpc Chat(llm.v1.ChatRequest) returns (llm.v1.ChatResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+      roles: "admin"
+      roles: "super-admin"
+    };
+  }
+
+  rpc StreamChat(llm.v1.StreamChatRequest) returns (stream llm.v1.StreamChatResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+      roles: "admin"
+      roles: "super-admin"
+    };
+  }
 }
 
-message LoginRequest {
-  string username = 1;
-  string password = 2;
-  string captcha = 3;
-  string ip_address = 4;
-}
+message InitializeUserRequest {}
 
-message LoginResponse {
-  string access_token = 1;
-  string refresh_token = 2;
-  string token_type = 3;
-  int64 access_expires_in = 4;
-  int64 refresh_expires_in = 5;
-  string session_id = 6;
-  UserInfo user = 7;
-}
-
-message LogoutRequest {
-  string access_token = 1;
-}
-
-message LogoutResponse {
-  bool success = 1;
-  string message = 2;
+message InitializeUserResponse {
+  UserInfo user_info = 1;
+  bool newly_created = 2;
 }
 
 message GetUserInfoRequest {
-  string access_token = 1;
+  // The authenticated identity is carried in trusted gRPC metadata.
+  reserved 1;
+  reserved "access_token";
 }
 
 message GetUserInfoResponse {
@@ -64,6 +85,7 @@ message UserInfo {
   string phone = 7;
   google.protobuf.Timestamp updated_at = 8;
   google.protobuf.Timestamp last_login_at = 9;
+  string email = 10;
 }
 
 enum UserStatus {
@@ -96,16 +118,4 @@ message GetUserListResponse {
   int64 total = 4;
   int32 page = 5;
   int32 page_size = 6;
-}
-
-message RefreshTokenRequest {
-  string refresh_token = 1;
-}
-
-message RefreshTokenResponse {
-  string access_token = 1;
-  string refresh_token = 2;
-  string token_type = 3;
-  int64 access_expires_in = 4;
-  int64 refresh_expires_in = 5;
 }

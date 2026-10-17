@@ -30,18 +30,19 @@ func NewGrpcHandler[Req any, Resp any](
 
 func (h *GrpcHandlerFunc[Req, Resp]) Handle(c *gin.Context) {
 	req := new(Req)
-	if err := c.ShouldBindJSON(req); err != nil {
+	if err := c.ShouldBindJSON(req); err != nil && !errors.Is(err, io.EOF) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+
 	}
 	grpcCtx := WithMetadata(c)
-	// 2. 调用 gRPC 方法
 	resp, err := h.call(grpcCtx, req)
 	if err != nil {
 		writeGrpcError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, resp)
+
 }
 
 // 流式处理

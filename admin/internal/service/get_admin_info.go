@@ -163,7 +163,7 @@ func (s *GetAdminInfoService) profileFromCache(
 	return profile, true, nil
 }
 
-// cacheProfile 将MySQL查询结果回填Redis；它是可重建缓存，错误由调用方记录但不阻断响应。
+// cacheProfile 将 PostgreSQL 查询结果回填 Redis；它是可重建缓存，错误由调用方记录但不阻断响应。
 func (s *GetAdminInfoService) cacheProfile(
 	ctx context.Context,
 	key string,
@@ -235,7 +235,7 @@ func (s *GetAdminInfoService) findByID(ctx context.Context, id uint) (res *model
 		"admin.internal.service.findByID",
 		trace.WithSpanKind(trace.SpanKindInternal),
 		trace.WithAttributes(
-			attribute.String("db.system", "mysql"),
+			attribute.String("db.system", "postgresql"),
 			attribute.String("db.operation", "SELECT"),
 			attribute.String("db.table", "admins"),
 			attribute.Int64("admin.id", int64(id)),

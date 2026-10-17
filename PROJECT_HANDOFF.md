@@ -3,6 +3,9 @@
 内部 gRPC 服务身份、mTLS、RPC 白名单及后续 Consul KV 热更新方案见
 [`INTERNAL_GRPC_SECURITY.md`](INTERNAL_GRPC_SECURITY.md)。
 
+User 固定 8 表和 LLM PostgreSQL 月份分区方案见
+[`docs/2026-10-17_POSTGRESQL_USER_LLM分表设计与操作指南.md`](docs/2026-10-17_POSTGRESQL_USER_LLM分表设计与操作指南.md)。
+
 更新时间：2026-10-07
 
 ## 1. 项目目标
@@ -28,7 +31,10 @@
 | 组件 | 目录 | 主要端口 |
 |---|---|---|
 | Keycloak | `deploy/identity` | 8180、9000 |
-| Keycloak PostgreSQL | `deploy/postgres` | 仅 Docker 内部 5432 |
+| Keycloak PostgreSQL | `deploy/postgres-keycloak` | 仅 Docker 内部 5432 |
+| Admin PostgreSQL | `deploy/postgres-admin` | `127.0.0.1:5433` |
+| User PostgreSQL | `deploy/postgres-user` | `127.0.0.1:5434` |
+| LLM PostgreSQL | `deploy/postgres-llm` | `127.0.0.1:5435` |
 | Redis | `deploy/redis` | 6379 |
 | Consul | `deploy/consul` | 8500、8600 |
 | RabbitMQ | `deploy/rabbitmq` | 5672、15672 |
@@ -40,7 +46,7 @@
 
 ```powershell
 docker compose -f deploy/redis/compose.yaml up -d
-docker compose --env-file deploy/postgres/.env -f deploy/postgres/compose.yaml up -d
+docker compose --env-file deploy/postgres-keycloak/.env -f deploy/postgres-keycloak/compose.yaml up -d
 docker compose -f deploy/consul/compose.yaml up -d
 docker compose --env-file deploy/rabbitmq/.env -f deploy/rabbitmq/compose.yaml up -d
 docker compose -f deploy/jaeger/compose.yaml up -d

@@ -48,17 +48,7 @@ func main() {
 
 	// 兼容旧版 admins 表。旧模型使用 password，新模型统一使用
 	// password_hash；AutoMigrate 为保护数据不会自动删除旧列。
-	var legacyPasswordColumnCount int64
-	if err := dbClient.Gorm().Raw(`
-		SELECT COUNT(*)
-		FROM information_schema.columns
-		WHERE table_schema = DATABASE()
-		  AND table_name = 'admins'
-		  AND column_name = 'password'
-	`).Scan(&legacyPasswordColumnCount).Error; err != nil {
-		exitWithError("inspect legacy admins.password column", err)
-	}
-	if legacyPasswordColumnCount > 0 {
+	if dbClient.Gorm().Migrator().HasColumn("admins", "password") {
 		err := dbClient.Gorm().Transaction(func(tx *gorm.DB) error {
 			if err := tx.Exec(`
 				UPDATE admins
@@ -69,7 +59,7 @@ func main() {
 			`).Error; err != nil {
 				return err
 			}
-			return tx.Exec("ALTER TABLE admins DROP COLUMN password").Error
+			return tx.Migrator().DropColumn("admins", "password")
 		})
 		if err != nil {
 			exitWithError("migrate legacy admins.password column", err)

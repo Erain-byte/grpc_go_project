@@ -83,7 +83,7 @@ func Run() error {
 			logger.SugaredLogger.Errorf("Failed to close gorm client: %v", err)
 		}
 	}()
-	if err := mysqlPin(context.Background(), gormDB); err != nil {
+	if err := databasePing(context.Background(), gormDB); err != nil {
 		return apperror.Wrap(
 			err,
 			apperror.CodeInternal,
@@ -309,7 +309,7 @@ func Run() error {
 	return runErr
 }
 
-func mysqlPin(ctx context.Context, gormDB *database.GormClient) error {
+func databasePing(ctx context.Context, gormDB *database.GormClient) error {
 	if gormDB == nil {
 		return errors.New("gorm is not client")
 	}

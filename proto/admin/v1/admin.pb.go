@@ -73,6 +73,7 @@ func (AdminRole) EnumDescriptor() ([]byte, []int) {
 	return file_admin_v1_admin_proto_rawDescGZIP(), []int{0}
 }
 
+// Deprecated: Marked as deprecated in admin/v1/admin.proto.
 type LoginRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
@@ -125,6 +126,7 @@ func (x *LoginRequest) GetPassword() string {
 	return ""
 }
 
+// Deprecated: Marked as deprecated in admin/v1/admin.proto.
 type LoginResponse struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	AccessToken      string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
@@ -217,6 +219,7 @@ func (x *LoginResponse) GetAdmin() *Admin {
 	return nil
 }
 
+// Deprecated: Marked as deprecated in admin/v1/admin.proto.
 type LogoutRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -253,6 +256,7 @@ func (*LogoutRequest) Descriptor() ([]byte, []int) {
 	return file_admin_v1_admin_proto_rawDescGZIP(), []int{2}
 }
 
+// Deprecated: Marked as deprecated in admin/v1/admin.proto.
 type LogoutResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -717,6 +721,7 @@ func (x *Admin) GetRole() AdminRole {
 	return AdminRole_ADMIN_ROLE_UNSPECIFIED
 }
 
+// Deprecated: Marked as deprecated in admin/v1/admin.proto.
 type RefreshTokenRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
@@ -761,6 +766,7 @@ func (x *RefreshTokenRequest) GetRefreshToken() string {
 	return ""
 }
 
+// Deprecated: Marked as deprecated in admin/v1/admin.proto.
 type RefreshTokenResponse struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	AccessToken      string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
@@ -841,10 +847,10 @@ var File_admin_v1_admin_proto protoreflect.FileDescriptor
 
 const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
-	"\x14admin/v1/admin.proto\x12\badmin.v1\x1a\x18common/v1/security.proto\x1a\x10llm/v1/llm.proto\x1a\x12user/v1/user.proto\"F\n" +
+	"\x14admin/v1/admin.proto\x12\badmin.v1\x1a\x18common/v1/security.proto\x1a\x10llm/v1/llm.proto\x1a\x12user/v1/user.proto\"J\n" +
 	"\fLoginRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"\x96\x02\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword:\x02\x18\x01\"\x9a\x02\n" +
 	"\rLoginResponse\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12\x1d\n" +
@@ -854,11 +860,11 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x12refresh_expires_in\x18\x05 \x01(\x03R\x10refreshExpiresIn\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x06 \x01(\tR\tsessionId\x12%\n" +
-	"\x05admin\x18\a \x01(\v2\x0f.admin.v1.AdminR\x05admin\"#\n" +
-	"\rLogoutRequestJ\x04\b\x01\x10\x02R\faccess_token\"D\n" +
+	"\x05admin\x18\a \x01(\v2\x0f.admin.v1.AdminR\x05admin:\x02\x18\x01\"'\n" +
+	"\rLogoutRequest:\x02\x18\x01J\x04\b\x01\x10\x02R\faccess_token\"H\n" +
 	"\x0eLogoutResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\")\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage:\x02\x18\x01\")\n" +
 	"\x13GetAdminInfoRequestJ\x04\b\x01\x10\x02R\faccess_token\"z\n" +
 	"\x14GetAdminInfoResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
@@ -886,32 +892,29 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12'\n" +
-	"\x04role\x18\x04 \x01(\x0e2\x13.admin.v1.AdminRoleR\x04role\":\n" +
+	"\x04role\x18\x04 \x01(\x0e2\x13.admin.v1.AdminRoleR\x04role\">\n" +
 	"\x13RefreshTokenRequest\x12#\n" +
-	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"\xd7\x01\n" +
+	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken:\x02\x18\x01\"\xdb\x01\n" +
 	"\x14RefreshTokenResponse\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12\x1d\n" +
 	"\n" +
 	"token_type\x18\x03 \x01(\tR\ttokenType\x12*\n" +
 	"\x11access_expires_in\x18\x04 \x01(\x03R\x0faccessExpiresIn\x12,\n" +
-	"\x12refresh_expires_in\x18\x05 \x01(\x03R\x10refreshExpiresIn*Y\n" +
+	"\x12refresh_expires_in\x18\x05 \x01(\x03R\x10refreshExpiresIn:\x02\x18\x01*Y\n" +
 	"\tAdminRole\x12\x1a\n" +
 	"\x16ADMIN_ROLE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16ADMIN_ROLE_SUPER_ADMIN\x10\x01\x12\x14\n" +
-	"\x10ADMIN_ROLE_ADMIN\x10\x022\x8b\a\n" +
-	"\fAdminService\x12@\n" +
-	"\x05Login\x12\x16.admin.v1.LoginRequest\x1a\x17.admin.v1.LoginResponse\"\x06\x82\xb5\x18\x02\b\x01\x12;\n" +
-	"\x06Logout\x12\x17.admin.v1.LogoutRequest\x1a\x18.admin.v1.LogoutResponse\x12g\n" +
-	"\fGetAdminInfo\x12\x1d.admin.v1.GetAdminInfoRequest\x1a\x1e.admin.v1.GetAdminInfoResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper_admin\x12]\n" +
-	"\vCreateAdmin\x12\x1c.admin.v1.CreateAdminRequest\x1a\x1d.admin.v1.CreateAdminResponse\"\x11\x82\xb5\x18\r\x12\vsuper_admin\x12g\n" +
-	"\fGetAdminList\x12\x1d.admin.v1.GetAdminListRequest\x1a\x1e.admin.v1.GetAdminListResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper_admin\x12U\n" +
-	"\fRefreshToken\x12\x1d.admin.v1.RefreshTokenRequest\x1a\x1e.admin.v1.RefreshTokenResponse\"\x06\x82\xb5\x18\x02\b\x01\x12b\n" +
-	"\vGetUserInfo\x12\x1b.user.v1.GetUserInfoRequest\x1a\x1c.user.v1.GetUserInfoResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper_admin\x12b\n" +
-	"\vGetUserList\x12\x1b.user.v1.GetUserListRequest\x1a\x1c.user.v1.GetUserListResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper_admin\x12K\n" +
-	"\x04Chat\x12\x13.llm.v1.ChatRequest\x1a\x14.llm.v1.ChatResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper_admin\x12_\n" +
+	"\x10ADMIN_ROLE_ADMIN\x10\x022\xb5\x05\n" +
+	"\fAdminService\x12g\n" +
+	"\fGetAdminInfo\x12\x1d.admin.v1.GetAdminInfoRequest\x1a\x1e.admin.v1.GetAdminInfoResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin\x12]\n" +
+	"\vCreateAdmin\x12\x1c.admin.v1.CreateAdminRequest\x1a\x1d.admin.v1.CreateAdminResponse\"\x11\x82\xb5\x18\r\x12\vsuper-admin\x12g\n" +
+	"\fGetAdminList\x12\x1d.admin.v1.GetAdminListRequest\x1a\x1e.admin.v1.GetAdminListResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin\x12b\n" +
+	"\vGetUserInfo\x12\x1b.user.v1.GetUserInfoRequest\x1a\x1c.user.v1.GetUserInfoResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin\x12b\n" +
+	"\vGetUserList\x12\x1b.user.v1.GetUserListRequest\x1a\x1c.user.v1.GetUserListResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin\x12K\n" +
+	"\x04Chat\x12\x13.llm.v1.ChatRequest\x1a\x14.llm.v1.ChatResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin\x12_\n" +
 	"\n" +
-	"StreamChat\x12\x19.llm.v1.StreamChatRequest\x1a\x1a.llm.v1.StreamChatResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper_admin0\x01B>Z<github.com/Erain-byte/grpc_go_project/proto/admin/v1;adminv1b\x06proto3"
+	"StreamChat\x12\x19.llm.v1.StreamChatRequest\x1a\x1a.llm.v1.StreamChatResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin0\x01B>Z<github.com/Erain-byte/grpc_go_project/proto/admin/v1;adminv1b\x06proto3"
 
 var (
 	file_admin_v1_admin_proto_rawDescOnce sync.Once
@@ -958,28 +961,22 @@ var file_admin_v1_admin_proto_depIdxs = []int32{
 	11, // 3: admin.v1.CreateAdminResponse.admin:type_name -> admin.v1.Admin
 	11, // 4: admin.v1.GetAdminListResponse.admins:type_name -> admin.v1.Admin
 	0,  // 5: admin.v1.Admin.role:type_name -> admin.v1.AdminRole
-	1,  // 6: admin.v1.AdminService.Login:input_type -> admin.v1.LoginRequest
-	3,  // 7: admin.v1.AdminService.Logout:input_type -> admin.v1.LogoutRequest
-	5,  // 8: admin.v1.AdminService.GetAdminInfo:input_type -> admin.v1.GetAdminInfoRequest
-	7,  // 9: admin.v1.AdminService.CreateAdmin:input_type -> admin.v1.CreateAdminRequest
-	9,  // 10: admin.v1.AdminService.GetAdminList:input_type -> admin.v1.GetAdminListRequest
-	12, // 11: admin.v1.AdminService.RefreshToken:input_type -> admin.v1.RefreshTokenRequest
-	14, // 12: admin.v1.AdminService.GetUserInfo:input_type -> user.v1.GetUserInfoRequest
-	15, // 13: admin.v1.AdminService.GetUserList:input_type -> user.v1.GetUserListRequest
-	16, // 14: admin.v1.AdminService.Chat:input_type -> llm.v1.ChatRequest
-	17, // 15: admin.v1.AdminService.StreamChat:input_type -> llm.v1.StreamChatRequest
-	2,  // 16: admin.v1.AdminService.Login:output_type -> admin.v1.LoginResponse
-	4,  // 17: admin.v1.AdminService.Logout:output_type -> admin.v1.LogoutResponse
-	6,  // 18: admin.v1.AdminService.GetAdminInfo:output_type -> admin.v1.GetAdminInfoResponse
-	8,  // 19: admin.v1.AdminService.CreateAdmin:output_type -> admin.v1.CreateAdminResponse
-	10, // 20: admin.v1.AdminService.GetAdminList:output_type -> admin.v1.GetAdminListResponse
-	13, // 21: admin.v1.AdminService.RefreshToken:output_type -> admin.v1.RefreshTokenResponse
-	18, // 22: admin.v1.AdminService.GetUserInfo:output_type -> user.v1.GetUserInfoResponse
-	19, // 23: admin.v1.AdminService.GetUserList:output_type -> user.v1.GetUserListResponse
-	20, // 24: admin.v1.AdminService.Chat:output_type -> llm.v1.ChatResponse
-	21, // 25: admin.v1.AdminService.StreamChat:output_type -> llm.v1.StreamChatResponse
-	16, // [16:26] is the sub-list for method output_type
-	6,  // [6:16] is the sub-list for method input_type
+	5,  // 6: admin.v1.AdminService.GetAdminInfo:input_type -> admin.v1.GetAdminInfoRequest
+	7,  // 7: admin.v1.AdminService.CreateAdmin:input_type -> admin.v1.CreateAdminRequest
+	9,  // 8: admin.v1.AdminService.GetAdminList:input_type -> admin.v1.GetAdminListRequest
+	14, // 9: admin.v1.AdminService.GetUserInfo:input_type -> user.v1.GetUserInfoRequest
+	15, // 10: admin.v1.AdminService.GetUserList:input_type -> user.v1.GetUserListRequest
+	16, // 11: admin.v1.AdminService.Chat:input_type -> llm.v1.ChatRequest
+	17, // 12: admin.v1.AdminService.StreamChat:input_type -> llm.v1.StreamChatRequest
+	6,  // 13: admin.v1.AdminService.GetAdminInfo:output_type -> admin.v1.GetAdminInfoResponse
+	8,  // 14: admin.v1.AdminService.CreateAdmin:output_type -> admin.v1.CreateAdminResponse
+	10, // 15: admin.v1.AdminService.GetAdminList:output_type -> admin.v1.GetAdminListResponse
+	18, // 16: admin.v1.AdminService.GetUserInfo:output_type -> user.v1.GetUserInfoResponse
+	19, // 17: admin.v1.AdminService.GetUserList:output_type -> user.v1.GetUserListResponse
+	20, // 18: admin.v1.AdminService.Chat:output_type -> llm.v1.ChatResponse
+	21, // 19: admin.v1.AdminService.StreamChat:output_type -> llm.v1.StreamChatResponse
+	13, // [13:20] is the sub-list for method output_type
+	6,  // [6:13] is the sub-list for method input_type
 	6,  // [6:6] is the sub-list for extension type_name
 	6,  // [6:6] is the sub-list for extension extendee
 	0,  // [0:6] is the sub-list for field type_name

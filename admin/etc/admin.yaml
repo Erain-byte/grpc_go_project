@@ -6,21 +6,21 @@ host: "127.0.0.1"
 grpc_port: 9082
 
 database:
-  driver: "mysql"
+  driver: "postgres"
   host: "127.0.0.1"
-  port: 3306
-  username: "admindb"
+  port: 5433
+  username: "admin_service"
  
-  dbname: "admindb"
-  charset: "utf8mb4"
-  parse_time: true
-  location: "Local"
+  dbname: "admin"
+  ssl_mode: "disable"
+  timezone: "Asia/Shanghai"
+  connect_timeout: "5s"
   # false: all reads and writes use the primary database above.
   # true: writes use the primary database; reads may use the replicas below.
   read_write_split_enabled: false
   replica_addresses:
-    # - "10.0.0.11:3306"
-    # - "10.0.0.12:3306"
+    # - "10.0.0.11:5432"
+    # - "10.0.0.12:5432"
   max_idle_conns: 10
   max_open_conns: 100
   conn_max_idle_time: "10m"

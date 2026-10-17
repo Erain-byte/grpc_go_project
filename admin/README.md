@@ -1,5 +1,24 @@
 # Admin Service
 
+## PostgreSQL 配置
+
+Admin 业务数据库已经统一为 PostgreSQL。独立容器、环境变量和生产模板见 `deploy/postgres-admin/README.md`。本地默认连接 `127.0.0.1:5433`，数据库名为 `admin`，用户为 `admin_service`，密码只通过 `ADMIN_DB_PASSWORD` 注入。
+
+```powershell
+cd D:\grpc_go_project
+Copy-Item deploy\postgres-admin\.env.example deploy\postgres-admin\.env
+docker network create grpc-go-admin-database
+docker volume create grpc-go-admin-postgres-data
+docker compose --env-file deploy\postgres-admin\.env -f deploy\postgres-admin\compose.yaml up -d
+
+cd admin
+$env:ADMIN_DB_PASSWORD = "与 deploy/postgres-admin/.env 相同的密码"
+go run ./cmd/migrate -f etc/admin.yaml
+go run ./cmd/admin -f etc/admin.yaml
+```
+
+分区、索引和后续 User 分库分表规则应放在版本化数据库迁移中，不写进 Docker Compose。
+
 ## 本地启动
 
 Admin 是内部 gRPC 服务，不启动 Gin/HTTP 业务端口。当前监听：
@@ -10,11 +29,11 @@ gRPC: 127.0.0.1:9082
 
 ### 初始化数据库表结构
 
-数据库本身需要提前创建，当前本地配置使用数据库和用户 `admindb`。密码只通过环境变量提供，不写入 YAML：
+数据库由 `deploy/postgres-admin` 创建，当前本地配置使用数据库 `admin` 和用户 `admin_service`。密码只通过环境变量提供，不写入 YAML：
 
 ```powershell
 cd D:\grpc_go_project\admin
-$env:ADMIN_DB_PASSWORD = "本地 MySQL 密码"
+$env:ADMIN_DB_PASSWORD = "本地 PostgreSQL 密码"
 go run ./cmd/migrate -f etc/admin.yaml
 ```
 
@@ -54,7 +73,7 @@ Remove-Item Env:ADMIN_INITIAL_PASSWORD
 
 该命令拒绝覆盖已经存在的同名管理员，避免误重置密码。明文密码不会写入数据库、配置文件或 Git。
 
-启动前需要准备 MySQL、Redis、Consul 和 Jaeger。Consul 与 Jaeger 由项目 Compose 管理：
+启动前需要准备 PostgreSQL、Redis、Consul 和 Jaeger。PostgreSQL 使用本页开头的独立 Compose；Consul 与 Jaeger 由项目 Compose 管理：
 
 ```powershell
 cd D:\grpc_go_project
@@ -65,7 +84,7 @@ docker compose -f deploy\observability\compose.yaml up -d
 
 ```powershell
 cd D:\grpc_go_project\admin
-$env:ADMIN_DB_PASSWORD = "请替换为本地 MySQL 密码"
+$env:ADMIN_DB_PASSWORD = "请替换为本地 PostgreSQL 密码"
 $env:ADMIN_REDIS_PASSWORD = "123123"
 $env:ADMIN_ACCESS_TOKEN_SECRET = "请替换为本地测试密钥"
 go run ./cmd/admin

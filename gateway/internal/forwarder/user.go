@@ -124,3 +124,18 @@ func (u *UserForwarder) StreamChat(req *pbLlm.StreamChatRequest, stream pbUser.U
 		}
 	}
 }
+
+// 注册接口InitializeUser
+func (u *UserForwarder) InitializeUser(ctx context.Context, req *pbUser.InitializeUserRequest) (*pbUser.InitializeUserResponse, error) {
+	if ctx == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("is empty ctx"))
+	}
+	if req == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("is empty req"))
+	}
+	client, err := u.base.GetClient(ctx)
+	if err != nil {
+		return nil, apperror.ToGRPC(err)
+	}
+	return client.InitializeUser(ctx, req)
+}

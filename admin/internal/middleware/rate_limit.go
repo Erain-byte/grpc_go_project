@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	adminv1 "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	otelcodes "go.opentelemetry.io/otel/codes"
@@ -140,40 +139,14 @@ func (m *RateLimitInterceptor) check(
 }
 
 func (m *RateLimitInterceptor) ruleAndKey(ctx context.Context, req any, fullMethod string, ratelimitCfg runtimeconfig.RateLimitSnapshot) (string, runtimeconfig.Rule, error) {
-	switch fullMethod {
-	//登录接口需要限流
-	case adminv1.AdminService_Login_FullMethodName:
-		loginRequest, ok := req.(*adminv1.LoginRequest)
-		if !ok {
-			return "", runtimeconfig.Rule{}, status.Error(codes.Internal, "invalid login request")
-		}
-		username := strings.ToLower(strings.TrimSpace(loginRequest.GetUsername()))
-		if username == "" {
-			return "", runtimeconfig.Rule{}, status.Error(codes.InvalidArgument, "username is required")
-		}
-		return m.makeKey(ratelimitCfg.KeyPrefix, "login", username, fullMethod), ratelimitCfg.Login, nil
-	// 刷新令牌接口需要限流
-	case adminv1.AdminService_RefreshToken_FullMethodName:
-		refreshRequest, ok := req.(*adminv1.RefreshTokenRequest)
-		if !ok {
-			return "", runtimeconfig.Rule{}, status.Error(codes.Internal, "invalid refresh token request")
-		}
-		refreshToken := strings.TrimSpace(refreshRequest.GetRefreshToken())
-		if refreshToken == "" {
-			return "", runtimeconfig.Rule{}, status.Error(codes.InvalidArgument, "refresh token is required")
-		}
-		return m.makeKey(ratelimitCfg.KeyPrefix, "refresh token", refreshToken, fullMethod), ratelimitCfg.RefreshToken, nil
-	default:
-		authInfo, ok := auth.FromContext(ctx)
-		if !ok || strings.TrimSpace(authInfo.AdminID) == "" {
-			return "", runtimeconfig.Rule{}, status.Error(
-				codes.Unauthenticated,
-				"authenticated admin identity is missing",
-			)
-		}
-		return m.makeKey(ratelimitCfg.KeyPrefix, "admin", authInfo.AdminID, fullMethod), ratelimitCfg.Default, nil
+	authInfo, ok := auth.FromContext(ctx)
+	if !ok || strings.TrimSpace(authInfo.AdminID) == "" {
+		return "", runtimeconfig.Rule{}, status.Error(
+			codes.Unauthenticated,
+			"authenticated admin identity is missing",
+		)
 	}
-
+	return m.makeKey(ratelimitCfg.KeyPrefix, "admin", authInfo.AdminID, fullMethod), ratelimitCfg.Default, nil
 }
 
 func (m *RateLimitInterceptor) makeKey(keyPrefix string, dimension string, identity string, fullMethod string) string {
