@@ -16,8 +16,6 @@ type RateLimitSnapshot struct {
 	Enabled      bool
 	RedisTimeout time.Duration
 	KeyPrefix    string
-	Login        Rule
-	RefreshToken Rule
 	Default      Rule
 }
 
@@ -43,14 +41,6 @@ func BuildSnapshot(config *config.RuntimeConfig) (*Snapshot, error) {
 	if keyPrefix == "" {
 		return nil, fmt.Errorf("invalid rate-limit key-prefix %q", ratelimit.KeyPrefix)
 	}
-	loginRule, err := buildRule("login", ratelimit.Login)
-	if err != nil {
-		return nil, err
-	}
-	refreshTokenRule, err := buildRule("refresh-token", ratelimit.RefreshToken)
-	if err != nil {
-		return nil, err
-	}
 	defaultRule, err := buildRule("default", ratelimit.Default)
 	if err != nil {
 		return nil, err
@@ -61,8 +51,6 @@ func BuildSnapshot(config *config.RuntimeConfig) (*Snapshot, error) {
 			Enabled:      ratelimit.Enabled,
 			RedisTimeout: redisTimot,
 			KeyPrefix:    keyPrefix,
-			Login:        loginRule,
-			RefreshToken: refreshTokenRule,
 			Default:      defaultRule,
 		},
 	}, nil

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 
 	commonv1 "github.com/Erain-byte/grpc_go_project/proto/common/v1"
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -35,6 +36,7 @@ type accessTokenClaims struct {
 type AuthInterceptor struct {
 	verifier     *oidc.IDTokenVerifier
 	rolePriority []string
+	ruleCache    sync.Map // map[string]*commonv1.AuthRule
 }
 
 func NewAuthInterceptor(cfg config.AuthConfig) (*AuthInterceptor, error) {
@@ -96,7 +98,7 @@ func (m *AuthInterceptor) authenticate(ctx context.Context, fullMethod string) (
 	if fullMethod == healthpb.Health_Check_FullMethodName {
 		return ctx, nil
 	}
-	rule, err := authRuleForMethod(fullMethod)
+	rule, err := m.authRuleForMethod(fullMethod)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +174,21 @@ func primaryRole(tokenRoles, priority []string) string {
 	return ""
 }
 
-func authRuleForMethod(fullMethod string) (*commonv1.AuthRule, error) {
+func (m *AuthInterceptor) authRuleForMethod(fullMethod string) (*commonv1.AuthRule, error) {
+	if cached, ok := m.ruleCache.Load(fullMethod); ok {
+		return cached.(*commonv1.AuthRule), nil
+	}
+
+	rule, err := resolveAuthRule(fullMethod)
+	if err != nil {
+		return nil, err
+	}
+
+	actual, _ := m.ruleCache.LoadOrStore(fullMethod, rule)
+	return actual.(*commonv1.AuthRule), nil
+}
+
+func resolveAuthRule(fullMethod string) (*commonv1.AuthRule, error) {
 	descriptorName, err := grpcMethodDescriptorName(fullMethod)
 	if err != nil {
 		return nil, err

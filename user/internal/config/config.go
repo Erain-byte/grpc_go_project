@@ -14,22 +14,27 @@ import (
 
 // Config contains the long-lived configuration used by the USER service.
 type Config struct {
-	Environment   string          `yaml:"environment" mapstructure:"environment"`
-	Name          string          `yaml:"name" mapstructure:"name"`
-	Version       string          `yaml:"version" mapstructure:"version"`
-	Host          string          `yaml:"host" mapstructure:"host"`
-	GRPCPort      int             `yaml:"grpc_port" mapstructure:"grpc_port"`
-	AdvertiseHost string          `yaml:"advertise_host" mapstructure:"advertise_host"`
-	Database      DatabaseConfig  `yaml:"database" mapstructure:"database"`
-	Redis         RedisConfig     `yaml:"redis" mapstructure:"redis"`
-	RabbitMQ      RabbitMQConfig  `yaml:"rabbitmq" mapstructure:"rabbitmq"`
-	Auth          AuthConfig      `yaml:"auth" mapstructure:"auth"`
-	GRPC          GRPCConfig      `yaml:"grpc" mapstructure:"grpc"`
-	Consul        ConsulConfig    `yaml:"consul" mapstructure:"consul"`
-	Logger        LoggerConfig    `yaml:"logger" mapstructure:"logger"`
-	Tracing       TracingConfig   `yaml:"tracing" mapstructure:"tracing"`
-	RateLimit     RateLimitConfig `yaml:"rate_limit" mapstructure:"rate_limit"`
-	Shutdown      ShutdownConfig  `yaml:"shutdown" mapstructure:"shutdown"`
+	Environment   string            `yaml:"environment" mapstructure:"environment"`
+	Name          string            `yaml:"name" mapstructure:"name"`
+	Version       string            `yaml:"version" mapstructure:"version"`
+	Host          string            `yaml:"host" mapstructure:"host"`
+	GRPCPort      int               `yaml:"grpc_port" mapstructure:"grpc_port"`
+	AdvertiseHost string            `yaml:"advertise_host" mapstructure:"advertise_host"`
+	Database      DatabaseConfig    `yaml:"database" mapstructure:"database"`
+	IDGenerator   IDGeneratorConfig `yaml:"id_generator" mapstructure:"id_generator"`
+	Redis         RedisConfig       `yaml:"redis" mapstructure:"redis"`
+	RabbitMQ      RabbitMQConfig    `yaml:"rabbitmq" mapstructure:"rabbitmq"`
+	Auth          AuthConfig        `yaml:"auth" mapstructure:"auth"`
+	GRPC          GRPCConfig        `yaml:"grpc" mapstructure:"grpc"`
+	Consul        ConsulConfig      `yaml:"consul" mapstructure:"consul"`
+	Logger        LoggerConfig      `yaml:"logger" mapstructure:"logger"`
+	Tracing       TracingConfig     `yaml:"tracing" mapstructure:"tracing"`
+	RateLimit     RateLimitConfig   `yaml:"rate_limit" mapstructure:"rate_limit"`
+	Shutdown      ShutdownConfig    `yaml:"shutdown" mapstructure:"shutdown"`
+}
+
+type IDGeneratorConfig struct {
+	NodeID int64 `yaml:"node_id" mapstructure:"node_id"`
 }
 
 type AuthConfig struct {
@@ -254,7 +259,9 @@ func InitConfig(configPath string) (*Config, error) {
 	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("decode USER config: %w", err)
 	}
-	applyEnvironment(&cfg)
+	if err := applyEnvironment(&cfg); err != nil {
+		return nil, err
+	}
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
@@ -276,6 +283,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("database.sharding.enabled", true)
 	v.SetDefault("database.sharding.table_count", 8)
 	v.SetDefault("database.sharding.table_prefix", "users_")
+	v.SetDefault("id_generator.node_id", 1)
 	v.SetDefault("database.replica_addresses", []string{})
 	v.SetDefault("redis.enabled", false)
 	v.SetDefault("redis.host", "127.0.0.1")
@@ -299,7 +307,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("shutdown.timeout", "10s")
 }
 
-func applyEnvironment(cfg *Config) {
+func applyEnvironment(cfg *Config) error {
 	if value := os.Getenv("USER_ENVIRONMENT"); value != "" {
 		cfg.Environment = value
 	}
@@ -315,6 +323,14 @@ func applyEnvironment(cfg *Config) {
 	if value := os.Getenv("USER_CONSUL_TOKEN"); value != "" {
 		cfg.Consul.Token = value
 	}
+	if value := os.Getenv("USER_SNOWFLAKE_NODE_ID"); value != "" {
+		nodeID, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse USER_SNOWFLAKE_NODE_ID: %w", err)
+		}
+		cfg.IDGenerator.NodeID = nodeID
+	}
+	return nil
 }
 
 func validatePositiveDuration(name, value string) error {
@@ -371,6 +387,9 @@ func (c Config) Validate() error {
 	}
 	if strings.TrimSpace(c.AdvertiseHost) == "" || c.AdvertiseHost == "0.0.0.0" {
 		return fmt.Errorf("USER advertise host must be a reachable address")
+	}
+	if c.IDGenerator.NodeID < 0 || c.IDGenerator.NodeID > 1023 {
+		return fmt.Errorf("snowflake node ID %d is outside 0..1023", c.IDGenerator.NodeID)
 	}
 
 	if c.Database.Enabled {

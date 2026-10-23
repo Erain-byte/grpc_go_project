@@ -35,12 +35,11 @@ func main() {
 		}
 	}()
 
-	// 先迁移主表，再迁移依赖主表的会话、日志和多对多关联表。
+	// 先迁移主表，再迁移日志和多对多关联表。
 	if err := dbClient.Gorm().AutoMigrate(
 		&model.AdminModel{},
 		&model.RoleModel{},
 		&model.PermissionsModel{},
-		&model.AdminSessionModel{},
 		&model.OperationLogModel{},
 	); err != nil {
 		exitWithError("migrate database", err)
@@ -63,6 +62,14 @@ func main() {
 		})
 		if err != nil {
 			exitWithError("migrate legacy admins.password column", err)
+		}
+	}
+
+	// Keycloak 与 oauth2-proxy 已接管 Token 和浏览器 Session。旧表只保存
+	// Admin 自签 Refresh Token 的哈希，当前代码不再读取，迁移时将其删除。
+	if dbClient.Gorm().Migrator().HasTable("admin_sessions") {
+		if err := dbClient.Gorm().Migrator().DropTable("admin_sessions"); err != nil {
+			exitWithError("drop legacy admin_sessions table", err)
 		}
 	}
 

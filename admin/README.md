@@ -43,7 +43,6 @@ go run ./cmd/migrate -f etc/admin.yaml
 admins
 role
 permissions
-admin_sessions
 operation_log
 admin_roles
 role_permission
@@ -57,7 +56,9 @@ admin database migration completed
 
 该命令当前使用 GORM `AutoMigrate`，适合本地开发和集成测试。它不会创建初始管理员，也不会删除已有字段或数据；生产环境后续应改用经过评审、可回滚的版本化 SQL。
 
-迁移命令包含一个明确的旧结构兼容步骤：如果检测到旧版 `admins.password` 列，会先把非空值复制到 `password_hash`，再删除旧列。这样新版代码插入管理员时不会再触发 `Field 'password' doesn't have a default value`。该清理只针对这个已经确认废弃的字段。
+迁移命令包含两个旧结构清理步骤：如果检测到旧版 `admins.password` 列，会先把非空值复制到 `password_hash`，再删除旧列；如果检测到旧自签 Token 体系使用的 `admin_sessions`，会直接删除。Keycloak 与 oauth2-proxy 已经接管 Token 和浏览器 Session，Admin 不再读写该表。
+
+`admins.keycloak_subject` 保存稳定的 Keycloak `sub`。现有管理员第一次通过合法的 Keycloak Admin Token 请求 `/admin/info` 时，服务会按已验证的 `preferred_username` 找到尚未绑定的本地管理员，并进行一次性绑定；后续请求只按 `sub` 查询。
 
 ### 创建本地初始管理员
 
@@ -86,7 +87,6 @@ docker compose -f deploy\observability\compose.yaml up -d
 cd D:\grpc_go_project\admin
 $env:ADMIN_DB_PASSWORD = "请替换为本地 PostgreSQL 密码"
 $env:ADMIN_REDIS_PASSWORD = "123123"
-$env:ADMIN_ACCESS_TOKEN_SECRET = "请替换为本地测试密钥"
 go run ./cmd/admin
 ```
 
@@ -96,7 +96,7 @@ go run ./cmd/admin
 $env:ADMIN_CONSUL_TOKEN = "请替换为 Consul Token"
 ```
 
-当前开发模式 Consul没有启用 ACL，可以不设置该变量。Admin 与 Gateway 的 Access Token Secret 必须相同。
+当前开发模式 Consul没有启用 ACL，可以不设置该变量。Admin 使用 Keycloak JWKS 公钥独立验证 RS256 Access Token，不再配置与 Gateway 共享的 Token Secret。
 
 Admin 日志默认位于：
 

@@ -63,12 +63,6 @@ func validateRuntimeRateLimit(cfg RateLimitConfig) error {
 			"rate_limit.key_prefix is empty",
 		)
 	}
-	if err := validateRuntimeRate("login", cfg.Login); err != nil {
-		return err
-	}
-	if err := validateRuntimeRate("refresh_token", cfg.RefreshToken); err != nil {
-		return err
-	}
 	if err := validateRuntimeRate("default", cfg.Default); err != nil {
 		return err
 	}

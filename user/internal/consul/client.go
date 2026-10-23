@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 	"user/internal/config"
 	"user/pkg/apperror"
 
@@ -150,4 +151,17 @@ func (c *ConsulRegistry) Ping(ctx context.Context) error {
 		return apperror.Unavailable("consul leader is empty")
 	}
 	return nil
+}
+
+// waitRetry定时器
+func waitRetry(ctx context.Context, waitTime time.Duration) bool {
+	timer := time.NewTimer(waitTime)
+	defer timer.Stop()
+	select {
+	case <-timer.C:
+		return true
+	case <-ctx.Done():
+		return false
+	}
+
 }

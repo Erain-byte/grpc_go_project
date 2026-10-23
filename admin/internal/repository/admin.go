@@ -14,7 +14,9 @@ type AdminRepository interface {
 	// CreateAdmin creates a new admin
 	Create(ctx context.Context, admin *model.AdminModel) error
 	FindByID(ctx context.Context, id uint) (*model.AdminModel, error)
+	FindByKeycloakSubject(ctx context.Context, subject string) (*model.AdminModel, error)
 	FindByUsername(ctx context.Context, username string) (*model.AdminModel, error)
+	BindKeycloakSubject(ctx context.Context, adminID uint, subject string) error
 	List(ctx context.Context, offset, limit int) ([]*model.AdminModel, int64, error)
 	Update(ctx context.Context, admin *model.AdminModel) error
 	Delete(ctx context.Context, id uint) error
@@ -38,9 +40,28 @@ func (r *adminRepository) Create(ctx context.Context, admin *model.AdminModel) e
 	}
 	return r.svc.DB.Gorm().
 		WithContext(ctx).
-		Omit("Roles", "Sessions").
+		Omit("Roles").
 		Create(admin).
 		Error
+}
+
+func (r *adminRepository) FindByKeycloakSubject(ctx context.Context, subject string) (*model.AdminModel, error) {
+	subject = strings.TrimSpace(subject)
+	if subject == "" {
+		return nil, apperorr.InvalidArgument("Keycloak subject is required")
+	}
+
+	admin := new(model.AdminModel)
+	err := r.svc.DB.Gorm().
+		WithContext(ctx).
+		Preload("Roles").
+		Where("keycloak_subject = ?", subject).
+		First(admin).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	return admin, nil
 }
 
 func (r *adminRepository) FindByID(ctx context.Context, id uint) (*model.AdminModel, error) {
@@ -58,6 +79,29 @@ func (r *adminRepository) FindByID(ctx context.Context, id uint) (*model.AdminMo
 		return nil, err
 	}
 	return admin, nil
+}
+
+// BindKeycloakSubject performs a one-time identity migration. The conditional
+// update prevents an existing administrator from being rebound to another
+// Keycloak account.
+func (r *adminRepository) BindKeycloakSubject(ctx context.Context, adminID uint, subject string) error {
+	subject = strings.TrimSpace(subject)
+	if adminID == 0 || subject == "" {
+		return apperorr.InvalidArgument("admin ID and Keycloak subject are required")
+	}
+
+	result := r.svc.DB.Gorm().
+		WithContext(ctx).
+		Model(&model.AdminModel{}).
+		Where("id = ? AND keycloak_subject IS NULL", adminID).
+		Update("keycloak_subject", subject)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
 
 func (r *adminRepository) FindByUsername(ctx context.Context, username string) (*model.AdminModel, error) {

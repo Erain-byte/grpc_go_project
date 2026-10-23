@@ -10,7 +10,7 @@ import (
 
 // UserForwarder 从user服务获取数据
 type UserForwarder struct {
-	pbUser.UnimplementedUserServiceServer
+	//pbUser.UnimplementedUserServiceServer
 	base *BaseForwarder[pbUser.UserServiceClient]
 }
 
@@ -29,11 +29,11 @@ func (u *UserForwarder) GetUserInfo(ctx context.Context, req *pbUser.GetUserInfo
 	if req == nil {
 		return nil, apperror.ToGRPC(apperror.InvalidArgument("is empty req"))
 	}
-	clien, err := u.base.Forward(ctx)
+	client, err := u.base.Client(ctx)
 	if err != nil {
 		return nil, apperror.ToGRPC(err)
 	}
-	return clien.GetUserInfo(OutgoingContext(ctx), req)
+	return client.GetUserInfo(OutgoingContext(ctx), req)
 }
 
 // GetUserList
@@ -44,9 +44,9 @@ func (u *UserForwarder) GetUserList(ctx context.Context, req *pbUser.GetUserList
 	if req == nil {
 		return nil, apperror.ToGRPC(apperror.InvalidArgument("is empty req"))
 	}
-	clien, err := u.base.Forward(ctx)
+	client, err := u.base.Client(ctx)
 	if err != nil {
 		return nil, apperror.ToGRPC(err)
 	}
-	return clien.GetUserList(OutgoingContext(ctx), req)
+	return client.GetUserList(OutgoingContext(ctx), req)
 }

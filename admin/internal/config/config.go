@@ -127,8 +127,8 @@ func (c RedisConfig) GetRedisAddress() []string {
 }
 
 type AuthConfig struct {
-	AccessToken  AccessTokenConfig  `yaml:"access_token" mapstructure:"access_token"`
-	RefreshToken RefreshTokenConfig `yaml:"refresh_token" mapstructure:"refresh_token"`
+	AccessToken     AccessTokenConfig `yaml:"access_token" mapstructure:"access_token"`
+	ProfileCacheTTL string            `yaml:"profile_cache_ttl" mapstructure:"profile_cache_ttl"`
 }
 
 type AccessTokenConfig struct {
@@ -137,15 +137,6 @@ type AccessTokenConfig struct {
 	Algorithm    string   `yaml:"algorithm" mapstructure:"algorithm"`
 	JWKSURL      string   `yaml:"jwks_url" mapstructure:"jwks_url"`
 	RolePriority []string `yaml:"role_priority" mapstructure:"role_priority"`
-	Expire       string   `yaml:"expire" mapstructure:"expire"`
-	Secret       string   `yaml:"-" mapstructure:"-"`
-}
-
-type RefreshTokenConfig struct {
-	Expire         string `yaml:"expire" mapstructure:"expire"`
-	Rotate         bool   `yaml:"rotate" mapstructure:"rotate"`
-	ReuseDetection bool   `yaml:"reuse_detection" mapstructure:"reuse_detection"`
-	RedisKeyPrefix string `yaml:"redis_key_prefix" mapstructure:"redis_key_prefix"`
 }
 
 type ConsulConfig struct {
@@ -216,8 +207,6 @@ type RateLimitConfig struct {
 	Enabled      bool          `yaml:"enabled" mapstructure:"enabled" json:"enabled"`
 	RedisTimeout string        `yaml:"redis_timeout" mapstructure:"redis_timeout" json:"redis_timeout"`
 	KeyPrefix    string        `yaml:"key_prefix" mapstructure:"key_prefix" json:"key_prefix"`
-	Login        RateLimitRule `yaml:"login" mapstructure:"login" json:"login"`
-	RefreshToken RateLimitRule `yaml:"refresh_token" mapstructure:"refresh_token" json:"refresh_token"`
 	Default      RateLimitRule `yaml:"default" mapstructure:"default" json:"default"`
 }
 
@@ -287,14 +276,11 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("consul.port", 8500)
 	v.SetDefault("consul.scheme", "http")
 	v.SetDefault("shutdown.timeout", "10s")
+	v.SetDefault("auth.profile_cache_ttl", "15m")
 	//限流配置
 	v.SetDefault("rate_limit.enabled", true)
 	v.SetDefault("rate_limit.redis_timeout", "300ms")
 	v.SetDefault("rate_limit.key_prefix", "admin:rate_limit:")
-	v.SetDefault("rate_limit.login.limit", 10)
-	v.SetDefault("rate_limit.login.window", "1m")
-	v.SetDefault("rate_limit.refresh_token.limit", 20)
-	v.SetDefault("rate_limit.refresh_token.window", "1m")
 	v.SetDefault("rate_limit.default.limit", 100)
 	v.SetDefault("rate_limit.default.window", "1m")
 }
@@ -315,9 +301,6 @@ func applyEnvironment(cfg *Config) {
 	if value := os.Getenv("ADMIN_CONSUL_TOKEN"); value != "" {
 		cfg.Consul.Token = value
 	}
-	if value := os.Getenv("ADMIN_ACCESS_TOKEN_SECRET"); value != "" {
-		cfg.Auth.AccessToken.Secret = value
-	}
 }
 func validateRateLimitConfig(cfg RateLimitConfig) error {
 	if !cfg.Enabled {
@@ -334,9 +317,7 @@ func validateRateLimitConfig(cfg RateLimitConfig) error {
 		)
 	}
 	rules := map[string]RateLimitRule{
-		"login":         cfg.Login,
-		"refresh_token": cfg.RefreshToken,
-		"default":       cfg.Default,
+		"default": cfg.Default,
 	}
 	for name, rule := range rules {
 		if rule.Limit <= 0 {
@@ -480,6 +461,10 @@ func (c Config) Validate() error {
 	}
 	if len(c.Auth.AccessToken.RolePriority) == 0 {
 		return fmt.Errorf("admin access-token role priority is empty")
+	}
+	profileCacheTTL, err := time.ParseDuration(c.Auth.ProfileCacheTTL)
+	if err != nil || profileCacheTTL <= 0 {
+		return fmt.Errorf("admin profile cache TTL must be a positive duration")
 	}
 	if c.GRPC.UseTLS && (strings.TrimSpace(c.GRPC.CertFile) == "" || strings.TrimSpace(c.GRPC.KeyFile) == "") {
 		return fmt.Errorf("admin gRPC certificate and private key are required when TLS is enabled")

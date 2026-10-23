@@ -4,14 +4,6 @@
     "enabled": true,
     "redis_timeout": "300ms",
     "key_prefix": "admin:rate_limit:",
-    "login": {
-      "limit": 10,
-      "window": "1m"
-    },
-    "refresh_token": {
-      "limit": 20,
-      "window": "1m"
-    },
     "default": {
       "limit": 100,
       "window": "1m"

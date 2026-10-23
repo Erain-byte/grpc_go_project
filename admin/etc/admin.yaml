@@ -71,8 +71,9 @@ rabbitmq:
     dead_letter_routing_key: "admin.operation_log.dead"
     dead_letter_queue: "admin.operation_log.dlq"
 
-# ADMIN_ACCESS_TOKEN_SECRET must match the Gateway verification secret.
+# Admin validates Keycloak access tokens with the realm JWKS public keys.
 auth:
+  profile_cache_ttl: "15m"
   access_token:
     issuer: "http://localhost:8180/realms/grpc-project"
     audience: "grpc-api"
@@ -82,12 +83,6 @@ auth:
       - "super-admin"
       - "admin"
       - "user"
-    expire: "15m"
-  refresh_token:
-    expire: "168h"
-    rotate: true
-    reuse_detection: true
-    redis_key_prefix: "admin:auth:refresh:"
 
 consul:
   host: "127.0.0.1"
@@ -144,16 +139,6 @@ rate_limit:
 
   # Redis Key 前缀，用来隔离不同业务。
   key_prefix: "admin:rate_limit:"
-
-  # 同一用户名一分钟最多尝试登录10次。
-  login:
-    limit: 10
-    window: "1m"
-
-  # 同一个 Refresh Token 一分钟最多刷新20次。
-  refresh_token:
-    limit: 20
-    window: "1m"
 
   # 已登录管理员访问同一个RPC方法的默认限制。
   default:

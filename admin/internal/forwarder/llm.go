@@ -13,7 +13,7 @@ import (
 
 // NewLlmForwarder 创建llm转发器
 type LlmForwarder struct {
-	bpLlm.UnimplementedLlmServiceServer
+	//bpLlm.UnimplementedLlmServiceServer
 	base *BaseForwarder[bpLlm.LlmServiceClient]
 }
 
@@ -34,7 +34,7 @@ func (f *LlmForwarder) Chat(ctx context.Context, req *bpLlm.ChatRequest) (*bpLlm
 	if req == nil {
 		return nil, apperror.ToGRPC(apperror.InvalidArgument("req is empty"))
 	}
-	client, err := f.base.Forward(ctx)
+	client, err := f.base.Client(ctx)
 	if err != nil {
 		return nil, apperror.ToGRPC(err)
 	}
@@ -50,7 +50,7 @@ func (f *LlmForwarder) StreamChat(req *bpLlm.StreamChatRequest, stream bpLlm.Llm
 		return apperror.ToGRPC(apperror.InvalidArgument("stream is empty"))
 	}
 	ctx := stream.Context()
-	client, err := f.base.Forward(ctx)
+	client, err := f.base.Client(ctx)
 	if err != nil {
 		return apperror.ToGRPC(err)
 

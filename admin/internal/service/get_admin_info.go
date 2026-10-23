@@ -9,6 +9,7 @@ import (
 	"admin/pkg/apperorr"
 	"context"
 	"encoding/json"
+	"errors"
 	"strings"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 const getAdminInfoTimeout = 5 * time.Second
@@ -73,7 +75,7 @@ func (s *GetAdminInfoService) GetAdminInfo(
 	if hit {
 		return getAdminInfoResponse(profile), nil
 	}
-	admin, err := s.adminModel.FindByUsername(requestCtx, username)
+	admin, err := s.findAndBindAdmin(requestCtx, subject, username)
 	if err != nil || admin == nil {
 		return nil, apperorr.Unauthorized("admin account does not exist")
 	}
@@ -89,6 +91,41 @@ func (s *GetAdminInfoService) GetAdminInfo(
 		s.svc.Logger.Warn("write admin profile cache", zap.Error(cacheErr))
 	}
 	return getAdminInfoResponse(profile), nil
+}
+
+// findAndBindAdmin resolves administrators by the stable Keycloak subject.
+// Username lookup is only a migration fallback for an existing, unbound local
+// administrator and is disabled automatically after the first successful bind.
+func (s *GetAdminInfoService) findAndBindAdmin(
+	ctx context.Context,
+	subject string,
+	username string,
+) (*model.AdminModel, error) {
+	admin, err := s.adminModel.FindByKeycloakSubject(ctx, subject)
+	if err == nil {
+		return admin, nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	admin, err = s.adminModel.FindByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	if admin.KeycloakSubject != nil {
+		return nil, apperorr.Forbidden("admin account is bound to another Keycloak identity")
+	}
+	if err := s.adminModel.BindKeycloakSubject(ctx, admin.ID, subject); err != nil {
+		// A concurrent request may have completed the same one-time binding.
+		bound, findErr := s.adminModel.FindByKeycloakSubject(ctx, subject)
+		if findErr == nil {
+			return bound, nil
+		}
+		return nil, err
+	}
+	admin.KeycloakSubject = &subject
+	return admin, nil
 }
 
 // sessionActive 检查 Redis 中的在线 Session 状态。
@@ -194,7 +231,7 @@ func (s *GetAdminInfoService) cacheProfile(
 		spanCtx,
 		key,
 		data,
-		profileCacheTTL(s.svc.Config.Auth.AccessToken.Expire),
+		profileCacheTTL(s.svc.Config.Auth.ProfileCacheTTL),
 	)
 	return returnErr
 }

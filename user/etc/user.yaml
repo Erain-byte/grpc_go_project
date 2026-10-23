@@ -4,6 +4,11 @@ environment: "development"
 name: "user-service"
 version: "1.0.0"
 
+# Snowflake node ID. Simultaneously running User instances must use different
+# values. Production deployments should inject USER_SNOWFLAKE_NODE_ID.
+id_generator:
+  node_id: 1
+
 # gRPC Server 监听地址。
 host: "0.0.0.0"
 grpc_port: 9084
