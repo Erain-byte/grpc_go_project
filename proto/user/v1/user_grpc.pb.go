@@ -9,6 +9,7 @@ package userv1
 import (
 	context "context"
 	v1 "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
+	v11 "github.com/Erain-byte/grpc_go_project/proto/web3/v1"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -20,12 +21,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_InitializeUser_FullMethodName = "/user.v1.UserService/InitializeUser"
-	UserService_GetUserInfo_FullMethodName    = "/user.v1.UserService/GetUserInfo"
-	UserService_CreateUser_FullMethodName     = "/user.v1.UserService/CreateUser"
-	UserService_GetUserList_FullMethodName    = "/user.v1.UserService/GetUserList"
-	UserService_Chat_FullMethodName           = "/user.v1.UserService/Chat"
-	UserService_StreamChat_FullMethodName     = "/user.v1.UserService/StreamChat"
+	UserService_InitializeUser_FullMethodName     = "/user.v1.UserService/InitializeUser"
+	UserService_GetUserInfo_FullMethodName        = "/user.v1.UserService/GetUserInfo"
+	UserService_CreateUser_FullMethodName         = "/user.v1.UserService/CreateUser"
+	UserService_GetUserList_FullMethodName        = "/user.v1.UserService/GetUserList"
+	UserService_Chat_FullMethodName               = "/user.v1.UserService/Chat"
+	UserService_StreamChat_FullMethodName         = "/user.v1.UserService/StreamChat"
+	UserService_GetSupportedChains_FullMethodName = "/user.v1.UserService/GetSupportedChains"
+	UserService_CreateBindingNonce_FullMethodName = "/user.v1.UserService/CreateBindingNonce"
+	UserService_BindWallet_FullMethodName         = "/user.v1.UserService/BindWallet"
+	UserService_UnbindWallet_FullMethodName       = "/user.v1.UserService/UnbindWallet"
+	UserService_GetWallets_FullMethodName         = "/user.v1.UserService/GetWallets"
+	UserService_UpdateWallet_FullMethodName       = "/user.v1.UserService/UpdateWallet"
+	UserService_GetBalance_FullMethodName         = "/user.v1.UserService/GetBalance"
+	UserService_GetTransaction_FullMethodName     = "/user.v1.UserService/GetTransaction"
+	UserService_GetTransactions_FullMethodName    = "/user.v1.UserService/GetTransactions"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -40,6 +50,16 @@ type UserServiceClient interface {
 	GetUserList(ctx context.Context, in *GetUserListRequest, opts ...grpc.CallOption) (*GetUserListResponse, error)
 	Chat(ctx context.Context, in *v1.ChatRequest, opts ...grpc.CallOption) (*v1.ChatResponse, error)
 	StreamChat(ctx context.Context, in *v1.StreamChatRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[v1.StreamChatResponse], error)
+	// Web3 wallet operations forwarded by UserService to Web3Service.
+	GetSupportedChains(ctx context.Context, in *v11.GetSupportedChainsRequest, opts ...grpc.CallOption) (*v11.GetSupportedChainsResponse, error)
+	CreateBindingNonce(ctx context.Context, in *v11.CreateBindingNonceRequest, opts ...grpc.CallOption) (*v11.CreateBindingNonceResponse, error)
+	BindWallet(ctx context.Context, in *v11.BindWalletRequest, opts ...grpc.CallOption) (*v11.BindWalletResponse, error)
+	UnbindWallet(ctx context.Context, in *v11.UnbindWalletRequest, opts ...grpc.CallOption) (*v11.UnbindWalletResponse, error)
+	GetWallets(ctx context.Context, in *v11.GetWalletsRequest, opts ...grpc.CallOption) (*v11.GetWalletsResponse, error)
+	UpdateWallet(ctx context.Context, in *v11.UpdateWalletRequest, opts ...grpc.CallOption) (*v11.UpdateWalletResponse, error)
+	GetBalance(ctx context.Context, in *v11.GetBalanceRequest, opts ...grpc.CallOption) (*v11.GetBalanceResponse, error)
+	GetTransaction(ctx context.Context, in *v11.GetTransactionRequest, opts ...grpc.CallOption) (*v11.GetTransactionResponse, error)
+	GetTransactions(ctx context.Context, in *v11.GetTransactionsRequest, opts ...grpc.CallOption) (*v11.GetTransactionsResponse, error)
 }
 
 type userServiceClient struct {
@@ -119,6 +139,96 @@ func (c *userServiceClient) StreamChat(ctx context.Context, in *v1.StreamChatReq
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type UserService_StreamChatClient = grpc.ServerStreamingClient[v1.StreamChatResponse]
 
+func (c *userServiceClient) GetSupportedChains(ctx context.Context, in *v11.GetSupportedChainsRequest, opts ...grpc.CallOption) (*v11.GetSupportedChainsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v11.GetSupportedChainsResponse)
+	err := c.cc.Invoke(ctx, UserService_GetSupportedChains_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) CreateBindingNonce(ctx context.Context, in *v11.CreateBindingNonceRequest, opts ...grpc.CallOption) (*v11.CreateBindingNonceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v11.CreateBindingNonceResponse)
+	err := c.cc.Invoke(ctx, UserService_CreateBindingNonce_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) BindWallet(ctx context.Context, in *v11.BindWalletRequest, opts ...grpc.CallOption) (*v11.BindWalletResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v11.BindWalletResponse)
+	err := c.cc.Invoke(ctx, UserService_BindWallet_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UnbindWallet(ctx context.Context, in *v11.UnbindWalletRequest, opts ...grpc.CallOption) (*v11.UnbindWalletResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v11.UnbindWalletResponse)
+	err := c.cc.Invoke(ctx, UserService_UnbindWallet_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetWallets(ctx context.Context, in *v11.GetWalletsRequest, opts ...grpc.CallOption) (*v11.GetWalletsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v11.GetWalletsResponse)
+	err := c.cc.Invoke(ctx, UserService_GetWallets_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpdateWallet(ctx context.Context, in *v11.UpdateWalletRequest, opts ...grpc.CallOption) (*v11.UpdateWalletResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v11.UpdateWalletResponse)
+	err := c.cc.Invoke(ctx, UserService_UpdateWallet_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetBalance(ctx context.Context, in *v11.GetBalanceRequest, opts ...grpc.CallOption) (*v11.GetBalanceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v11.GetBalanceResponse)
+	err := c.cc.Invoke(ctx, UserService_GetBalance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetTransaction(ctx context.Context, in *v11.GetTransactionRequest, opts ...grpc.CallOption) (*v11.GetTransactionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v11.GetTransactionResponse)
+	err := c.cc.Invoke(ctx, UserService_GetTransaction_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetTransactions(ctx context.Context, in *v11.GetTransactionsRequest, opts ...grpc.CallOption) (*v11.GetTransactionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v11.GetTransactionsResponse)
+	err := c.cc.Invoke(ctx, UserService_GetTransactions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -131,6 +241,16 @@ type UserServiceServer interface {
 	GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error)
 	Chat(context.Context, *v1.ChatRequest) (*v1.ChatResponse, error)
 	StreamChat(*v1.StreamChatRequest, grpc.ServerStreamingServer[v1.StreamChatResponse]) error
+	// Web3 wallet operations forwarded by UserService to Web3Service.
+	GetSupportedChains(context.Context, *v11.GetSupportedChainsRequest) (*v11.GetSupportedChainsResponse, error)
+	CreateBindingNonce(context.Context, *v11.CreateBindingNonceRequest) (*v11.CreateBindingNonceResponse, error)
+	BindWallet(context.Context, *v11.BindWalletRequest) (*v11.BindWalletResponse, error)
+	UnbindWallet(context.Context, *v11.UnbindWalletRequest) (*v11.UnbindWalletResponse, error)
+	GetWallets(context.Context, *v11.GetWalletsRequest) (*v11.GetWalletsResponse, error)
+	UpdateWallet(context.Context, *v11.UpdateWalletRequest) (*v11.UpdateWalletResponse, error)
+	GetBalance(context.Context, *v11.GetBalanceRequest) (*v11.GetBalanceResponse, error)
+	GetTransaction(context.Context, *v11.GetTransactionRequest) (*v11.GetTransactionResponse, error)
+	GetTransactions(context.Context, *v11.GetTransactionsRequest) (*v11.GetTransactionsResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -158,6 +278,33 @@ func (UnimplementedUserServiceServer) Chat(context.Context, *v1.ChatRequest) (*v
 }
 func (UnimplementedUserServiceServer) StreamChat(*v1.StreamChatRequest, grpc.ServerStreamingServer[v1.StreamChatResponse]) error {
 	return status.Error(codes.Unimplemented, "method StreamChat not implemented")
+}
+func (UnimplementedUserServiceServer) GetSupportedChains(context.Context, *v11.GetSupportedChainsRequest) (*v11.GetSupportedChainsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSupportedChains not implemented")
+}
+func (UnimplementedUserServiceServer) CreateBindingNonce(context.Context, *v11.CreateBindingNonceRequest) (*v11.CreateBindingNonceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateBindingNonce not implemented")
+}
+func (UnimplementedUserServiceServer) BindWallet(context.Context, *v11.BindWalletRequest) (*v11.BindWalletResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BindWallet not implemented")
+}
+func (UnimplementedUserServiceServer) UnbindWallet(context.Context, *v11.UnbindWalletRequest) (*v11.UnbindWalletResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UnbindWallet not implemented")
+}
+func (UnimplementedUserServiceServer) GetWallets(context.Context, *v11.GetWalletsRequest) (*v11.GetWalletsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetWallets not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateWallet(context.Context, *v11.UpdateWalletRequest) (*v11.UpdateWalletResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateWallet not implemented")
+}
+func (UnimplementedUserServiceServer) GetBalance(context.Context, *v11.GetBalanceRequest) (*v11.GetBalanceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetBalance not implemented")
+}
+func (UnimplementedUserServiceServer) GetTransaction(context.Context, *v11.GetTransactionRequest) (*v11.GetTransactionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTransaction not implemented")
+}
+func (UnimplementedUserServiceServer) GetTransactions(context.Context, *v11.GetTransactionsRequest) (*v11.GetTransactionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTransactions not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -281,6 +428,168 @@ func _UserService_StreamChat_Handler(srv interface{}, stream grpc.ServerStream) 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type UserService_StreamChatServer = grpc.ServerStreamingServer[v1.StreamChatResponse]
 
+func _UserService_GetSupportedChains_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v11.GetSupportedChainsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetSupportedChains(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetSupportedChains_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetSupportedChains(ctx, req.(*v11.GetSupportedChainsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_CreateBindingNonce_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v11.CreateBindingNonceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CreateBindingNonce(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_CreateBindingNonce_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CreateBindingNonce(ctx, req.(*v11.CreateBindingNonceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_BindWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v11.BindWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).BindWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_BindWallet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).BindWallet(ctx, req.(*v11.BindWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UnbindWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v11.UnbindWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UnbindWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UnbindWallet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UnbindWallet(ctx, req.(*v11.UnbindWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetWallets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v11.GetWalletsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetWallets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetWallets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetWallets(ctx, req.(*v11.GetWalletsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpdateWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v11.UpdateWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpdateWallet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateWallet(ctx, req.(*v11.UpdateWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v11.GetBalanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetBalance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetBalance(ctx, req.(*v11.GetBalanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetTransaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v11.GetTransactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetTransaction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetTransaction_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetTransaction(ctx, req.(*v11.GetTransactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v11.GetTransactionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetTransactions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetTransactions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetTransactions(ctx, req.(*v11.GetTransactionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -307,6 +616,42 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Chat",
 			Handler:    _UserService_Chat_Handler,
+		},
+		{
+			MethodName: "GetSupportedChains",
+			Handler:    _UserService_GetSupportedChains_Handler,
+		},
+		{
+			MethodName: "CreateBindingNonce",
+			Handler:    _UserService_CreateBindingNonce_Handler,
+		},
+		{
+			MethodName: "BindWallet",
+			Handler:    _UserService_BindWallet_Handler,
+		},
+		{
+			MethodName: "UnbindWallet",
+			Handler:    _UserService_UnbindWallet_Handler,
+		},
+		{
+			MethodName: "GetWallets",
+			Handler:    _UserService_GetWallets_Handler,
+		},
+		{
+			MethodName: "UpdateWallet",
+			Handler:    _UserService_UpdateWallet_Handler,
+		},
+		{
+			MethodName: "GetBalance",
+			Handler:    _UserService_GetBalance_Handler,
+		},
+		{
+			MethodName: "GetTransaction",
+			Handler:    _UserService_GetTransaction_Handler,
+		},
+		{
+			MethodName: "GetTransactions",
+			Handler:    _UserService_GetTransactions_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

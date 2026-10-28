@@ -1,0 +1,235 @@
+syntax = "proto3";
+
+package web3.v1;
+
+import "common/v1/security.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/Erain-byte/grpc_go_project/proto/web3/v1;web3v1";
+
+// Web3Service 提供用户钱包绑定与只读链上查询。
+// 当前用户身份来自经过验证的 gRPC metadata，不由请求体传入。
+service Web3Service {
+  // GetSupportedChains 返回当前服务已启用的链及其确认策略。
+  rpc GetSupportedChains(GetSupportedChainsRequest) returns (GetSupportedChainsResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+      roles: "admin"
+      roles: "super-admin"
+    };
+  }
+
+  // CreateBindingNonce 创建一次性签名消息。
+  rpc CreateBindingNonce(CreateBindingNonceRequest) returns (CreateBindingNonceResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+    };
+  }
+
+  // BindWallet 验证钱包签名并把钱包绑定到当前用户。
+  rpc BindWallet(BindWalletRequest) returns (BindWalletResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+    };
+  }
+
+  // UnbindWallet 解除当前用户拥有的钱包绑定。
+  rpc UnbindWallet(UnbindWalletRequest) returns (UnbindWalletResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+    };
+  }
+
+  // GetWallets 返回当前用户已经绑定的钱包。
+  rpc GetWallets(GetWalletsRequest) returns (GetWalletsResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+    };
+  }
+
+  // UpdateWallet 修改当前用户钱包的备注或默认状态。
+  rpc UpdateWallet(UpdateWalletRequest) returns (UpdateWalletResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+    };
+  }
+
+  // GetBalance 查询已绑定钱包的原生币或代币余额。
+  rpc GetBalance(GetBalanceRequest) returns (GetBalanceResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+      roles: "admin"
+      roles: "super-admin"
+    };
+  }
+
+  // GetTransaction 查询指定链上的交易状态。
+  rpc GetTransaction(GetTransactionRequest) returns (GetTransactionResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+      roles: "admin"
+      roles: "super-admin"
+    };
+  }
+
+  // GetTransactions 分页查询已绑定钱包的交易记录。
+  rpc GetTransactions(GetTransactionsRequest) returns (GetTransactionsResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+      roles: "admin"
+      roles: "super-admin"
+    };
+  }
+}
+
+message GetSupportedChainsRequest {}
+
+message GetSupportedChainsResponse {
+  repeated ChainInfo chains = 1;
+}
+
+message ChainInfo {
+  uint64 chain_id = 1;
+  string name = 2;
+  string native_symbol = 3;
+  uint32 native_decimals = 4;
+  bool enabled = 5;
+  uint64 required_confirmations = 6;
+}
+
+message CreateBindingNonceRequest {
+  // EVM 网络使用链 ID，例如 Ethereum Mainnet 为 1。
+  uint64 chain_id = 1;
+  string address = 2;
+}
+
+message CreateBindingNonceResponse {
+  // nonce_id 用于后续绑定请求，服务端据此读取并原子消费 Redis 中的 nonce。
+  string nonce_id = 1;
+  string signing_message = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+message BindWalletRequest {
+  uint64 chain_id = 1;
+  string address = 2;
+  string nonce_id = 3;
+  string signature = 4;
+  string label = 5;
+}
+
+message BindWalletResponse {
+  WalletInfo wallet = 1;
+  bool newly_bound = 2;
+}
+
+message UnbindWalletRequest {
+  string wallet_id = 1;
+}
+
+message UnbindWalletResponse {}
+
+message GetWalletsRequest {}
+
+message GetWalletsResponse {
+  repeated WalletInfo wallets = 1;
+}
+
+message WalletInfo {
+  string id = 1;
+  uint64 chain_id = 2;
+  string address = 3;
+  string label = 4;
+  WalletStatus status = 5;
+  google.protobuf.Timestamp verified_at = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  bool is_default = 9;
+}
+
+enum WalletStatus {
+  WALLET_STATUS_UNSPECIFIED = 0;
+  WALLET_STATUS_ACTIVE = 1;
+  WALLET_STATUS_DISABLED = 2;
+}
+
+message UpdateWalletRequest {
+  string wallet_id = 1;
+
+  // optional 用于区分“未修改”与“显式设置为空值或 false”。
+  optional string label = 2;
+  optional bool is_default = 3;
+}
+
+message UpdateWalletResponse {
+  WalletInfo wallet = 1;
+}
+
+message GetBalanceRequest {
+  string wallet_id = 1;
+
+  // token_contract 为空时查询网络原生币，非空时查询该合约代币。
+  string token_contract = 2;
+}
+
+message GetBalanceResponse {
+  uint64 chain_id = 1;
+  string address = 2;
+  string token_contract = 3;
+  string symbol = 4;
+  uint32 decimals = 5;
+
+  // raw_balance 是最小单位整数，formatted_balance 是按 decimals 格式化后的十进制数。
+  // 两者均使用字符串，避免浮点数精度损失。
+  string raw_balance = 6;
+  string formatted_balance = 7;
+  google.protobuf.Timestamp observed_at = 8;
+}
+
+message GetTransactionRequest {
+  uint64 chain_id = 1;
+  string transaction_hash = 2;
+}
+
+message GetTransactionResponse {
+  TransactionInfo transaction = 1;
+}
+
+message GetTransactionsRequest {
+  string wallet_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+
+  // UNSPECIFIED 表示不过滤交易状态。
+  TransactionStatus status = 4;
+}
+
+message GetTransactionsResponse {
+  repeated TransactionInfo transactions = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message TransactionInfo {
+  uint64 chain_id = 1;
+  string transaction_hash = 2;
+  string from_address = 3;
+  string to_address = 4;
+
+  // value 使用链上最小单位的十进制整数字符串。
+  string value = 5;
+  uint64 block_number = 6;
+  string block_hash = 7;
+  uint64 confirmations = 8;
+  TransactionStatus status = 9;
+  google.protobuf.Timestamp block_time = 10;
+}
+
+enum TransactionStatus {
+  TRANSACTION_STATUS_UNSPECIFIED = 0;
+  TRANSACTION_STATUS_PENDING = 1;
+  TRANSACTION_STATUS_CONFIRMED = 2;
+  TRANSACTION_STATUS_FAILED = 3;
+  TRANSACTION_STATUS_REORGED = 4;
+}

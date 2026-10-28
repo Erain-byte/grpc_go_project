@@ -5,6 +5,7 @@ package user.v1;
 import "common/v1/security.proto";
 import "google/protobuf/timestamp.proto";
 import "llm/v1/llm.proto";
+import "web3/v1/web3.proto";
 
 option go_package = "github.com/Erain-byte/grpc_go_project/proto/user/v1;userv1";
 
@@ -52,6 +53,61 @@ service UserService {
       roles: "user"
       roles: "admin"
       roles: "super-admin"
+    };
+  }
+
+  // Web3 wallet operations forwarded by UserService to Web3Service.
+  rpc GetSupportedChains(web3.v1.GetSupportedChainsRequest) returns (web3.v1.GetSupportedChainsResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+    };
+  }
+
+  rpc CreateBindingNonce(web3.v1.CreateBindingNonceRequest) returns (web3.v1.CreateBindingNonceResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+    };
+  }
+
+  rpc BindWallet(web3.v1.BindWalletRequest) returns (web3.v1.BindWalletResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+    };
+  }
+
+  rpc UnbindWallet(web3.v1.UnbindWalletRequest) returns (web3.v1.UnbindWalletResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+    };
+  }
+
+  rpc GetWallets(web3.v1.GetWalletsRequest) returns (web3.v1.GetWalletsResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+    };
+  }
+
+  rpc UpdateWallet(web3.v1.UpdateWalletRequest) returns (web3.v1.UpdateWalletResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+    };
+  }
+
+  rpc GetBalance(web3.v1.GetBalanceRequest) returns (web3.v1.GetBalanceResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+    };
+  }
+
+  rpc GetTransaction(web3.v1.GetTransactionRequest) returns (web3.v1.GetTransactionResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
+    };
+  }
+
+  rpc GetTransactions(web3.v1.GetTransactionsRequest) returns (web3.v1.GetTransactionsResponse) {
+    option (common.v1.auth) = {
+      roles: "user"
     };
   }
 }

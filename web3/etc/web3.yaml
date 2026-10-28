@@ -1,0 +1,190 @@
+# Web3 service configuration.
+# 密码、RPC API Key 和私钥只能通过环境变量或密钥管理系统注入，不得写入本文件。
+environment: "development"
+name: "web3-service"
+version: "1.0.0"
+
+# gRPC Server 监听地址。
+host: "0.0.0.0"
+grpc_port: 9086
+
+# 注册到 Consul 的可访问地址；0.0.0.0 只能用于监听。
+advertise_host: "127.0.0.1"
+
+# Web3 业务数据：钱包绑定、交易索引、链同步游标和幂等事件。
+# 密码从 WEB3_DB_PASSWORD 环境变量读取。
+database:
+  enabled: true
+  driver: "postgres"
+  host: "127.0.0.1"
+  port: 5436
+  username: "web3_service"
+  dbname: "web3_service"
+  ssl_mode: "disable"
+  timezone: "Asia/Shanghai"
+  connect_timeout: "5s"
+  read_write_split_enabled: false
+  replica_addresses: []
+  max_idle_conns: 10
+  max_open_conns: 100
+  conn_max_idle_time: "10m"
+  conn_max_lifetime: "1h"
+
+# Redis 保存一次性签名 Nonce、短期余额缓存、扫描锁和幂等状态。
+# 密码从 WEB3_REDIS_PASSWORD 环境变量读取。
+redis:
+  enabled: true
+  host: "127.0.0.1"
+  port: 6379
+  cluster_addresses: []
+  db: 0
+  key_prefix: "web3:"
+  pool_size: 100
+  min_idle_conns: 10
+  max_idle_conns: 50
+  conn_max_idle_time: "30m"
+  conn_max_lifetime: "1h"
+  dial_timeout: "5s"
+  read_timeout: "3s"
+  write_timeout: "3s"
+  pool_timeout: "4s"
+  health_required: true
+
+# 链上确认事件通过 RabbitMQ 发送给 User、Order 或 Fund 等下游服务。
+# 密码从 WEB3_RABBITMQ_PASSWORD 环境变量读取。
+rabbitmq:
+  enabled: false
+  host: "127.0.0.1"
+  port: 5672
+  username: "grpc_app"
+  vhost: "/grpc-go"
+  connection_name: "web3-service"
+  heartbeat: "30s"
+  dial_timeout: "15s"
+  reconnect_interval: "5s"
+  publish_confirm_timeout: "5s"
+  prefetch_count: 10
+
+  chain_event:
+    exchange: "web3.events"
+    exchange_type: "topic"
+    routing_key: "web3.transaction.confirmed"
+    queue: "web3.transaction.confirmed"
+    retry_exchange: "web3.events.retry"
+    retry_routing_key: "web3.transaction.retry"
+    retry_queue: "web3.transaction.retry"
+    retry_delay: "10s"
+    max_retries: 5
+    dead_letter_exchange: "web3.events.dlx"
+    dead_letter_routing_key: "web3.transaction.dead"
+    dead_letter_queue: "web3.transaction.dlq"
+
+# Web3 独立验证 Gateway/User 转发的 Keycloak Access Token。
+auth:
+  access_token:
+    issuer: "http://localhost:8180/realms/grpc-project"
+    audience: "grpc-api"
+    algorithm: "RS256"
+    jwks_url: "http://localhost:8180/realms/grpc-project/protocol/openid-connect/certs"
+    role_priority:
+      - "super-admin"
+      - "admin"
+      - "user"
+
+# 入站 gRPC 与调用其他内部服务时使用的传输配置。
+grpc:
+  use_tls: false
+  tls_server_name: "web3-service"
+  cert_file: ""
+  key_file: ""
+  client_ca_file: ""
+
+  health:
+    enabled: true
+    service: ""
+
+  max_recv_message_size: 4194304
+  max_send_message_size: 4194304
+
+consul:
+  enabled: true
+  host: "127.0.0.1"
+  port: 8500
+  scheme: "http"
+  check_host: "host.docker.internal"
+  check_interval: "10s"
+  check_timeout: "5s"
+  deregister_critical_after: "90s"
+  runtime_config_key: "grpc-go/config/web3/runtime"
+  runtime_config_required: false
+  registration_required: true
+  deregister_on_shutdown: true
+
+  registration_maintenance:
+    enabled: true
+    interval: "30s"
+    max_backoff: "2m"
+
+# 钱包签名验证配置。Nonce 必须一次性使用，并在验证成功后原子删除。
+wallet_signature:
+  domain: "localhost"
+  uri: "http://localhost"
+  statement: "Sign this message to bind your wallet to grpc-go-project."
+  nonce_ttl: "5m"
+  nonce_bytes: 32
+  allowed_clock_skew: "30s"
+
+# EVM 链配置。RPC URL 中如果包含 API Key，应通过 WEB3_* 环境变量覆盖。
+# 本地没有启动 Anvil/Hardhat 节点时保持 enabled=false。
+blockchain:
+  request_timeout: "5s"
+  retry_count: 2
+  balance_cache_ttl: "10s"
+
+  scanner:
+    enabled: false
+    poll_interval: "3s"
+    batch_size: 100
+    start_block: 0
+
+  chains:
+    - chain_id: 31337
+      name: "Local EVM"
+      enabled: false
+      rpc_urls:
+        - "http://127.0.0.1:8545"
+      native_symbol: "ETH"
+      native_decimals: 18
+      required_confirmations: 1
+
+logger:
+  level: "info"
+  format: "json"
+  filename: "logs/web3.log"
+  max_size: 100
+  max_backups: 10
+  max_age: 30
+  compress: true
+
+tracing:
+  enabled: true
+  service_name: "web3-service"
+  endpoint: "127.0.0.1:4317"
+  sampler_type: "const"
+  sampler_param: 1.0
+  use_tls: false
+  ca_file: ""
+  cert_file: ""
+  key_file: ""
+  server_name: "jaeger"
+
+# 单实例令牌桶和并发限制；外部请求仍由 Gateway 执行分布式限流。
+rate_limit:
+  enabled: true
+  requests_per_second: 300
+  burst: 600
+  max_unary_concurrency: 150
+  max_stream_concurrency: 10
+
+shutdown:
+  timeout: "15s"
