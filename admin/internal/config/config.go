@@ -140,24 +140,20 @@ type AccessTokenConfig struct {
 }
 
 type ConsulConfig struct {
-	Host                    string   `yaml:"host" mapstructure:"host"`
-	Port                    int      `yaml:"port" mapstructure:"port"`
-	Addresses               []string `yaml:"addresses" mapstructure:"addresses"`
-	Token                   string   `yaml:"-" mapstructure:"-"`
-	Scheme                  string   `yaml:"scheme" mapstructure:"scheme"`
-	CheckHost               string   `yaml:"check_host" mapstructure:"check_host"`
-	CheckInterval           string   `yaml:"check_interval" mapstructure:"check_interval"`
-	CheckTimeout            string   `yaml:"check_timeout" mapstructure:"check_timeout"`
-	DeregisterCriticalAfter string   `yaml:"deregister_critical_after" mapstructure:"deregister_critical_after"`
-	RuntimeConfigKey        string   `yaml:"runtime_config_key" mapstructure:"runtime_config_key"`
-	RuntimeConfigRequired   bool     `yaml:"runtime_config_required" mapstructure:"runtime_config_required"`
+	Host                    string `yaml:"host" mapstructure:"host"`
+	Port                    int    `yaml:"port" mapstructure:"port"`
+	Token                   string `yaml:"-" mapstructure:"-"`
+	Scheme                  string `yaml:"scheme" mapstructure:"scheme"`
+	CheckHost               string `yaml:"check_host" mapstructure:"check_host"`
+	CheckInterval           string `yaml:"check_interval" mapstructure:"check_interval"`
+	CheckTimeout            string `yaml:"check_timeout" mapstructure:"check_timeout"`
+	DeregisterCriticalAfter string `yaml:"deregister_critical_after" mapstructure:"deregister_critical_after"`
+	RuntimeConfigKey        string `yaml:"runtime_config_key" mapstructure:"runtime_config_key"`
+	RuntimeConfigRequired   bool   `yaml:"runtime_config_required" mapstructure:"runtime_config_required"`
 }
 
-func (c ConsulConfig) GetAddresses() []string {
-	if len(c.Addresses) > 0 {
-		return append([]string(nil), c.Addresses...)
-	}
-	return []string{net.JoinHostPort(c.Host, strconv.Itoa(c.Port))}
+func (c ConsulConfig) Address() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
 }
 
 type LoggerConfig struct {

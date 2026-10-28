@@ -31,10 +31,7 @@ type ConsulRegistry struct {
 func NewConsulRegistry(config config.ConsulConfig) (*ConsulRegistry, error) {
 	// 创建consul配置文件
 	consulConfig := api.DefaultConfig()
-	addresess := config.GetAddresses()
-	if len(addresess) > 0 {
-		consulConfig.Address = addresess[0]
-	}
+	consulConfig.Address = config.Address()
 	if config.Scheme != "" {
 		consulConfig.Scheme = config.Scheme
 	}

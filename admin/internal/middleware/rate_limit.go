@@ -100,6 +100,60 @@ func (m *RateLimitInterceptor) Unary() grpc.UnaryServerInterceptor {
 	}
 }
 
+// Stream 在建立流时执行一次滑动窗口检查。它限制建立流的频率，
+// 不统计流内消息数量，也不限制流的存续时间。
+func (m *RateLimitInterceptor) Stream() grpc.StreamServerInterceptor {
+	return func(
+		srv any,
+		stream grpc.ServerStream,
+		info *grpc.StreamServerInfo,
+		handler grpc.StreamHandler,
+	) error {
+		if info.FullMethod == healthpb.Health_Check_FullMethodName {
+			return handler(srv, stream)
+		}
+
+		snapshot := m.store.Load()
+		if snapshot == nil {
+			return status.Error(codes.Unavailable, "rate-limit snapshot is nil")
+		}
+		ratelimitCfg := snapshot.RetLimit
+		if !ratelimitCfg.Enabled {
+			return handler(srv, stream)
+		}
+
+		ctx := stream.Context()
+		key, rule, err := m.ruleAndKey(ctx, nil, info.FullMethod, ratelimitCfg)
+		if err != nil {
+			return err
+		}
+		result, err := m.check(ctx, key, rule, ratelimitCfg.RedisTimeout, info.FullMethod)
+		if err != nil {
+			m.logger.Error(
+				"stream rate-limit Redis operation failed",
+				zap.String("method", info.FullMethod),
+				zap.Error(err),
+			)
+			return status.Error(codes.Unavailable, "rate-limit Redis operation failed")
+		}
+		if !result.Allowed {
+			m.logger.Warn(
+				"gRPC stream rejected by rate limiter",
+				zap.String("method", info.FullMethod),
+				zap.Duration("retry_after", result.RetryAfter),
+				zap.Int64("limit", result.Limit),
+			)
+			return status.Errorf(
+				codes.ResourceExhausted,
+				"too many stream requests; retry after %s",
+				result.RetryAfter.Round(time.Second),
+			)
+		}
+
+		return handler(srv, stream)
+	}
+}
+
 // check 只跟踪一次 Redis 限流判定，返回时统一结束 Span。
 func (m *RateLimitInterceptor) check(
 	ctx context.Context,

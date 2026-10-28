@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"net"
@@ -29,6 +30,7 @@ type GrpcServer struct {
 	server   *grpc.Server
 	health   *health.Server
 	listener net.Listener
+	certFile string
 }
 
 // 证书过期时间
@@ -39,16 +41,39 @@ func NewGrpcServer(cfg *config.Config, svcCtx *svc.ServiceContext) (*GrpcServer,
 	if err != nil {
 		return nil, err
 	}
+	//初始化AUTH拦截器
 	authInterceptor, err := middleware.NewAuthInterceptor(cfg.Auth)
 	if err != nil {
 		_ = listener.Close()
 		return nil, err
 	}
+	//初始化rate_limt拦截器
+	rateLimitInterceptor := middleware.NewRateLimit(
+		cfg.RateLimit.Enabled,
+		cfg.RateLimit.RequestsPerSecond,
+		cfg.RateLimit.Burst,
+		cfg.RateLimit.MaxUnaryConcurrency,
+		cfg.RateLimit.MaxStreamConcurrency,
+	)
+
 	option := []grpc.ServerOption{
-		//一元拦截器
-		grpc.UnaryInterceptor(authInterceptor.Unary()),
-		//流式拦截器
-		grpc.StreamInterceptor(authInterceptor.Stream()),
+		// StatsHandler 从 gRPC metadata 提取上游 Trace，并记录服务端 Span。
+		//grpc.StatsHandler(otelgrpc.NewServerHandler()),
+		grpc.StatsHandler(middleware.NewServerStatsHandler()),
+		//注册多个一元拦截器
+		grpc.ChainUnaryInterceptor(
+			middleware.RequestID(),
+			middleware.ErrorHandler(),
+			authInterceptor.Unary(),
+			rateLimitInterceptor.Unary(),
+		),
+
+		//注册多个流式拦截器
+		grpc.ChainStreamInterceptor(
+			authInterceptor.Stream(),
+			rateLimitInterceptor.Stream(),
+		),
+		//grpc.StreamInterceptor(authInterceptor.Stream()),
 	}
 	//开启TLS
 	if cfg.GRPC.UseTLS {
@@ -99,6 +124,28 @@ func (s *GrpcServer) Stop(ctx context.Context) error {
 		s.server.Stop()
 		<-done
 		return ctx.Err()
+	}
+}
+
+// MonitorCertificate 定期检查服务端证书；过期记录错误，临期只记录警告。
+func (s *GrpcServer) MonitorCertificate(ctx context.Context, interval time.Duration, log *zap.Logger) {
+	if s == nil || s.certFile == "" || log == nil || interval <= 0 {
+		return
+	}
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			remaining, checkErr := certificateFileRemainingValidity(s.certFile)
+			if checkErr != nil {
+				log.Error("server TLS certificate check failed", zap.Error(checkErr))
+			} else if remaining < certificateWarnAfter {
+				log.Warn("server TLS certificate will expire soon", zap.Duration("remaining", remaining))
+			}
+		}
 	}
 }
 
@@ -159,4 +206,22 @@ func checkCertificateExpiration(cer tls.Certificate) (time.Duration, error) {
 		return leaf.NotAfter.Sub(now), fmt.Errorf("TLS certificate has expired on %s", leaf.NotAfter)
 	}
 	return leaf.NotAfter.Sub(now), nil
+}
+
+func certificateFileRemainingValidity(path string) (time.Duration, error) {
+	pemData, err := os.ReadFile(path)
+	if err != nil {
+		return 0, err
+	}
+	for len(pemData) > 0 {
+		block, rest := pem.Decode(pemData)
+		pemData = rest
+		if block == nil {
+			break
+		}
+		if block.Type == "CERTIFICATE" {
+			return checkCertificateExpiration(tls.Certificate{Certificate: [][]byte{block.Bytes}})
+		}
+	}
+	return 0, errors.New("server TLS certificate contains no valid PEM certificate")
 }

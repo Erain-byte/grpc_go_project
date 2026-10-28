@@ -164,7 +164,6 @@ type ConsulConfig struct {
 	Enabled                 bool                          `yaml:"enabled" mapstructure:"enabled"`
 	Host                    string                        `yaml:"host" mapstructure:"host"`
 	Port                    int                           `yaml:"port" mapstructure:"port"`
-	Addresses               []string                      `yaml:"addresses" mapstructure:"addresses"`
 	Token                   string                        `yaml:"-" mapstructure:"-"`
 	Scheme                  string                        `yaml:"scheme" mapstructure:"scheme"`
 	CheckHost               string                        `yaml:"check_host" mapstructure:"check_host"`
@@ -178,11 +177,8 @@ type ConsulConfig struct {
 	RegistrationMaintenance RegistrationMaintenanceConfig `yaml:"registration_maintenance" mapstructure:"registration_maintenance"`
 }
 
-func (c ConsulConfig) GetAddresses() []string {
-	if len(c.Addresses) > 0 {
-		return append([]string(nil), c.Addresses...)
-	}
-	return []string{net.JoinHostPort(c.Host, strconv.Itoa(c.Port))}
+func (c ConsulConfig) Address() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
 }
 
 type RegistrationMaintenanceConfig struct {
@@ -215,17 +211,11 @@ type TracingConfig struct {
 }
 
 type RateLimitConfig struct {
-	Enabled      bool          `yaml:"enabled" mapstructure:"enabled" json:"enabled"`
-	RedisTimeout string        `yaml:"redis_timeout" mapstructure:"redis_timeout" json:"redis_timeout"`
-	KeyPrefix    string        `yaml:"key_prefix" mapstructure:"key_prefix" json:"key_prefix"`
-	Login        RateLimitRule `yaml:"login" mapstructure:"login" json:"login"`
-	Register     RateLimitRule `yaml:"register" mapstructure:"register" json:"register"`
-	Default      RateLimitRule `yaml:"default" mapstructure:"default" json:"default"`
-}
-
-type RateLimitRule struct {
-	Limit  int64  `yaml:"limit" mapstructure:"limit" json:"limit"`
-	Window string `yaml:"window" mapstructure:"window" json:"window"`
+	Enabled              bool    `yaml:"enabled" mapstructure:"enabled" json:"enabled"`
+	RequestsPerSecond    float64 `yaml:"requests_per_second" mapstructure:"requests_per_second" json:"requests_per_second"`
+	Burst                int     `yaml:"burst" mapstructure:"burst" json:"burst"`
+	MaxUnaryConcurrency  int     `yaml:"max_unary_concurrency" mapstructure:"max_unary_concurrency" json:"max_unary_concurrency"`
+	MaxStreamConcurrency int     `yaml:"max_stream_concurrency" mapstructure:"max_stream_concurrency" json:"max_stream_concurrency"`
 }
 
 type ShutdownConfig struct {
@@ -352,24 +342,17 @@ func validateRateLimit(cfg RateLimitConfig) error {
 	if !cfg.Enabled {
 		return nil
 	}
-	if strings.TrimSpace(cfg.KeyPrefix) == "" {
-		return fmt.Errorf("rate-limit key prefix is empty")
+	if cfg.RequestsPerSecond <= 0 {
+		return fmt.Errorf("rate-limit requests per second must be positive")
 	}
-	if err := validatePositiveDuration("rate-limit Redis timeout", cfg.RedisTimeout); err != nil {
-		return err
+	if cfg.Burst <= 0 {
+		return fmt.Errorf("rate-limit burst must be positive")
 	}
-	rules := map[string]RateLimitRule{
-		"login":    cfg.Login,
-		"register": cfg.Register,
-		"default":  cfg.Default,
+	if cfg.MaxUnaryConcurrency <= 0 {
+		return fmt.Errorf("rate-limit maximum unary concurrency must be positive")
 	}
-	for name, rule := range rules {
-		if rule.Limit <= 0 {
-			return fmt.Errorf("rate-limit %s limit must be positive", name)
-		}
-		if err := validatePositiveDuration("rate-limit "+name+" window", rule.Window); err != nil {
-			return err
-		}
+	if cfg.MaxStreamConcurrency <= 0 {
+		return fmt.Errorf("rate-limit maximum stream concurrency must be positive")
 	}
 	return nil
 }
@@ -531,10 +514,8 @@ func (c Config) Validate() error {
 	}
 
 	if c.Consul.Enabled {
-		for _, address := range c.Consul.GetAddresses() {
-			if err := validateHostPort("Consul", address); err != nil {
-				return err
-			}
+		if err := validateHostPort("Consul", c.Consul.Address()); err != nil {
+			return err
 		}
 		if c.Consul.Scheme != "http" && c.Consul.Scheme != "https" {
 			return fmt.Errorf("Consul scheme must be http or https")
@@ -594,9 +575,6 @@ func (c Config) Validate() error {
 			strings.TrimSpace(c.Tracing.ServerName) == "") {
 			return fmt.Errorf("tracing CA, certificate, private key, and server name are required when TLS is enabled")
 		}
-	}
-	if c.RateLimit.Enabled && !c.Redis.Enabled {
-		return fmt.Errorf("Redis must be enabled when rate limiting is enabled")
 	}
 	if err := validateRateLimit(c.RateLimit); err != nil {
 		return err

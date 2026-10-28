@@ -126,8 +126,6 @@ consul:
   enabled: true
   host: "127.0.0.1"
   port: 8500
-  # 非空时优先使用集群地址；为空时回退到 host:port。
-  addresses: []
   scheme: "http"
 
   # Consul 在 Docker 中运行，通过该地址检查 Windows 上的 User 服务。
@@ -170,23 +168,17 @@ tracing:
   key_file: ""
   server_name: "jaeger"
 
-# USER 接口限流。启用时依赖 Redis。
+# USER 实例本地限流，不依赖 Redis。
 rate_limit:
   enabled: false
-  redis_timeout: "300ms"
-  key_prefix: "user:rate_limit:"
-
-  login:
-    limit: 60
-    window: "1m"
-
-  register:
-    limit: 30
-    window: "1m"
-
-  default:
-    limit: 100
-    window: "1m"
+  # 单实例每秒补充的令牌数。
+  requests_per_second: 500
+  # 令牌桶容量，允许短时间突发请求。
+  burst: 1000
+  # 同时执行的一元 RPC 最大数量。
+  max_unary_concurrency: 200
+  # 同时存在的流式 RPC 最大数量。
+  max_stream_concurrency: 50
 
 shutdown:
   timeout: "10s"

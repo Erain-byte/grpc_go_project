@@ -31,10 +31,7 @@ type ConsulRegistry struct {
 func NewConsulRegistry(config config.ConsulConfig) (*ConsulRegistry, error) {
 	// 创建consul配置文件
 	consulConfig := api.DefaultConfig()
-	addresses := config.GetAddresses()
-	if len(addresses) > 0 {
-		consulConfig.Address = addresses[0]
-	}
+	consulConfig.Address = config.Address()
 
 	if config.Scheme != "" {
 		consulConfig.Scheme = config.Scheme
@@ -43,7 +40,7 @@ func NewConsulRegistry(config config.ConsulConfig) (*ConsulRegistry, error) {
 	if config.Token != "" {
 		consulConfig.Token = config.Token
 	}
-
+	//设置http连接池
 	client, err := api.NewClient(consulConfig)
 	if err != nil {
 		return nil, apperror.Wrap(err, apperror.CodeInternal, "failed to create Consul client", http.StatusInternalServerError)

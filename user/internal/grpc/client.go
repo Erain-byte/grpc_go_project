@@ -10,9 +10,9 @@ import (
 	"sync"
 	"user/internal/consul"
 	"user/internal/logger"
+	"user/internal/middleware"
 	"user/pkg/apperror"
 
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -147,7 +147,8 @@ func (cm *ClientManager) newClient(serviceName string) (*grpc.ClientConn, error)
 	conn, err := grpc.NewClient(
 		target,
 		// 添加gRPC统计处理程序
-		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
+		grpc.WithStatsHandler(middleware.NewClientStatsHandler()),
+		//grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
 		//使用证书
 		grpc.WithTransportCredentials(creds),
 		// 使用自定义的consul resolver

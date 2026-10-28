@@ -28,11 +28,7 @@ type ConsulRegistry struct {
 // 构造函数
 func NewConsulRegistry(config config.ConsulConfig) (*ConsulRegistry, error) {
 	consulConfig := api.DefaultConfig() //创建Consul配置
-	// 优先使用集群地址，否则使用单节点地址
-	addresses := config.GetAddresses()
-	if len(addresses) > 0 {
-		consulConfig.Address = addresses[0]
-	}
+	consulConfig.Address = config.Address()
 	if config.Token != "" {
 		consulConfig.Token = config.Token
 	}

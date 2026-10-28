@@ -81,6 +81,7 @@ func (c *ConsulRegistry) StartRegistrationMaintenance(parent context.Context, lo
 	ctx, cancel := context.WithCancel(parent)
 	done := make(chan struct{})
 	go func() {
+		//关闭时，等待所有补注册完成
 		defer close(done)
 		delay := 30 * time.Second
 		for {

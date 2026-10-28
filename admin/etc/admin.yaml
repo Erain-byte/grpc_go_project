@@ -87,7 +87,6 @@ auth:
 consul:
   host: "127.0.0.1"
   port: 8500
-  addresses: []
   scheme: "http"
   check_host: "host.docker.internal" # Docker Consul 通过该地址访问 Windows 上的 Admin
   check_interval: "10s"

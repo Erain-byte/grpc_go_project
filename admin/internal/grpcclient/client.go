@@ -3,6 +3,7 @@ package grpcclient
 import (
 	"admin/internal/consul"
 	"admin/internal/logger"
+	"admin/internal/middleware"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -13,7 +14,6 @@ import (
 
 	apperror "admin/pkg/apperorr"
 
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -142,7 +142,8 @@ func (cm *ClientManager) newClient(serviceName string) (*grpc.ClientConn, error)
 	conn, err := grpc.NewClient(
 		target,
 		// 添加gRPC统计处理程序
-		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
+		//grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
+		grpc.WithStatsHandler(middleware.NewClientStatsHandler()),
 		// 使用TLS证书
 		grpc.WithTransportCredentials(cred),
 		// 使用自定义的consul resolver

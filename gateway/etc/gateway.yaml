@@ -57,12 +57,10 @@ auth:
     reuse_detection: true
     redis_key_prefix: "auth:refresh:"
 # Consul Configuration
-# 单节点模式：配置host+port，addresses留空
-# 集群模式：配置addresses，host+port将被忽略
+# 应用连接 Consul Agent 的单一地址；生产环境建议指向本机 Client Agent。
 consul:
   host: "localhost"
   port: 8500
-  addresses: []
   token: ""
   scheme: "http"
   check_host: "host.docker.internal" # Docker Consul 通过该地址访问 Windows 上的 Gateway

@@ -296,15 +296,11 @@ func Run() error {
 		logger.SugaredLogger.Errorf("Failed to deregister grpc server: %v", deregisterErr)
 		runErr = errors.Join(runErr, deregisterErr)
 	}
-	var stopErr = make(chan error, 1)
 	stopCtx, stopCtxCancel := context.WithTimeout(context.Background(), dependencyCheckTimeout)
 	defer stopCtxCancel()
-	go func() {
-		stopErr <- grpcServer.Stop(stopCtx)
-	}()
-	if err := <-stopErr; err != nil {
+	if err := grpcServer.Stop(stopCtx); err != nil {
 		logger.SugaredLogger.Errorf("Failed to stop grpc server: %v", err)
-		errors.Join(runErr, err)
+		runErr = errors.Join(runErr, err)
 	}
 	return runErr
 }

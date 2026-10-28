@@ -20,7 +20,6 @@ import (
 	"admin/internal/ratelimit"
 
 	adminv1 "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -65,7 +64,8 @@ func NewGRPCServer(cfg *config.Config, svcCtx *svc.ServiceContext) (*GRPCServer,
 	}
 	options := []grpc.ServerOption{
 		// StatsHandler 从 gRPC metadata 提取上游 Trace，并记录服务端 Span。
-		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+		//grpc.StatsHandler(otelgrpc.NewServerHandler()),
+		grpc.StatsHandler(middleware.NewServerStatsHandler()),
 		// 一元拦截器按照声明顺序执行：先准备 Request ID，再统一转换业务错误。
 		grpc.ChainUnaryInterceptor(
 			middleware.RequestID(),
@@ -75,6 +75,7 @@ func NewGRPCServer(cfg *config.Config, svcCtx *svc.ServiceContext) (*GRPCServer,
 		),
 		grpc.ChainStreamInterceptor(
 			authInterceptor.Stream(),
+			rateLimitInterceptor.Stream(),
 		),
 	}
 	if cfg.GRPC.UseTLS {

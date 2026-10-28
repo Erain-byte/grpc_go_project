@@ -11,9 +11,12 @@ import (
 	"user/internal/model"
 	"user/internal/repository"
 	"user/internal/svc"
+	tracing "user/internal/tracer"
 	"user/pkg/apperror"
 
 	userv1 "github.com/Erain-byte/grpc_go_project/proto/user/v1"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
@@ -21,13 +24,31 @@ import (
 type UserService struct {
 	repository *repository.UserRepository
 	ids        interface{ NextID() (int64, error) }
+	tracer     trace.Tracer
 }
 
 func NewUserService(svcCtx *svc.ServiceContext) *UserService {
-	return &UserService{repository: repository.NewUserRepository(svcCtx.Database.Gorm(), svcCtx.Router), ids: svcCtx.IDs}
+	return &UserService{
+		repository: repository.NewUserRepository(svcCtx.Database.Gorm(), svcCtx.Router),
+		ids:        svcCtx.IDs,
+		tracer:     otel.Tracer("user/internal/service"),
+	}
 }
 
-func (s *UserService) InitializeUser(ctx context.Context, _ *userv1.InitializeUserRequest) (*userv1.InitializeUserResponse, error) {
+func (s *UserService) InitializeUser(
+	ctx context.Context,
+	_ *userv1.InitializeUserRequest,
+) (response *userv1.InitializeUserResponse, returnErr error) {
+	ctx, span := s.tracer.Start(
+		ctx,
+		"user.initialize_user",
+		trace.WithSpanKind(trace.SpanKindInternal),
+	)
+	defer func() {
+		tracing.RecordError(span, returnErr, "initialize user failed")
+		span.End()
+	}()
+
 	identity, err := authenticatedIdentity(ctx)
 	if err != nil {
 		return nil, err
@@ -48,7 +69,20 @@ func (s *UserService) InitializeUser(ctx context.Context, _ *userv1.InitializeUs
 	return &userv1.InitializeUserResponse{UserInfo: toProtoUser(user), NewlyCreated: created}, nil
 }
 
-func (s *UserService) GetUserInfo(ctx context.Context, _ *userv1.GetUserInfoRequest) (*userv1.GetUserInfoResponse, error) {
+func (s *UserService) GetUserInfo(
+	ctx context.Context,
+	_ *userv1.GetUserInfoRequest,
+) (response *userv1.GetUserInfoResponse, returnErr error) {
+	ctx, span := s.tracer.Start(
+		ctx,
+		"user.get_user_info",
+		trace.WithSpanKind(trace.SpanKindInternal),
+	)
+	defer func() {
+		tracing.RecordError(span, returnErr, "get user information failed")
+		span.End()
+	}()
+
 	identity, err := authenticatedIdentity(ctx)
 	if err != nil {
 		return nil, err

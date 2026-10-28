@@ -124,27 +124,23 @@ type RefreshTokenConfig struct {
 
 // conusl配置
 type ConsulConfig struct {
-	Addresses               []string `yaml:"addresses"`
-	Host                    string   `yaml:"host" default:"localhost"`
-	Port                    int      `yaml:"port" default:"8500"`
-	Token                   string   `yaml:"token" default:""`
-	Scheme                  string   `yaml:"scheme" default:"http"`
-	CheckHost               string   `yaml:"check_host" default:""`
-	CheckInterval           string   `yaml:"check_interval" default:"10s"`
-	CheckTimeout            string   `yaml:"check_timeout" default:"5s"`
-	TTL                     string   `yaml:"ttl" default:"30s"`
-	DeregisterCriticalAfter string   `yaml:"deregister_critical_after" default:"90s"`
-	KeepAliveInterval       string   `yaml:"keepalive_interval" default:"10s"`
-	RuntimeConfigKey        string   `yaml:"runtime_config_key" default:"grpc-go/config/gateway/runtime"`
-	RuntimeConfigRequired   bool     `yaml:"runtime_config_required" default:"false"`
+	Host                    string `yaml:"host" default:"localhost"`
+	Port                    int    `yaml:"port" default:"8500"`
+	Token                   string `yaml:"token" default:""`
+	Scheme                  string `yaml:"scheme" default:"http"`
+	CheckHost               string `yaml:"check_host" default:""`
+	CheckInterval           string `yaml:"check_interval" default:"10s"`
+	CheckTimeout            string `yaml:"check_timeout" default:"5s"`
+	TTL                     string `yaml:"ttl" default:"30s"`
+	DeregisterCriticalAfter string `yaml:"deregister_critical_after" default:"90s"`
+	KeepAliveInterval       string `yaml:"keepalive_interval" default:"10s"`
+	RuntimeConfigKey        string `yaml:"runtime_config_key" default:"grpc-go/config/gateway/runtime"`
+	RuntimeConfigRequired   bool   `yaml:"runtime_config_required" default:"false"`
 }
 
-// GetAddresses 获取Consul地址列表，优先使用集群地址
-func (c *ConsulConfig) GetAddresses() []string {
-	if len(c.Addresses) > 0 {
-		return c.Addresses
-	}
-	return []string{fmt.Sprintf("%s:%d", c.Host, c.Port)}
+// Address 返回应用连接的 Consul Agent 地址。
+func (c *ConsulConfig) Address() string {
+	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
 
 // LoggerConfig 日志配置
