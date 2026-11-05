@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"strings"
 	"user/internal/config"
 	"user/pkg/apperror"
 
@@ -32,11 +33,17 @@ func NewTracerProvider(ctx context.Context, cfg config.TracingConfig) (*Manager,
 	if ctx == nil {
 		return nil, apperror.InvalidArgument("context is required")
 	}
+	installPropagator()
+	serviceName := strings.TrimSpace(cfg.ServiceName)
+	if serviceName == "" {
+		serviceName = "user-service"
+	}
 	if !cfg.Enabled {
 		provider := noop.NewTracerProvider()
+		otel.SetTracerProvider(provider)
 		return &Manager{
 			provider: provider,
-			tracer:   provider.Tracer(cfg.ServiceName),
+			tracer:   provider.Tracer(serviceName),
 			shutdown: func(ctx context.Context) error { return nil },
 		}, nil
 	}
@@ -64,7 +71,7 @@ func NewTracerProvider(ctx context.Context, cfg config.TracingConfig) (*Manager,
 	}
 	res, err := resource.New(
 		ctx,
-		resource.WithAttributes(semconv.ServiceNameKey.String(cfg.ServiceName)), //设置资源属性
+		resource.WithAttributes(semconv.ServiceNameKey.String(serviceName)), //设置资源属性
 	)
 	if err != nil {
 		return nil, errors.Join(err, exporter.Shutdown(ctx))
@@ -76,21 +83,31 @@ func NewTracerProvider(ctx context.Context, cfg config.TracingConfig) (*Manager,
 	)
 	//设置全局
 	otel.SetTracerProvider(provider)
-	//设置跨服务传播
+	return &Manager{
+		provider: provider,
+		tracer:   provider.Tracer(serviceName),
+		// 关闭 Provider 才会先刷新 BatchSpanProcessor，再关闭 exporter。
+		shutdown: provider.Shutdown,
+	}, nil
+}
+
+func installPropagator() {
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{},
 		propagation.Baggage{},
 	))
-	return &Manager{
-		provider: provider,
-		tracer:   provider.Tracer(cfg.ServiceName),
-		shutdown: exporter.Shutdown,
-	}, nil
 }
+
 func (m *Manager) Provider() trace.TracerProvider {
+	if m == nil || m.provider == nil {
+		return noop.NewTracerProvider()
+	}
 	return m.provider
 }
 func (m *Manager) Tracer() trace.Tracer {
+	if m == nil || m.tracer == nil {
+		return noop.NewTracerProvider().Tracer("user-service")
+	}
 	return m.tracer
 }
 
@@ -104,18 +121,16 @@ func (m *Manager) Shutdown(ctx context.Context) error {
 
 // 采样器函数
 func createSampler(cfg config.TracingConfig) sdktrace.Sampler {
-	switch cfg.SamplerType {
+	switch strings.ToLower(strings.TrimSpace(cfg.SamplerType)) {
 	case "const":
 		if cfg.SamplerParam == 0 {
-			return sdktrace.NeverSample()
+			return sdktrace.ParentBased(sdktrace.NeverSample())
 		}
-		return sdktrace.AlwaysSample()
-	case "probabilistic":
-		return sdktrace.TraceIDRatioBased(cfg.SamplerParam)
-	case "ratelimiting":
+		return sdktrace.ParentBased(sdktrace.AlwaysSample())
+	case "probabilistic", "ratelimiting":
 		return sdktrace.ParentBased(sdktrace.TraceIDRatioBased(cfg.SamplerParam))
 	default:
-		return sdktrace.AlwaysSample()
+		return sdktrace.ParentBased(sdktrace.AlwaysSample())
 	}
 }
 

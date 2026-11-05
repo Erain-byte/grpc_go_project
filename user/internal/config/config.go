@@ -30,6 +30,7 @@ type Config struct {
 	Logger        LoggerConfig      `yaml:"logger" mapstructure:"logger"`
 	Tracing       TracingConfig     `yaml:"tracing" mapstructure:"tracing"`
 	RateLimit     RateLimitConfig   `yaml:"rate_limit" mapstructure:"rate_limit"`
+	Pprof         PprofConfig       `yaml:"pprof" mapstructure:"pprof"`
 	Shutdown      ShutdownConfig    `yaml:"shutdown" mapstructure:"shutdown"`
 }
 
@@ -218,6 +219,15 @@ type RateLimitConfig struct {
 	MaxStreamConcurrency int     `yaml:"max_stream_concurrency" mapstructure:"max_stream_concurrency" json:"max_stream_concurrency"`
 }
 
+type PprofConfig struct {
+	Enabled              bool   `yaml:"enabled" mapstructure:"enabled"`
+	Host                 string `yaml:"host" mapstructure:"host"`
+	Port                 int    `yaml:"port" mapstructure:"port"`
+	AllowRemote          bool   `yaml:"allow_remote" mapstructure:"allow_remote"`
+	BlockProfileRate     int    `yaml:"block_profile_rate" mapstructure:"block_profile_rate"`
+	MutexProfileFraction int    `yaml:"mutex_profile_fraction" mapstructure:"mutex_profile_fraction"`
+}
+
 type ShutdownConfig struct {
 	Timeout string `yaml:"timeout" mapstructure:"timeout"`
 }
@@ -294,6 +304,12 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("consul.port", 8500)
 	v.SetDefault("consul.addresses", []string{})
 	v.SetDefault("consul.scheme", "http")
+	v.SetDefault("pprof.enabled", false)
+	v.SetDefault("pprof.host", "127.0.0.1")
+	v.SetDefault("pprof.port", 6062)
+	v.SetDefault("pprof.allow_remote", false)
+	v.SetDefault("pprof.block_profile_rate", 0)
+	v.SetDefault("pprof.mutex_profile_fraction", 0)
 	v.SetDefault("shutdown.timeout", "10s")
 }
 
@@ -564,6 +580,11 @@ func (c Config) Validate() error {
 		if strings.TrimSpace(c.Tracing.ServiceName) == "" || strings.TrimSpace(c.Tracing.Endpoint) == "" {
 			return fmt.Errorf("tracing service name and endpoint are required")
 		}
+		switch strings.ToLower(strings.TrimSpace(c.Tracing.SamplerType)) {
+		case "const", "probabilistic", "ratelimiting":
+		default:
+			return fmt.Errorf("unsupported tracing sampler type %q", c.Tracing.SamplerType)
+		}
 		if err := validateHostPort("tracing collector", c.Tracing.Endpoint); err != nil {
 			return err
 		}
@@ -578,6 +599,17 @@ func (c Config) Validate() error {
 	}
 	if err := validateRateLimit(c.RateLimit); err != nil {
 		return err
+	}
+	if c.Pprof.Enabled {
+		if strings.TrimSpace(c.Pprof.Host) == "" {
+			return fmt.Errorf("pprof host is empty")
+		}
+		if c.Pprof.Port < 1 || c.Pprof.Port > 65535 {
+			return fmt.Errorf("pprof port %d is outside 1..65535", c.Pprof.Port)
+		}
+		if c.Pprof.BlockProfileRate < 0 || c.Pprof.MutexProfileFraction < 0 {
+			return fmt.Errorf("pprof block and mutex sampling rates cannot be negative")
+		}
 	}
 	if err := validatePositiveDuration("shutdown timeout", c.Shutdown.Timeout); err != nil {
 		return err

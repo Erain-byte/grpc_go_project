@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	grpcclient "admin/internal/grpcclient"
+	"admin/internal/middleware"
 	apperror "admin/pkg/apperorr"
 
 	"google.golang.org/grpc"
@@ -22,15 +23,29 @@ type BaseForwarder[T any] struct {
 // OutgoingContext 从当前入站请求中读取 Bearer Token，并写入下游 gRPC 请求的 metadata。
 // 下游服务可以据此独立验证最初由 Keycloak 签发的 Access Token。
 func OutgoingContext(ctx context.Context) context.Context {
+	metadataPairs := make([]string, 0, 4)
+	requestIDAdded := false
 	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
+	if ok {
+		if values := md.Get("authorization"); len(values) == 1 {
+			metadataPairs = append(metadataPairs, "authorization", values[0])
+		}
+		if values := md.Get(middleware.RequestIDMetadataKey); len(values) > 0 {
+			if requestID := strings.TrimSpace(values[0]); requestID != "" {
+				metadataPairs = append(metadataPairs, middleware.RequestIDMetadataKey, requestID)
+				requestIDAdded = true
+			}
+		}
+	}
+	if !requestIDAdded {
+		if requestID := middleware.RequestIDFromContext(ctx); requestID != "" {
+			metadataPairs = append(metadataPairs, middleware.RequestIDMetadataKey, requestID)
+		}
+	}
+	if len(metadataPairs) == 0 {
 		return ctx
 	}
-	values := md.Get("authorization")
-	if len(values) != 1 {
-		return ctx
-	}
-	return metadata.AppendToOutgoingContext(ctx, "authorization", values[0])
+	return metadata.AppendToOutgoingContext(ctx, metadataPairs...)
 }
 
 func NewBaseForwarder[T any](clientManager *grpcclient.ClientManager, serviceName string, factory func(grpc.ClientConnInterface) T) *BaseForwarder[T] {

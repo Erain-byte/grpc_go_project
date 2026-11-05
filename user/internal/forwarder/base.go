@@ -3,6 +3,7 @@ package forwarder
 import (
 	"context"
 	grpcclient "user/internal/grpc"
+	"user/internal/middleware"
 	"user/pkg/apperror"
 
 	"google.golang.org/grpc"
@@ -23,16 +24,29 @@ type BaseForwarder[T any] struct {
 
 // OutgoingContext 从当前入站请求中读取 Bearer Token，并写入下游 gRPC 请求的 metadata。
 func OutgoingContext(ctx context.Context) context.Context {
-	//从当前入站请求中读取 Bearer Token
+	metadataPairs := make([]string, 0, 4)
+	incomingRequestID := ""
+	// 仅复制允许向下游传播的 metadata，避免透传全部调用方字段。
 	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
+	if ok {
+		if values := md.Get("authorization"); len(values) == 1 && values[0] != "" {
+			metadataPairs = append(metadataPairs, "authorization", values[0])
+		}
+		if values := md.Get(middleware.RequestIDMetadataKey); len(values) > 0 && values[0] != "" {
+			incomingRequestID = values[0]
+			metadataPairs = append(metadataPairs, middleware.RequestIDMetadataKey, incomingRequestID)
+		}
+	}
+	// 上游没有 ID 时，传播 User 拦截器生成的 Request ID。
+	if incomingRequestID == "" {
+		if requestID := middleware.RequestIDFromContext(ctx); requestID != "" {
+			metadataPairs = append(metadataPairs, middleware.RequestIDMetadataKey, requestID)
+		}
+	}
+	if len(metadataPairs) == 0 {
 		return ctx
 	}
-	value := md.Get("authorization")
-	if len(value) != 1 {
-		return ctx
-	}
-	return metadata.AppendToOutgoingContext(ctx, "authorization", value[0])
+	return metadata.AppendToOutgoingContext(ctx, metadataPairs...)
 }
 
 // NewBaseForwarder 创建一个新的 BaseForwarder 实例。

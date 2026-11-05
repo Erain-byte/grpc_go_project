@@ -163,7 +163,10 @@ func (x *InitializeUserResponse) GetNewlyCreated() bool {
 }
 
 type GetUserInfoRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Only admin and super-admin callers may set this field to query a target
+	// local user. An empty value means "the currently authenticated user".
+	UserId        string `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -196,6 +199,13 @@ func (x *GetUserInfoRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetUserInfoRequest.ProtoReflect.Descriptor instead.
 func (*GetUserInfoRequest) Descriptor() ([]byte, []int) {
 	return file_user_v1_user_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetUserInfoRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
 }
 
 type GetUserInfoResponse struct {
@@ -638,8 +648,9 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"\x15InitializeUserRequest\"m\n" +
 	"\x16InitializeUserResponse\x12.\n" +
 	"\tuser_info\x18\x01 \x01(\v2\x11.user.v1.UserInfoR\buserInfo\x12#\n" +
-	"\rnewly_created\x18\x02 \x01(\bR\fnewlyCreated\"(\n" +
-	"\x12GetUserInfoRequestJ\x04\b\x01\x10\x02R\faccess_token\"y\n" +
+	"\rnewly_created\x18\x02 \x01(\bR\fnewlyCreated\"A\n" +
+	"\x12GetUserInfoRequest\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userIdJ\x04\b\x01\x10\x02R\faccess_token\"y\n" +
 	"\x13GetUserInfoResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12.\n" +
@@ -681,7 +692,7 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"UserStatus\x12\x1b\n" +
 	"\x17USER_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12USER_STATUS_ACTIVE\x10\x01\x12\x18\n" +
-	"\x14USER_STATUS_DISABLED\x10\x022\x97\v\n" +
+	"\x14USER_STATUS_DISABLED\x10\x022\x8a\f\n" +
 	"\vUserService\x12]\n" +
 	"\x0eInitializeUser\x12\x1e.user.v1.InitializeUserRequest\x1a\x1f.user.v1.InitializeUserResponse\"\n" +
 	"\x82\xb5\x18\x06\x12\x04user\x12h\n" +
@@ -712,7 +723,8 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"\x0eGetTransaction\x12\x1e.web3.v1.GetTransactionRequest\x1a\x1f.web3.v1.GetTransactionResponse\"\n" +
 	"\x82\xb5\x18\x06\x12\x04user\x12`\n" +
 	"\x0fGetTransactions\x12\x1f.web3.v1.GetTransactionsRequest\x1a .web3.v1.GetTransactionsResponse\"\n" +
-	"\x82\xb5\x18\x06\x12\x04userB<Z:github.com/Erain-byte/grpc_go_project/proto/user/v1;userv1b\x06proto3"
+	"\x82\xb5\x18\x06\x12\x04user\x12q\n" +
+	"\x16CheckTronUSDTApprovals\x12&.web3.v1.CheckTronUSDTApprovalsRequest\x1a'.web3.v1.CheckTronUSDTApprovalsResponse\"\x06\x82\xb5\x18\x02\b\x01B<Z:github.com/Erain-byte/grpc_go_project/proto/user/v1;userv1b\x06proto3"
 
 var (
 	file_user_v1_user_proto_rawDescOnce sync.Once
@@ -729,39 +741,41 @@ func file_user_v1_user_proto_rawDescGZIP() []byte {
 var file_user_v1_user_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_user_v1_user_proto_goTypes = []any{
-	(UserStatus)(0),                        // 0: user.v1.UserStatus
-	(*InitializeUserRequest)(nil),          // 1: user.v1.InitializeUserRequest
-	(*InitializeUserResponse)(nil),         // 2: user.v1.InitializeUserResponse
-	(*GetUserInfoRequest)(nil),             // 3: user.v1.GetUserInfoRequest
-	(*GetUserInfoResponse)(nil),            // 4: user.v1.GetUserInfoResponse
-	(*UserInfo)(nil),                       // 5: user.v1.UserInfo
-	(*CreateUserRequest)(nil),              // 6: user.v1.CreateUserRequest
-	(*CreateUserResponse)(nil),             // 7: user.v1.CreateUserResponse
-	(*GetUserListRequest)(nil),             // 8: user.v1.GetUserListRequest
-	(*GetUserListResponse)(nil),            // 9: user.v1.GetUserListResponse
-	(*timestamppb.Timestamp)(nil),          // 10: google.protobuf.Timestamp
-	(*v1.ChatRequest)(nil),                 // 11: llm.v1.ChatRequest
-	(*v1.StreamChatRequest)(nil),           // 12: llm.v1.StreamChatRequest
-	(*v11.GetSupportedChainsRequest)(nil),  // 13: web3.v1.GetSupportedChainsRequest
-	(*v11.CreateBindingNonceRequest)(nil),  // 14: web3.v1.CreateBindingNonceRequest
-	(*v11.BindWalletRequest)(nil),          // 15: web3.v1.BindWalletRequest
-	(*v11.UnbindWalletRequest)(nil),        // 16: web3.v1.UnbindWalletRequest
-	(*v11.GetWalletsRequest)(nil),          // 17: web3.v1.GetWalletsRequest
-	(*v11.UpdateWalletRequest)(nil),        // 18: web3.v1.UpdateWalletRequest
-	(*v11.GetBalanceRequest)(nil),          // 19: web3.v1.GetBalanceRequest
-	(*v11.GetTransactionRequest)(nil),      // 20: web3.v1.GetTransactionRequest
-	(*v11.GetTransactionsRequest)(nil),     // 21: web3.v1.GetTransactionsRequest
-	(*v1.ChatResponse)(nil),                // 22: llm.v1.ChatResponse
-	(*v1.StreamChatResponse)(nil),          // 23: llm.v1.StreamChatResponse
-	(*v11.GetSupportedChainsResponse)(nil), // 24: web3.v1.GetSupportedChainsResponse
-	(*v11.CreateBindingNonceResponse)(nil), // 25: web3.v1.CreateBindingNonceResponse
-	(*v11.BindWalletResponse)(nil),         // 26: web3.v1.BindWalletResponse
-	(*v11.UnbindWalletResponse)(nil),       // 27: web3.v1.UnbindWalletResponse
-	(*v11.GetWalletsResponse)(nil),         // 28: web3.v1.GetWalletsResponse
-	(*v11.UpdateWalletResponse)(nil),       // 29: web3.v1.UpdateWalletResponse
-	(*v11.GetBalanceResponse)(nil),         // 30: web3.v1.GetBalanceResponse
-	(*v11.GetTransactionResponse)(nil),     // 31: web3.v1.GetTransactionResponse
-	(*v11.GetTransactionsResponse)(nil),    // 32: web3.v1.GetTransactionsResponse
+	(UserStatus)(0),                            // 0: user.v1.UserStatus
+	(*InitializeUserRequest)(nil),              // 1: user.v1.InitializeUserRequest
+	(*InitializeUserResponse)(nil),             // 2: user.v1.InitializeUserResponse
+	(*GetUserInfoRequest)(nil),                 // 3: user.v1.GetUserInfoRequest
+	(*GetUserInfoResponse)(nil),                // 4: user.v1.GetUserInfoResponse
+	(*UserInfo)(nil),                           // 5: user.v1.UserInfo
+	(*CreateUserRequest)(nil),                  // 6: user.v1.CreateUserRequest
+	(*CreateUserResponse)(nil),                 // 7: user.v1.CreateUserResponse
+	(*GetUserListRequest)(nil),                 // 8: user.v1.GetUserListRequest
+	(*GetUserListResponse)(nil),                // 9: user.v1.GetUserListResponse
+	(*timestamppb.Timestamp)(nil),              // 10: google.protobuf.Timestamp
+	(*v1.ChatRequest)(nil),                     // 11: llm.v1.ChatRequest
+	(*v1.StreamChatRequest)(nil),               // 12: llm.v1.StreamChatRequest
+	(*v11.GetSupportedChainsRequest)(nil),      // 13: web3.v1.GetSupportedChainsRequest
+	(*v11.CreateBindingNonceRequest)(nil),      // 14: web3.v1.CreateBindingNonceRequest
+	(*v11.BindWalletRequest)(nil),              // 15: web3.v1.BindWalletRequest
+	(*v11.UnbindWalletRequest)(nil),            // 16: web3.v1.UnbindWalletRequest
+	(*v11.GetWalletsRequest)(nil),              // 17: web3.v1.GetWalletsRequest
+	(*v11.UpdateWalletRequest)(nil),            // 18: web3.v1.UpdateWalletRequest
+	(*v11.GetBalanceRequest)(nil),              // 19: web3.v1.GetBalanceRequest
+	(*v11.GetTransactionRequest)(nil),          // 20: web3.v1.GetTransactionRequest
+	(*v11.GetTransactionsRequest)(nil),         // 21: web3.v1.GetTransactionsRequest
+	(*v11.CheckTronUSDTApprovalsRequest)(nil),  // 22: web3.v1.CheckTronUSDTApprovalsRequest
+	(*v1.ChatResponse)(nil),                    // 23: llm.v1.ChatResponse
+	(*v1.StreamChatResponse)(nil),              // 24: llm.v1.StreamChatResponse
+	(*v11.GetSupportedChainsResponse)(nil),     // 25: web3.v1.GetSupportedChainsResponse
+	(*v11.CreateBindingNonceResponse)(nil),     // 26: web3.v1.CreateBindingNonceResponse
+	(*v11.BindWalletResponse)(nil),             // 27: web3.v1.BindWalletResponse
+	(*v11.UnbindWalletResponse)(nil),           // 28: web3.v1.UnbindWalletResponse
+	(*v11.GetWalletsResponse)(nil),             // 29: web3.v1.GetWalletsResponse
+	(*v11.UpdateWalletResponse)(nil),           // 30: web3.v1.UpdateWalletResponse
+	(*v11.GetBalanceResponse)(nil),             // 31: web3.v1.GetBalanceResponse
+	(*v11.GetTransactionResponse)(nil),         // 32: web3.v1.GetTransactionResponse
+	(*v11.GetTransactionsResponse)(nil),        // 33: web3.v1.GetTransactionsResponse
+	(*v11.CheckTronUSDTApprovalsResponse)(nil), // 34: web3.v1.CheckTronUSDTApprovalsResponse
 }
 var file_user_v1_user_proto_depIdxs = []int32{
 	5,  // 0: user.v1.InitializeUserResponse.user_info:type_name -> user.v1.UserInfo
@@ -787,23 +801,25 @@ var file_user_v1_user_proto_depIdxs = []int32{
 	19, // 20: user.v1.UserService.GetBalance:input_type -> web3.v1.GetBalanceRequest
 	20, // 21: user.v1.UserService.GetTransaction:input_type -> web3.v1.GetTransactionRequest
 	21, // 22: user.v1.UserService.GetTransactions:input_type -> web3.v1.GetTransactionsRequest
-	2,  // 23: user.v1.UserService.InitializeUser:output_type -> user.v1.InitializeUserResponse
-	4,  // 24: user.v1.UserService.GetUserInfo:output_type -> user.v1.GetUserInfoResponse
-	7,  // 25: user.v1.UserService.CreateUser:output_type -> user.v1.CreateUserResponse
-	9,  // 26: user.v1.UserService.GetUserList:output_type -> user.v1.GetUserListResponse
-	22, // 27: user.v1.UserService.Chat:output_type -> llm.v1.ChatResponse
-	23, // 28: user.v1.UserService.StreamChat:output_type -> llm.v1.StreamChatResponse
-	24, // 29: user.v1.UserService.GetSupportedChains:output_type -> web3.v1.GetSupportedChainsResponse
-	25, // 30: user.v1.UserService.CreateBindingNonce:output_type -> web3.v1.CreateBindingNonceResponse
-	26, // 31: user.v1.UserService.BindWallet:output_type -> web3.v1.BindWalletResponse
-	27, // 32: user.v1.UserService.UnbindWallet:output_type -> web3.v1.UnbindWalletResponse
-	28, // 33: user.v1.UserService.GetWallets:output_type -> web3.v1.GetWalletsResponse
-	29, // 34: user.v1.UserService.UpdateWallet:output_type -> web3.v1.UpdateWalletResponse
-	30, // 35: user.v1.UserService.GetBalance:output_type -> web3.v1.GetBalanceResponse
-	31, // 36: user.v1.UserService.GetTransaction:output_type -> web3.v1.GetTransactionResponse
-	32, // 37: user.v1.UserService.GetTransactions:output_type -> web3.v1.GetTransactionsResponse
-	23, // [23:38] is the sub-list for method output_type
-	8,  // [8:23] is the sub-list for method input_type
+	22, // 23: user.v1.UserService.CheckTronUSDTApprovals:input_type -> web3.v1.CheckTronUSDTApprovalsRequest
+	2,  // 24: user.v1.UserService.InitializeUser:output_type -> user.v1.InitializeUserResponse
+	4,  // 25: user.v1.UserService.GetUserInfo:output_type -> user.v1.GetUserInfoResponse
+	7,  // 26: user.v1.UserService.CreateUser:output_type -> user.v1.CreateUserResponse
+	9,  // 27: user.v1.UserService.GetUserList:output_type -> user.v1.GetUserListResponse
+	23, // 28: user.v1.UserService.Chat:output_type -> llm.v1.ChatResponse
+	24, // 29: user.v1.UserService.StreamChat:output_type -> llm.v1.StreamChatResponse
+	25, // 30: user.v1.UserService.GetSupportedChains:output_type -> web3.v1.GetSupportedChainsResponse
+	26, // 31: user.v1.UserService.CreateBindingNonce:output_type -> web3.v1.CreateBindingNonceResponse
+	27, // 32: user.v1.UserService.BindWallet:output_type -> web3.v1.BindWalletResponse
+	28, // 33: user.v1.UserService.UnbindWallet:output_type -> web3.v1.UnbindWalletResponse
+	29, // 34: user.v1.UserService.GetWallets:output_type -> web3.v1.GetWalletsResponse
+	30, // 35: user.v1.UserService.UpdateWallet:output_type -> web3.v1.UpdateWalletResponse
+	31, // 36: user.v1.UserService.GetBalance:output_type -> web3.v1.GetBalanceResponse
+	32, // 37: user.v1.UserService.GetTransaction:output_type -> web3.v1.GetTransactionResponse
+	33, // 38: user.v1.UserService.GetTransactions:output_type -> web3.v1.GetTransactionsResponse
+	34, // 39: user.v1.UserService.CheckTronUSDTApprovals:output_type -> web3.v1.CheckTronUSDTApprovalsResponse
+	24, // [24:40] is the sub-list for method output_type
+	8,  // [8:24] is the sub-list for method input_type
 	8,  // [8:8] is the sub-list for extension type_name
 	8,  // [8:8] is the sub-list for extension extendee
 	0,  // [0:8] is the sub-list for field type_name

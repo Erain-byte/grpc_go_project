@@ -130,6 +130,17 @@ tracing:
   cert_file: ""
   key_file: ""
   server_name: "jaeger" # 仅启用 TLS 时参与服务端证书名称验证
+
+# pprof 使用独立管理端口，不经过业务 gRPC 入口。
+pprof:
+  enabled: true
+  host: "127.0.0.1"
+  port: 6061
+  allow_remote: false
+  # 排查 channel/锁阻塞时临时改为 1，完成后恢复为 0。
+  block_profile_rate: 0
+  mutex_profile_fraction: 0
+
 rate_limit:
   enabled: true
 

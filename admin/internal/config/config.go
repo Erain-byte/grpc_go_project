@@ -29,6 +29,7 @@ type Config struct {
 	GRPC        GRPCServerConfig `yaml:"grpc" mapstructure:"grpc"`
 	Tracing     TracingConfig    `yaml:"tracing" mapstructure:"tracing"`
 	RateLimit   RateLimitConfig  `yaml:"rate_limit" mapstructure:"rate_limit"`
+	Pprof       PprofConfig      `yaml:"pprof" mapstructure:"pprof"`
 }
 
 // RabbitMQConfig 定义 Admin 服务的连接参数、发布确认、消费限速和操作日志拓扑。
@@ -211,6 +212,15 @@ type RateLimitRule struct {
 	Window string `yaml:"window" mapstructure:"window" json:"window"`
 }
 
+type PprofConfig struct {
+	Enabled              bool   `yaml:"enabled" mapstructure:"enabled"`
+	Host                 string `yaml:"host" mapstructure:"host"`
+	Port                 int    `yaml:"port" mapstructure:"port"`
+	AllowRemote          bool   `yaml:"allow_remote" mapstructure:"allow_remote"`
+	BlockProfileRate     int    `yaml:"block_profile_rate" mapstructure:"block_profile_rate"`
+	MutexProfileFraction int    `yaml:"mutex_profile_fraction" mapstructure:"mutex_profile_fraction"`
+}
+
 func (c Config) IsProduction() bool {
 	environment := strings.ToLower(strings.TrimSpace(c.Environment))
 	return environment == "prod" || environment == "production"
@@ -271,6 +281,12 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("consul.host", "127.0.0.1")
 	v.SetDefault("consul.port", 8500)
 	v.SetDefault("consul.scheme", "http")
+	v.SetDefault("pprof.enabled", false)
+	v.SetDefault("pprof.host", "127.0.0.1")
+	v.SetDefault("pprof.port", 6061)
+	v.SetDefault("pprof.allow_remote", false)
+	v.SetDefault("pprof.block_profile_rate", 0)
+	v.SetDefault("pprof.mutex_profile_fraction", 0)
 	v.SetDefault("shutdown.timeout", "10s")
 	v.SetDefault("auth.profile_cache_ttl", "15m")
 	//限流配置
@@ -465,8 +481,45 @@ func (c Config) Validate() error {
 	if c.GRPC.UseTLS && (strings.TrimSpace(c.GRPC.CertFile) == "" || strings.TrimSpace(c.GRPC.KeyFile) == "") {
 		return fmt.Errorf("admin gRPC certificate and private key are required when TLS is enabled")
 	}
+	if c.Tracing.Enabled {
+		if strings.TrimSpace(c.Tracing.ServiceName) == "" || strings.TrimSpace(c.Tracing.Endpoint) == "" {
+			return fmt.Errorf("admin tracing service name and endpoint are required")
+		}
+		if _, _, err := net.SplitHostPort(strings.TrimSpace(c.Tracing.Endpoint)); err != nil {
+			return fmt.Errorf("invalid tracing collector endpoint %q: %w", c.Tracing.Endpoint, err)
+		}
+		switch strings.ToLower(strings.TrimSpace(c.Tracing.SamplerType)) {
+		case "const", "probabilistic", "ratelimiting":
+		default:
+			return fmt.Errorf("unsupported tracing sampler type %q", c.Tracing.SamplerType)
+		}
+		if c.Tracing.SamplerParam < 0 || c.Tracing.SamplerParam > 1 {
+			return fmt.Errorf("tracing sampler parameter must be between 0 and 1")
+		}
+		if c.Tracing.UseTLS {
+			if strings.TrimSpace(c.Tracing.CAFile) == "" || strings.TrimSpace(c.Tracing.ServerName) == "" {
+				return fmt.Errorf("tracing CA and server name are required when TLS is enabled")
+			}
+			hasCert := strings.TrimSpace(c.Tracing.CertFile) != ""
+			hasKey := strings.TrimSpace(c.Tracing.KeyFile) != ""
+			if hasCert != hasKey {
+				return fmt.Errorf("tracing client certificate and private key must be configured together")
+			}
+		}
+	}
 	if err := validateRateLimitConfig(c.RateLimit); err != nil {
 		return err
+	}
+	if c.Pprof.Enabled {
+		if strings.TrimSpace(c.Pprof.Host) == "" {
+			return fmt.Errorf("pprof host is empty")
+		}
+		if c.Pprof.Port < 1 || c.Pprof.Port > 65535 {
+			return fmt.Errorf("pprof port %d is outside 1..65535", c.Pprof.Port)
+		}
+		if c.Pprof.BlockProfileRate < 0 || c.Pprof.MutexProfileFraction < 0 {
+			return fmt.Errorf("pprof block and mutex sampling rates cannot be negative")
+		}
 	}
 	return nil
 }

@@ -168,6 +168,17 @@ tracing:
   key_file: ""
   server_name: "jaeger"
 
+# pprof 使用独立管理端口，不经过业务 gRPC 入口。
+pprof:
+  enabled: true
+  host: "127.0.0.1"
+  port: 6062
+  # 默认禁止非回环地址；受控内网确需访问时才显式开启。
+  allow_remote: false
+  # 排查 channel/锁阻塞时临时改为 1，完成后恢复为 0。
+  block_profile_rate: 0
+  mutex_profile_fraction: 0
+
 # USER 实例本地限流，不依赖 Redis。
 rate_limit:
   enabled: false

@@ -53,19 +53,27 @@ func (c *ConsulRegistry) registerAndRemember(registration *api.AgentServiceRegis
 
 // reconcileRegistrations 查询失败不视为缺失，已有注册不重复写入
 func (c *ConsulRegistry) reconcileRegistrations(ctx context.Context) error {
+	// 锁内只复制本地注册模板，不能持锁执行Consul网络请求。
 	c.registrationMu.Lock()
-	defer c.registrationMu.Unlock()
-	templates := c.registrations
+	templates := make([]*api.AgentServiceRegistration, 0, len(c.registrations))
+	for _, registration := range c.registrations {
+		templates = append(templates, registration)
+	}
+	c.registrationMu.Unlock()
+
 	for _, registration := range templates {
-		service, err := c.client.Agent().ServicesWithFilterOpts(
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		// 当前Registry只维护本服务的gRPC注册，仅查询对应服务名。
+		services, err := c.client.Agent().ServicesWithFilterOpts(
 			fmt.Sprintf(`Service == %q`, registration.Name),
-			//查询失败不失为缺失，已有注册不重复写入
 			(&api.QueryOptions{}).WithContext(ctx),
 		)
 		if err != nil {
 			return err
 		}
-		if _, ok := service[registration.ID]; ok {
+		if _, ok := services[registration.ID]; ok {
 			continue
 		}
 		//在consul已经消失的，直接使用本地模板重新写入有健康检查完成passing
@@ -94,11 +102,11 @@ func (c *ConsulRegistry) StartRegistrationMaintenance(parent context.Context, lo
 			}
 			//开始补注册
 			requestCtx, requestCancel := context.WithTimeout(ctx, 5*time.Second)
+			err := c.reconcileRegistrations(requestCtx)
 			requestCancel()
 			if ctx.Err() != nil {
 				return
 			}
-			err := c.reconcileRegistrations(requestCtx)
 			if err != nil {
 				log.Warn("Consul registration maintenance failed", zap.Error(err))
 				//指数退避

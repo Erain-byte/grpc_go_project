@@ -69,11 +69,15 @@ func NewGRPCServer(cfg *config.Config, svcCtx *svc.ServiceContext) (*GRPCServer,
 		// 一元拦截器按照声明顺序执行：先准备 Request ID，再统一转换业务错误。
 		grpc.ChainUnaryInterceptor(
 			middleware.RequestID(),
-			middleware.ErrorHandler(),
+			middleware.Recovery(svcCtx.Logger),
+			middleware.ErrorHandler(svcCtx.Logger),
 			authInterceptor.Unary(),
 			rateLimitInterceptor.Unary(),
 		),
 		grpc.ChainStreamInterceptor(
+			middleware.StreamRequestID(),
+			middleware.StreamRecovery(svcCtx.Logger),
+			middleware.StreamErrorHandler(svcCtx.Logger),
 			authInterceptor.Stream(),
 			rateLimitInterceptor.Stream(),
 		),

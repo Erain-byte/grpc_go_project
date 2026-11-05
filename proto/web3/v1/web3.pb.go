@@ -23,6 +23,165 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type TronApprovalCheckStatus int32
+
+const (
+	TronApprovalCheckStatus_TRON_APPROVAL_CHECK_STATUS_UNSPECIFIED TronApprovalCheckStatus = 0
+	TronApprovalCheckStatus_TRON_APPROVAL_CHECK_STATUS_SUCCESS     TronApprovalCheckStatus = 1
+	TronApprovalCheckStatus_TRON_APPROVAL_CHECK_STATUS_PARTIAL     TronApprovalCheckStatus = 2
+	TronApprovalCheckStatus_TRON_APPROVAL_CHECK_STATUS_FAILED      TronApprovalCheckStatus = 3
+)
+
+// Enum value maps for TronApprovalCheckStatus.
+var (
+	TronApprovalCheckStatus_name = map[int32]string{
+		0: "TRON_APPROVAL_CHECK_STATUS_UNSPECIFIED",
+		1: "TRON_APPROVAL_CHECK_STATUS_SUCCESS",
+		2: "TRON_APPROVAL_CHECK_STATUS_PARTIAL",
+		3: "TRON_APPROVAL_CHECK_STATUS_FAILED",
+	}
+	TronApprovalCheckStatus_value = map[string]int32{
+		"TRON_APPROVAL_CHECK_STATUS_UNSPECIFIED": 0,
+		"TRON_APPROVAL_CHECK_STATUS_SUCCESS":     1,
+		"TRON_APPROVAL_CHECK_STATUS_PARTIAL":     2,
+		"TRON_APPROVAL_CHECK_STATUS_FAILED":      3,
+	}
+)
+
+func (x TronApprovalCheckStatus) Enum() *TronApprovalCheckStatus {
+	p := new(TronApprovalCheckStatus)
+	*p = x
+	return p
+}
+
+func (x TronApprovalCheckStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (TronApprovalCheckStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_web3_v1_web3_proto_enumTypes[0].Descriptor()
+}
+
+func (TronApprovalCheckStatus) Type() protoreflect.EnumType {
+	return &file_web3_v1_web3_proto_enumTypes[0]
+}
+
+func (x TronApprovalCheckStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use TronApprovalCheckStatus.Descriptor instead.
+func (TronApprovalCheckStatus) EnumDescriptor() ([]byte, []int) {
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{0}
+}
+
+type TronSpenderType int32
+
+const (
+	TronSpenderType_TRON_SPENDER_TYPE_UNSPECIFIED TronSpenderType = 0
+	TronSpenderType_TRON_SPENDER_TYPE_ADDRESS     TronSpenderType = 1
+	TronSpenderType_TRON_SPENDER_TYPE_CONTRACT    TronSpenderType = 2
+	TronSpenderType_TRON_SPENDER_TYPE_UNKNOWN     TronSpenderType = 3
+)
+
+// Enum value maps for TronSpenderType.
+var (
+	TronSpenderType_name = map[int32]string{
+		0: "TRON_SPENDER_TYPE_UNSPECIFIED",
+		1: "TRON_SPENDER_TYPE_ADDRESS",
+		2: "TRON_SPENDER_TYPE_CONTRACT",
+		3: "TRON_SPENDER_TYPE_UNKNOWN",
+	}
+	TronSpenderType_value = map[string]int32{
+		"TRON_SPENDER_TYPE_UNSPECIFIED": 0,
+		"TRON_SPENDER_TYPE_ADDRESS":     1,
+		"TRON_SPENDER_TYPE_CONTRACT":    2,
+		"TRON_SPENDER_TYPE_UNKNOWN":     3,
+	}
+)
+
+func (x TronSpenderType) Enum() *TronSpenderType {
+	p := new(TronSpenderType)
+	*p = x
+	return p
+}
+
+func (x TronSpenderType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (TronSpenderType) Descriptor() protoreflect.EnumDescriptor {
+	return file_web3_v1_web3_proto_enumTypes[1].Descriptor()
+}
+
+func (TronSpenderType) Type() protoreflect.EnumType {
+	return &file_web3_v1_web3_proto_enumTypes[1]
+}
+
+func (x TronSpenderType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use TronSpenderType.Descriptor instead.
+func (TronSpenderType) EnumDescriptor() ([]byte, []int) {
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{1}
+}
+
+type TronUnlimitedStatus int32
+
+const (
+	TronUnlimitedStatus_TRON_UNLIMITED_STATUS_UNSPECIFIED TronUnlimitedStatus = 0
+	TronUnlimitedStatus_TRON_UNLIMITED_STATUS_FINITE      TronUnlimitedStatus = 1
+	TronUnlimitedStatus_TRON_UNLIMITED_STATUS_UNLIMITED   TronUnlimitedStatus = 2
+	TronUnlimitedStatus_TRON_UNLIMITED_STATUS_CONFLICT    TronUnlimitedStatus = 3
+	TronUnlimitedStatus_TRON_UNLIMITED_STATUS_UNKNOWN     TronUnlimitedStatus = 4
+)
+
+// Enum value maps for TronUnlimitedStatus.
+var (
+	TronUnlimitedStatus_name = map[int32]string{
+		0: "TRON_UNLIMITED_STATUS_UNSPECIFIED",
+		1: "TRON_UNLIMITED_STATUS_FINITE",
+		2: "TRON_UNLIMITED_STATUS_UNLIMITED",
+		3: "TRON_UNLIMITED_STATUS_CONFLICT",
+		4: "TRON_UNLIMITED_STATUS_UNKNOWN",
+	}
+	TronUnlimitedStatus_value = map[string]int32{
+		"TRON_UNLIMITED_STATUS_UNSPECIFIED": 0,
+		"TRON_UNLIMITED_STATUS_FINITE":      1,
+		"TRON_UNLIMITED_STATUS_UNLIMITED":   2,
+		"TRON_UNLIMITED_STATUS_CONFLICT":    3,
+		"TRON_UNLIMITED_STATUS_UNKNOWN":     4,
+	}
+)
+
+func (x TronUnlimitedStatus) Enum() *TronUnlimitedStatus {
+	p := new(TronUnlimitedStatus)
+	*p = x
+	return p
+}
+
+func (x TronUnlimitedStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (TronUnlimitedStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_web3_v1_web3_proto_enumTypes[2].Descriptor()
+}
+
+func (TronUnlimitedStatus) Type() protoreflect.EnumType {
+	return &file_web3_v1_web3_proto_enumTypes[2]
+}
+
+func (x TronUnlimitedStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use TronUnlimitedStatus.Descriptor instead.
+func (TronUnlimitedStatus) EnumDescriptor() ([]byte, []int) {
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{2}
+}
+
 type WalletStatus int32
 
 const (
@@ -56,11 +215,11 @@ func (x WalletStatus) String() string {
 }
 
 func (WalletStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_web3_v1_web3_proto_enumTypes[0].Descriptor()
+	return file_web3_v1_web3_proto_enumTypes[3].Descriptor()
 }
 
 func (WalletStatus) Type() protoreflect.EnumType {
-	return &file_web3_v1_web3_proto_enumTypes[0]
+	return &file_web3_v1_web3_proto_enumTypes[3]
 }
 
 func (x WalletStatus) Number() protoreflect.EnumNumber {
@@ -69,7 +228,7 @@ func (x WalletStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WalletStatus.Descriptor instead.
 func (WalletStatus) EnumDescriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{0}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{3}
 }
 
 type TransactionStatus int32
@@ -111,11 +270,11 @@ func (x TransactionStatus) String() string {
 }
 
 func (TransactionStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_web3_v1_web3_proto_enumTypes[1].Descriptor()
+	return file_web3_v1_web3_proto_enumTypes[4].Descriptor()
 }
 
 func (TransactionStatus) Type() protoreflect.EnumType {
-	return &file_web3_v1_web3_proto_enumTypes[1]
+	return &file_web3_v1_web3_proto_enumTypes[4]
 }
 
 func (x TransactionStatus) Number() protoreflect.EnumNumber {
@@ -124,7 +283,421 @@ func (x TransactionStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use TransactionStatus.Descriptor instead.
 func (TransactionStatus) EnumDescriptor() ([]byte, []int) {
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{4}
+}
+
+type CheckTronUSDTApprovalsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// address 必须是通过 Base58Check 校验的 TRON 主网地址。
+	Address       string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckTronUSDTApprovalsRequest) Reset() {
+	*x = CheckTronUSDTApprovalsRequest{}
+	mi := &file_web3_v1_web3_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckTronUSDTApprovalsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckTronUSDTApprovalsRequest) ProtoMessage() {}
+
+func (x *CheckTronUSDTApprovalsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_web3_v1_web3_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckTronUSDTApprovalsRequest.ProtoReflect.Descriptor instead.
+func (*CheckTronUSDTApprovalsRequest) Descriptor() ([]byte, []int) {
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *CheckTronUSDTApprovalsRequest) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+type CheckTronUSDTApprovalsResponse struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	RequestId     string                  `protobuf:"bytes,1,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	Network       string                  `protobuf:"bytes,2,opt,name=network,proto3" json:"network,omitempty"`
+	Address       string                  `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
+	TokenContract string                  `protobuf:"bytes,4,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
+	Status        TronApprovalCheckStatus `protobuf:"varint,5,opt,name=status,proto3,enum=web3.v1.TronApprovalCheckStatus" json:"status,omitempty"`
+	// 以下字段分别描述枚举、额度核实和风险数据是否完整可用。
+	// 客户端必须依据这些字段区分完整空结果、部分结果和查询失败。
+	EnumerationComplete           bool                        `protobuf:"varint,6,opt,name=enumeration_complete,json=enumerationComplete,proto3" json:"enumeration_complete,omitempty"`
+	AllowanceVerificationComplete bool                        `protobuf:"varint,7,opt,name=allowance_verification_complete,json=allowanceVerificationComplete,proto3" json:"allowance_verification_complete,omitempty"`
+	RiskDataAvailable             bool                        `protobuf:"varint,8,opt,name=risk_data_available,json=riskDataAvailable,proto3" json:"risk_data_available,omitempty"`
+	Truncated                     bool                        `protobuf:"varint,9,opt,name=truncated,proto3" json:"truncated,omitempty"`
+	Reason                        string                      `protobuf:"bytes,10,opt,name=reason,proto3" json:"reason,omitempty"`
+	IsCached                      bool                        `protobuf:"varint,11,opt,name=is_cached,json=isCached,proto3" json:"is_cached,omitempty"`
+	QueriedAt                     *timestamppb.Timestamp      `protobuf:"bytes,12,opt,name=queried_at,json=queriedAt,proto3" json:"queried_at,omitempty"`
+	Approvals                     []*TronUSDTApproval         `protobuf:"bytes,13,rep,name=approvals,proto3" json:"approvals,omitempty"`
+	PartialErrors                 []*TronApprovalPartialError `protobuf:"bytes,14,rep,name=partial_errors,json=partialErrors,proto3" json:"partial_errors,omitempty"`
+	unknownFields                 protoimpl.UnknownFields
+	sizeCache                     protoimpl.SizeCache
+}
+
+func (x *CheckTronUSDTApprovalsResponse) Reset() {
+	*x = CheckTronUSDTApprovalsResponse{}
+	mi := &file_web3_v1_web3_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckTronUSDTApprovalsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckTronUSDTApprovalsResponse) ProtoMessage() {}
+
+func (x *CheckTronUSDTApprovalsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_web3_v1_web3_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckTronUSDTApprovalsResponse.ProtoReflect.Descriptor instead.
+func (*CheckTronUSDTApprovalsResponse) Descriptor() ([]byte, []int) {
 	return file_web3_v1_web3_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetNetwork() string {
+	if x != nil {
+		return x.Network
+	}
+	return ""
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetTokenContract() string {
+	if x != nil {
+		return x.TokenContract
+	}
+	return ""
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetStatus() TronApprovalCheckStatus {
+	if x != nil {
+		return x.Status
+	}
+	return TronApprovalCheckStatus_TRON_APPROVAL_CHECK_STATUS_UNSPECIFIED
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetEnumerationComplete() bool {
+	if x != nil {
+		return x.EnumerationComplete
+	}
+	return false
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetAllowanceVerificationComplete() bool {
+	if x != nil {
+		return x.AllowanceVerificationComplete
+	}
+	return false
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetRiskDataAvailable() bool {
+	if x != nil {
+		return x.RiskDataAvailable
+	}
+	return false
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetTruncated() bool {
+	if x != nil {
+		return x.Truncated
+	}
+	return false
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetIsCached() bool {
+	if x != nil {
+		return x.IsCached
+	}
+	return false
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetQueriedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.QueriedAt
+	}
+	return nil
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetApprovals() []*TronUSDTApproval {
+	if x != nil {
+		return x.Approvals
+	}
+	return nil
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetPartialErrors() []*TronApprovalPartialError {
+	if x != nil {
+		return x.PartialErrors
+	}
+	return nil
+}
+
+type TronUSDTApproval struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Spender     string                 `protobuf:"bytes,1,opt,name=spender,proto3" json:"spender,omitempty"`
+	SpenderType TronSpenderType        `protobuf:"varint,2,opt,name=spender_type,json=spenderType,proto3,enum=web3.v1.TronSpenderType" json:"spender_type,omitempty"`
+	DisplayName string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	// raw_allowance 保存链上最小单位的大整数十进制字符串，禁止使用浮点数。
+	RawAllowance        string                 `protobuf:"bytes,4,opt,name=raw_allowance,json=rawAllowance,proto3" json:"raw_allowance,omitempty"`
+	Decimals            uint32                 `protobuf:"varint,5,opt,name=decimals,proto3" json:"decimals,omitempty"`
+	DisplayAllowance    string                 `protobuf:"bytes,6,opt,name=display_allowance,json=displayAllowance,proto3" json:"display_allowance,omitempty"`
+	UnlimitedStatus     TronUnlimitedStatus    `protobuf:"varint,7,opt,name=unlimited_status,json=unlimitedStatus,proto3,enum=web3.v1.TronUnlimitedStatus" json:"unlimited_status,omitempty"`
+	AllowanceVerifiedAt *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=allowance_verified_at,json=allowanceVerifiedAt,proto3" json:"allowance_verified_at,omitempty"`
+	// 风险标签与授权额度彼此独立；没有标签不等于风险数据不可用。
+	RiskLabels        []string               `protobuf:"bytes,9,rep,name=risk_labels,json=riskLabels,proto3" json:"risk_labels,omitempty"`
+	RiskSource        string                 `protobuf:"bytes,10,opt,name=risk_source,json=riskSource,proto3" json:"risk_source,omitempty"`
+	RiskCheckedAt     *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=risk_checked_at,json=riskCheckedAt,proto3" json:"risk_checked_at,omitempty"`
+	AllowanceVerified bool                   `protobuf:"varint,12,opt,name=allowance_verified,json=allowanceVerified,proto3" json:"allowance_verified,omitempty"`
+	Active            bool                   `protobuf:"varint,13,opt,name=active,proto3" json:"active,omitempty"`
+	OfficialDetailUrl string                 `protobuf:"bytes,14,opt,name=official_detail_url,json=officialDetailUrl,proto3" json:"official_detail_url,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *TronUSDTApproval) Reset() {
+	*x = TronUSDTApproval{}
+	mi := &file_web3_v1_web3_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TronUSDTApproval) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TronUSDTApproval) ProtoMessage() {}
+
+func (x *TronUSDTApproval) ProtoReflect() protoreflect.Message {
+	mi := &file_web3_v1_web3_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TronUSDTApproval.ProtoReflect.Descriptor instead.
+func (*TronUSDTApproval) Descriptor() ([]byte, []int) {
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *TronUSDTApproval) GetSpender() string {
+	if x != nil {
+		return x.Spender
+	}
+	return ""
+}
+
+func (x *TronUSDTApproval) GetSpenderType() TronSpenderType {
+	if x != nil {
+		return x.SpenderType
+	}
+	return TronSpenderType_TRON_SPENDER_TYPE_UNSPECIFIED
+}
+
+func (x *TronUSDTApproval) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *TronUSDTApproval) GetRawAllowance() string {
+	if x != nil {
+		return x.RawAllowance
+	}
+	return ""
+}
+
+func (x *TronUSDTApproval) GetDecimals() uint32 {
+	if x != nil {
+		return x.Decimals
+	}
+	return 0
+}
+
+func (x *TronUSDTApproval) GetDisplayAllowance() string {
+	if x != nil {
+		return x.DisplayAllowance
+	}
+	return ""
+}
+
+func (x *TronUSDTApproval) GetUnlimitedStatus() TronUnlimitedStatus {
+	if x != nil {
+		return x.UnlimitedStatus
+	}
+	return TronUnlimitedStatus_TRON_UNLIMITED_STATUS_UNSPECIFIED
+}
+
+func (x *TronUSDTApproval) GetAllowanceVerifiedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.AllowanceVerifiedAt
+	}
+	return nil
+}
+
+func (x *TronUSDTApproval) GetRiskLabels() []string {
+	if x != nil {
+		return x.RiskLabels
+	}
+	return nil
+}
+
+func (x *TronUSDTApproval) GetRiskSource() string {
+	if x != nil {
+		return x.RiskSource
+	}
+	return ""
+}
+
+func (x *TronUSDTApproval) GetRiskCheckedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RiskCheckedAt
+	}
+	return nil
+}
+
+func (x *TronUSDTApproval) GetAllowanceVerified() bool {
+	if x != nil {
+		return x.AllowanceVerified
+	}
+	return false
+}
+
+func (x *TronUSDTApproval) GetActive() bool {
+	if x != nil {
+		return x.Active
+	}
+	return false
+}
+
+func (x *TronUSDTApproval) GetOfficialDetailUrl() string {
+	if x != nil {
+		return x.OfficialDetailUrl
+	}
+	return ""
+}
+
+type TronApprovalPartialError struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Code      string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Message   string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Retryable bool                   `protobuf:"varint,3,opt,name=retryable,proto3" json:"retryable,omitempty"`
+	// spender 为空表示错误属于整个查询或分页，不对应单个授权对象。
+	Spender       string `protobuf:"bytes,4,opt,name=spender,proto3" json:"spender,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TronApprovalPartialError) Reset() {
+	*x = TronApprovalPartialError{}
+	mi := &file_web3_v1_web3_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TronApprovalPartialError) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TronApprovalPartialError) ProtoMessage() {}
+
+func (x *TronApprovalPartialError) ProtoReflect() protoreflect.Message {
+	mi := &file_web3_v1_web3_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TronApprovalPartialError.ProtoReflect.Descriptor instead.
+func (*TronApprovalPartialError) Descriptor() ([]byte, []int) {
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *TronApprovalPartialError) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *TronApprovalPartialError) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *TronApprovalPartialError) GetRetryable() bool {
+	if x != nil {
+		return x.Retryable
+	}
+	return false
+}
+
+func (x *TronApprovalPartialError) GetSpender() string {
+	if x != nil {
+		return x.Spender
+	}
+	return ""
 }
 
 type GetSupportedChainsRequest struct {
@@ -135,7 +708,7 @@ type GetSupportedChainsRequest struct {
 
 func (x *GetSupportedChainsRequest) Reset() {
 	*x = GetSupportedChainsRequest{}
-	mi := &file_web3_v1_web3_proto_msgTypes[0]
+	mi := &file_web3_v1_web3_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -147,7 +720,7 @@ func (x *GetSupportedChainsRequest) String() string {
 func (*GetSupportedChainsRequest) ProtoMessage() {}
 
 func (x *GetSupportedChainsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[0]
+	mi := &file_web3_v1_web3_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -160,7 +733,7 @@ func (x *GetSupportedChainsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSupportedChainsRequest.ProtoReflect.Descriptor instead.
 func (*GetSupportedChainsRequest) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{0}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{4}
 }
 
 type GetSupportedChainsResponse struct {
@@ -172,7 +745,7 @@ type GetSupportedChainsResponse struct {
 
 func (x *GetSupportedChainsResponse) Reset() {
 	*x = GetSupportedChainsResponse{}
-	mi := &file_web3_v1_web3_proto_msgTypes[1]
+	mi := &file_web3_v1_web3_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -184,7 +757,7 @@ func (x *GetSupportedChainsResponse) String() string {
 func (*GetSupportedChainsResponse) ProtoMessage() {}
 
 func (x *GetSupportedChainsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[1]
+	mi := &file_web3_v1_web3_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -197,7 +770,7 @@ func (x *GetSupportedChainsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSupportedChainsResponse.ProtoReflect.Descriptor instead.
 func (*GetSupportedChainsResponse) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{1}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetSupportedChainsResponse) GetChains() []*ChainInfo {
@@ -221,7 +794,7 @@ type ChainInfo struct {
 
 func (x *ChainInfo) Reset() {
 	*x = ChainInfo{}
-	mi := &file_web3_v1_web3_proto_msgTypes[2]
+	mi := &file_web3_v1_web3_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -233,7 +806,7 @@ func (x *ChainInfo) String() string {
 func (*ChainInfo) ProtoMessage() {}
 
 func (x *ChainInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[2]
+	mi := &file_web3_v1_web3_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -246,7 +819,7 @@ func (x *ChainInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChainInfo.ProtoReflect.Descriptor instead.
 func (*ChainInfo) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{2}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ChainInfo) GetChainId() uint64 {
@@ -302,7 +875,7 @@ type CreateBindingNonceRequest struct {
 
 func (x *CreateBindingNonceRequest) Reset() {
 	*x = CreateBindingNonceRequest{}
-	mi := &file_web3_v1_web3_proto_msgTypes[3]
+	mi := &file_web3_v1_web3_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -314,7 +887,7 @@ func (x *CreateBindingNonceRequest) String() string {
 func (*CreateBindingNonceRequest) ProtoMessage() {}
 
 func (x *CreateBindingNonceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[3]
+	mi := &file_web3_v1_web3_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -327,7 +900,7 @@ func (x *CreateBindingNonceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBindingNonceRequest.ProtoReflect.Descriptor instead.
 func (*CreateBindingNonceRequest) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{3}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CreateBindingNonceRequest) GetChainId() uint64 {
@@ -356,7 +929,7 @@ type CreateBindingNonceResponse struct {
 
 func (x *CreateBindingNonceResponse) Reset() {
 	*x = CreateBindingNonceResponse{}
-	mi := &file_web3_v1_web3_proto_msgTypes[4]
+	mi := &file_web3_v1_web3_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -368,7 +941,7 @@ func (x *CreateBindingNonceResponse) String() string {
 func (*CreateBindingNonceResponse) ProtoMessage() {}
 
 func (x *CreateBindingNonceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[4]
+	mi := &file_web3_v1_web3_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -381,7 +954,7 @@ func (x *CreateBindingNonceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBindingNonceResponse.ProtoReflect.Descriptor instead.
 func (*CreateBindingNonceResponse) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{4}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *CreateBindingNonceResponse) GetNonceId() string {
@@ -418,7 +991,7 @@ type BindWalletRequest struct {
 
 func (x *BindWalletRequest) Reset() {
 	*x = BindWalletRequest{}
-	mi := &file_web3_v1_web3_proto_msgTypes[5]
+	mi := &file_web3_v1_web3_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -430,7 +1003,7 @@ func (x *BindWalletRequest) String() string {
 func (*BindWalletRequest) ProtoMessage() {}
 
 func (x *BindWalletRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[5]
+	mi := &file_web3_v1_web3_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -443,7 +1016,7 @@ func (x *BindWalletRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BindWalletRequest.ProtoReflect.Descriptor instead.
 func (*BindWalletRequest) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{5}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *BindWalletRequest) GetChainId() uint64 {
@@ -491,7 +1064,7 @@ type BindWalletResponse struct {
 
 func (x *BindWalletResponse) Reset() {
 	*x = BindWalletResponse{}
-	mi := &file_web3_v1_web3_proto_msgTypes[6]
+	mi := &file_web3_v1_web3_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -503,7 +1076,7 @@ func (x *BindWalletResponse) String() string {
 func (*BindWalletResponse) ProtoMessage() {}
 
 func (x *BindWalletResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[6]
+	mi := &file_web3_v1_web3_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -516,7 +1089,7 @@ func (x *BindWalletResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BindWalletResponse.ProtoReflect.Descriptor instead.
 func (*BindWalletResponse) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{6}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *BindWalletResponse) GetWallet() *WalletInfo {
@@ -542,7 +1115,7 @@ type UnbindWalletRequest struct {
 
 func (x *UnbindWalletRequest) Reset() {
 	*x = UnbindWalletRequest{}
-	mi := &file_web3_v1_web3_proto_msgTypes[7]
+	mi := &file_web3_v1_web3_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -554,7 +1127,7 @@ func (x *UnbindWalletRequest) String() string {
 func (*UnbindWalletRequest) ProtoMessage() {}
 
 func (x *UnbindWalletRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[7]
+	mi := &file_web3_v1_web3_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -567,7 +1140,7 @@ func (x *UnbindWalletRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnbindWalletRequest.ProtoReflect.Descriptor instead.
 func (*UnbindWalletRequest) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{7}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *UnbindWalletRequest) GetWalletId() string {
@@ -585,7 +1158,7 @@ type UnbindWalletResponse struct {
 
 func (x *UnbindWalletResponse) Reset() {
 	*x = UnbindWalletResponse{}
-	mi := &file_web3_v1_web3_proto_msgTypes[8]
+	mi := &file_web3_v1_web3_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -597,7 +1170,7 @@ func (x *UnbindWalletResponse) String() string {
 func (*UnbindWalletResponse) ProtoMessage() {}
 
 func (x *UnbindWalletResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[8]
+	mi := &file_web3_v1_web3_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -610,7 +1183,7 @@ func (x *UnbindWalletResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnbindWalletResponse.ProtoReflect.Descriptor instead.
 func (*UnbindWalletResponse) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{8}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{12}
 }
 
 type GetWalletsRequest struct {
@@ -621,7 +1194,7 @@ type GetWalletsRequest struct {
 
 func (x *GetWalletsRequest) Reset() {
 	*x = GetWalletsRequest{}
-	mi := &file_web3_v1_web3_proto_msgTypes[9]
+	mi := &file_web3_v1_web3_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -633,7 +1206,7 @@ func (x *GetWalletsRequest) String() string {
 func (*GetWalletsRequest) ProtoMessage() {}
 
 func (x *GetWalletsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[9]
+	mi := &file_web3_v1_web3_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -646,7 +1219,7 @@ func (x *GetWalletsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetWalletsRequest.ProtoReflect.Descriptor instead.
 func (*GetWalletsRequest) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{9}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{13}
 }
 
 type GetWalletsResponse struct {
@@ -658,7 +1231,7 @@ type GetWalletsResponse struct {
 
 func (x *GetWalletsResponse) Reset() {
 	*x = GetWalletsResponse{}
-	mi := &file_web3_v1_web3_proto_msgTypes[10]
+	mi := &file_web3_v1_web3_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -670,7 +1243,7 @@ func (x *GetWalletsResponse) String() string {
 func (*GetWalletsResponse) ProtoMessage() {}
 
 func (x *GetWalletsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[10]
+	mi := &file_web3_v1_web3_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -683,7 +1256,7 @@ func (x *GetWalletsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetWalletsResponse.ProtoReflect.Descriptor instead.
 func (*GetWalletsResponse) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{10}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetWalletsResponse) GetWallets() []*WalletInfo {
@@ -710,7 +1283,7 @@ type WalletInfo struct {
 
 func (x *WalletInfo) Reset() {
 	*x = WalletInfo{}
-	mi := &file_web3_v1_web3_proto_msgTypes[11]
+	mi := &file_web3_v1_web3_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -722,7 +1295,7 @@ func (x *WalletInfo) String() string {
 func (*WalletInfo) ProtoMessage() {}
 
 func (x *WalletInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[11]
+	mi := &file_web3_v1_web3_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -735,7 +1308,7 @@ func (x *WalletInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WalletInfo.ProtoReflect.Descriptor instead.
 func (*WalletInfo) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{11}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *WalletInfo) GetId() string {
@@ -813,7 +1386,7 @@ type UpdateWalletRequest struct {
 
 func (x *UpdateWalletRequest) Reset() {
 	*x = UpdateWalletRequest{}
-	mi := &file_web3_v1_web3_proto_msgTypes[12]
+	mi := &file_web3_v1_web3_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -825,7 +1398,7 @@ func (x *UpdateWalletRequest) String() string {
 func (*UpdateWalletRequest) ProtoMessage() {}
 
 func (x *UpdateWalletRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[12]
+	mi := &file_web3_v1_web3_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -838,7 +1411,7 @@ func (x *UpdateWalletRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateWalletRequest.ProtoReflect.Descriptor instead.
 func (*UpdateWalletRequest) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{12}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *UpdateWalletRequest) GetWalletId() string {
@@ -871,7 +1444,7 @@ type UpdateWalletResponse struct {
 
 func (x *UpdateWalletResponse) Reset() {
 	*x = UpdateWalletResponse{}
-	mi := &file_web3_v1_web3_proto_msgTypes[13]
+	mi := &file_web3_v1_web3_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -883,7 +1456,7 @@ func (x *UpdateWalletResponse) String() string {
 func (*UpdateWalletResponse) ProtoMessage() {}
 
 func (x *UpdateWalletResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[13]
+	mi := &file_web3_v1_web3_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -896,7 +1469,7 @@ func (x *UpdateWalletResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateWalletResponse.ProtoReflect.Descriptor instead.
 func (*UpdateWalletResponse) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{13}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdateWalletResponse) GetWallet() *WalletInfo {
@@ -917,7 +1490,7 @@ type GetBalanceRequest struct {
 
 func (x *GetBalanceRequest) Reset() {
 	*x = GetBalanceRequest{}
-	mi := &file_web3_v1_web3_proto_msgTypes[14]
+	mi := &file_web3_v1_web3_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -929,7 +1502,7 @@ func (x *GetBalanceRequest) String() string {
 func (*GetBalanceRequest) ProtoMessage() {}
 
 func (x *GetBalanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[14]
+	mi := &file_web3_v1_web3_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -942,7 +1515,7 @@ func (x *GetBalanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBalanceRequest.ProtoReflect.Descriptor instead.
 func (*GetBalanceRequest) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{14}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetBalanceRequest) GetWalletId() string {
@@ -977,7 +1550,7 @@ type GetBalanceResponse struct {
 
 func (x *GetBalanceResponse) Reset() {
 	*x = GetBalanceResponse{}
-	mi := &file_web3_v1_web3_proto_msgTypes[15]
+	mi := &file_web3_v1_web3_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -989,7 +1562,7 @@ func (x *GetBalanceResponse) String() string {
 func (*GetBalanceResponse) ProtoMessage() {}
 
 func (x *GetBalanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[15]
+	mi := &file_web3_v1_web3_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1002,7 +1575,7 @@ func (x *GetBalanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBalanceResponse.ProtoReflect.Descriptor instead.
 func (*GetBalanceResponse) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{15}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetBalanceResponse) GetChainId() uint64 {
@@ -1065,13 +1638,16 @@ type GetTransactionRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	ChainId         uint64                 `protobuf:"varint,1,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
 	TransactionHash string                 `protobuf:"bytes,2,opt,name=transaction_hash,json=transactionHash,proto3" json:"transaction_hash,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// 指定交易所属的钱包，用于校验归属并确定交易分表。
+	// 保留已有字段编号，新增字段必须使用新的编号以保证 protobuf 兼容性。
+	WalletId      string `protobuf:"bytes,3,opt,name=wallet_id,json=walletId,proto3" json:"wallet_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetTransactionRequest) Reset() {
 	*x = GetTransactionRequest{}
-	mi := &file_web3_v1_web3_proto_msgTypes[16]
+	mi := &file_web3_v1_web3_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1083,7 +1659,7 @@ func (x *GetTransactionRequest) String() string {
 func (*GetTransactionRequest) ProtoMessage() {}
 
 func (x *GetTransactionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[16]
+	mi := &file_web3_v1_web3_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1096,7 +1672,7 @@ func (x *GetTransactionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTransactionRequest.ProtoReflect.Descriptor instead.
 func (*GetTransactionRequest) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{16}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetTransactionRequest) GetChainId() uint64 {
@@ -1113,6 +1689,13 @@ func (x *GetTransactionRequest) GetTransactionHash() string {
 	return ""
 }
 
+func (x *GetTransactionRequest) GetWalletId() string {
+	if x != nil {
+		return x.WalletId
+	}
+	return ""
+}
+
 type GetTransactionResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Transaction   *TransactionInfo       `protobuf:"bytes,1,opt,name=transaction,proto3" json:"transaction,omitempty"`
@@ -1122,7 +1705,7 @@ type GetTransactionResponse struct {
 
 func (x *GetTransactionResponse) Reset() {
 	*x = GetTransactionResponse{}
-	mi := &file_web3_v1_web3_proto_msgTypes[17]
+	mi := &file_web3_v1_web3_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1134,7 +1717,7 @@ func (x *GetTransactionResponse) String() string {
 func (*GetTransactionResponse) ProtoMessage() {}
 
 func (x *GetTransactionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[17]
+	mi := &file_web3_v1_web3_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1147,7 +1730,7 @@ func (x *GetTransactionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTransactionResponse.ProtoReflect.Descriptor instead.
 func (*GetTransactionResponse) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{17}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetTransactionResponse) GetTransaction() *TransactionInfo {
@@ -1170,7 +1753,7 @@ type GetTransactionsRequest struct {
 
 func (x *GetTransactionsRequest) Reset() {
 	*x = GetTransactionsRequest{}
-	mi := &file_web3_v1_web3_proto_msgTypes[18]
+	mi := &file_web3_v1_web3_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1182,7 +1765,7 @@ func (x *GetTransactionsRequest) String() string {
 func (*GetTransactionsRequest) ProtoMessage() {}
 
 func (x *GetTransactionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[18]
+	mi := &file_web3_v1_web3_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1195,7 +1778,7 @@ func (x *GetTransactionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTransactionsRequest.ProtoReflect.Descriptor instead.
 func (*GetTransactionsRequest) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{18}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetTransactionsRequest) GetWalletId() string {
@@ -1238,7 +1821,7 @@ type GetTransactionsResponse struct {
 
 func (x *GetTransactionsResponse) Reset() {
 	*x = GetTransactionsResponse{}
-	mi := &file_web3_v1_web3_proto_msgTypes[19]
+	mi := &file_web3_v1_web3_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1250,7 +1833,7 @@ func (x *GetTransactionsResponse) String() string {
 func (*GetTransactionsResponse) ProtoMessage() {}
 
 func (x *GetTransactionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[19]
+	mi := &file_web3_v1_web3_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1263,7 +1846,7 @@ func (x *GetTransactionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTransactionsResponse.ProtoReflect.Descriptor instead.
 func (*GetTransactionsResponse) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{19}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetTransactionsResponse) GetTransactions() []*TransactionInfo {
@@ -1307,13 +1890,17 @@ type TransactionInfo struct {
 	Confirmations uint64                 `protobuf:"varint,8,opt,name=confirmations,proto3" json:"confirmations,omitempty"`
 	Status        TransactionStatus      `protobuf:"varint,9,opt,name=status,proto3,enum=web3.v1.TransactionStatus" json:"status,omitempty"`
 	BlockTime     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=block_time,json=blockTime,proto3" json:"block_time,omitempty"`
+	// token_contract 为空表示网络原生币；非空表示 ERC-20 合约地址。
+	TokenContract string `protobuf:"bytes,11,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
+	// event_index=-1 表示原生币交易；非负值表示 ERC-20 Transfer 的链上 log_index。
+	EventIndex    int32 `protobuf:"varint,12,opt,name=event_index,json=eventIndex,proto3" json:"event_index,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TransactionInfo) Reset() {
 	*x = TransactionInfo{}
-	mi := &file_web3_v1_web3_proto_msgTypes[20]
+	mi := &file_web3_v1_web3_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1325,7 +1912,7 @@ func (x *TransactionInfo) String() string {
 func (*TransactionInfo) ProtoMessage() {}
 
 func (x *TransactionInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_web3_v1_web3_proto_msgTypes[20]
+	mi := &file_web3_v1_web3_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1338,7 +1925,7 @@ func (x *TransactionInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransactionInfo.ProtoReflect.Descriptor instead.
 func (*TransactionInfo) Descriptor() ([]byte, []int) {
-	return file_web3_v1_web3_proto_rawDescGZIP(), []int{20}
+	return file_web3_v1_web3_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *TransactionInfo) GetChainId() uint64 {
@@ -1411,11 +1998,68 @@ func (x *TransactionInfo) GetBlockTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *TransactionInfo) GetTokenContract() string {
+	if x != nil {
+		return x.TokenContract
+	}
+	return ""
+}
+
+func (x *TransactionInfo) GetEventIndex() int32 {
+	if x != nil {
+		return x.EventIndex
+	}
+	return 0
+}
+
 var File_web3_v1_web3_proto protoreflect.FileDescriptor
 
 const file_web3_v1_web3_proto_rawDesc = "" +
 	"\n" +
-	"\x12web3/v1/web3.proto\x12\aweb3.v1\x1a\x18common/v1/security.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x1b\n" +
+	"\x12web3/v1/web3.proto\x12\aweb3.v1\x1a\x18common/v1/security.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"9\n" +
+	"\x1dCheckTronUSDTApprovalsRequest\x12\x18\n" +
+	"\aaddress\x18\x01 \x01(\tR\aaddress\"\x90\x05\n" +
+	"\x1eCheckTronUSDTApprovalsResponse\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x01 \x01(\tR\trequestId\x12\x18\n" +
+	"\anetwork\x18\x02 \x01(\tR\anetwork\x12\x18\n" +
+	"\aaddress\x18\x03 \x01(\tR\aaddress\x12%\n" +
+	"\x0etoken_contract\x18\x04 \x01(\tR\rtokenContract\x128\n" +
+	"\x06status\x18\x05 \x01(\x0e2 .web3.v1.TronApprovalCheckStatusR\x06status\x121\n" +
+	"\x14enumeration_complete\x18\x06 \x01(\bR\x13enumerationComplete\x12F\n" +
+	"\x1fallowance_verification_complete\x18\a \x01(\bR\x1dallowanceVerificationComplete\x12.\n" +
+	"\x13risk_data_available\x18\b \x01(\bR\x11riskDataAvailable\x12\x1c\n" +
+	"\ttruncated\x18\t \x01(\bR\ttruncated\x12\x16\n" +
+	"\x06reason\x18\n" +
+	" \x01(\tR\x06reason\x12\x1b\n" +
+	"\tis_cached\x18\v \x01(\bR\bisCached\x129\n" +
+	"\n" +
+	"queried_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tqueriedAt\x127\n" +
+	"\tapprovals\x18\r \x03(\v2\x19.web3.v1.TronUSDTApprovalR\tapprovals\x12H\n" +
+	"\x0epartial_errors\x18\x0e \x03(\v2!.web3.v1.TronApprovalPartialErrorR\rpartialErrors\"\x90\x05\n" +
+	"\x10TronUSDTApproval\x12\x18\n" +
+	"\aspender\x18\x01 \x01(\tR\aspender\x12;\n" +
+	"\fspender_type\x18\x02 \x01(\x0e2\x18.web3.v1.TronSpenderTypeR\vspenderType\x12!\n" +
+	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12#\n" +
+	"\rraw_allowance\x18\x04 \x01(\tR\frawAllowance\x12\x1a\n" +
+	"\bdecimals\x18\x05 \x01(\rR\bdecimals\x12+\n" +
+	"\x11display_allowance\x18\x06 \x01(\tR\x10displayAllowance\x12G\n" +
+	"\x10unlimited_status\x18\a \x01(\x0e2\x1c.web3.v1.TronUnlimitedStatusR\x0funlimitedStatus\x12N\n" +
+	"\x15allowance_verified_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\x13allowanceVerifiedAt\x12\x1f\n" +
+	"\vrisk_labels\x18\t \x03(\tR\n" +
+	"riskLabels\x12\x1f\n" +
+	"\vrisk_source\x18\n" +
+	" \x01(\tR\n" +
+	"riskSource\x12B\n" +
+	"\x0frisk_checked_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\rriskCheckedAt\x12-\n" +
+	"\x12allowance_verified\x18\f \x01(\bR\x11allowanceVerified\x12\x16\n" +
+	"\x06active\x18\r \x01(\bR\x06active\x12.\n" +
+	"\x13official_detail_url\x18\x0e \x01(\tR\x11officialDetailUrl\"\x80\x01\n" +
+	"\x18TronApprovalPartialError\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1c\n" +
+	"\tretryable\x18\x03 \x01(\bR\tretryable\x12\x18\n" +
+	"\aspender\x18\x04 \x01(\tR\aspender\"\x1b\n" +
 	"\x19GetSupportedChainsRequest\"H\n" +
 	"\x1aGetSupportedChainsResponse\x12*\n" +
 	"\x06chains\x18\x01 \x03(\v2\x12.web3.v1.ChainInfoR\x06chains\"\xd9\x01\n" +
@@ -1487,10 +2131,11 @@ const file_web3_v1_web3_proto_rawDesc = "" +
 	"rawBalance\x12+\n" +
 	"\x11formatted_balance\x18\a \x01(\tR\x10formattedBalance\x12;\n" +
 	"\vobserved_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"observedAt\"]\n" +
+	"observedAt\"z\n" +
 	"\x15GetTransactionRequest\x12\x19\n" +
 	"\bchain_id\x18\x01 \x01(\x04R\achainId\x12)\n" +
-	"\x10transaction_hash\x18\x02 \x01(\tR\x0ftransactionHash\"T\n" +
+	"\x10transaction_hash\x18\x02 \x01(\tR\x0ftransactionHash\x12\x1b\n" +
+	"\twallet_id\x18\x03 \x01(\tR\bwalletId\"T\n" +
 	"\x16GetTransactionResponse\x12:\n" +
 	"\vtransaction\x18\x01 \x01(\v2\x18.web3.v1.TransactionInfoR\vtransaction\"\x9a\x01\n" +
 	"\x16GetTransactionsRequest\x12\x1b\n" +
@@ -1502,7 +2147,7 @@ const file_web3_v1_web3_proto_rawDesc = "" +
 	"\ftransactions\x18\x01 \x03(\v2\x18.web3.v1.TransactionInfoR\ftransactions\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x03R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x86\x03\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xce\x03\n" +
 	"\x0fTransactionInfo\x12\x19\n" +
 	"\bchain_id\x18\x01 \x01(\x04R\achainId\x12)\n" +
 	"\x10transaction_hash\x18\x02 \x01(\tR\x0ftransactionHash\x12!\n" +
@@ -1517,7 +2162,26 @@ const file_web3_v1_web3_proto_rawDesc = "" +
 	"\x06status\x18\t \x01(\x0e2\x1a.web3.v1.TransactionStatusR\x06status\x129\n" +
 	"\n" +
 	"block_time\x18\n" +
-	" \x01(\v2\x1a.google.protobuf.TimestampR\tblockTime*c\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\tblockTime\x12%\n" +
+	"\x0etoken_contract\x18\v \x01(\tR\rtokenContract\x12\x1f\n" +
+	"\vevent_index\x18\f \x01(\x05R\n" +
+	"eventIndex*\xbc\x01\n" +
+	"\x17TronApprovalCheckStatus\x12*\n" +
+	"&TRON_APPROVAL_CHECK_STATUS_UNSPECIFIED\x10\x00\x12&\n" +
+	"\"TRON_APPROVAL_CHECK_STATUS_SUCCESS\x10\x01\x12&\n" +
+	"\"TRON_APPROVAL_CHECK_STATUS_PARTIAL\x10\x02\x12%\n" +
+	"!TRON_APPROVAL_CHECK_STATUS_FAILED\x10\x03*\x92\x01\n" +
+	"\x0fTronSpenderType\x12!\n" +
+	"\x1dTRON_SPENDER_TYPE_UNSPECIFIED\x10\x00\x12\x1d\n" +
+	"\x19TRON_SPENDER_TYPE_ADDRESS\x10\x01\x12\x1e\n" +
+	"\x1aTRON_SPENDER_TYPE_CONTRACT\x10\x02\x12\x1d\n" +
+	"\x19TRON_SPENDER_TYPE_UNKNOWN\x10\x03*\xca\x01\n" +
+	"\x13TronUnlimitedStatus\x12%\n" +
+	"!TRON_UNLIMITED_STATUS_UNSPECIFIED\x10\x00\x12 \n" +
+	"\x1cTRON_UNLIMITED_STATUS_FINITE\x10\x01\x12#\n" +
+	"\x1fTRON_UNLIMITED_STATUS_UNLIMITED\x10\x02\x12\"\n" +
+	"\x1eTRON_UNLIMITED_STATUS_CONFLICT\x10\x03\x12!\n" +
+	"\x1dTRON_UNLIMITED_STATUS_UNKNOWN\x10\x04*c\n" +
 	"\fWalletStatus\x12\x1d\n" +
 	"\x19WALLET_STATUS_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14WALLET_STATUS_ACTIVE\x10\x01\x12\x1a\n" +
@@ -1527,7 +2191,7 @@ const file_web3_v1_web3_proto_rawDesc = "" +
 	"\x1aTRANSACTION_STATUS_PENDING\x10\x01\x12 \n" +
 	"\x1cTRANSACTION_STATUS_CONFIRMED\x10\x02\x12\x1d\n" +
 	"\x19TRANSACTION_STATUS_FAILED\x10\x03\x12\x1e\n" +
-	"\x1aTRANSACTION_STATUS_REORGED\x10\x042\x9f\a\n" +
+	"\x1aTRANSACTION_STATUS_REORGED\x10\x042\x92\b\n" +
 	"\vWeb3Service\x12}\n" +
 	"\x12GetSupportedChains\x12\".web3.v1.GetSupportedChainsRequest\x1a#.web3.v1.GetSupportedChainsResponse\"\x1e\x82\xb5\x18\x1a\x12\x04user\x12\x05admin\x12\vsuper-admin\x12i\n" +
 	"\x12CreateBindingNonce\x12\".web3.v1.CreateBindingNonceRequest\x1a#.web3.v1.CreateBindingNonceResponse\"\n" +
@@ -1545,7 +2209,8 @@ const file_web3_v1_web3_proto_rawDesc = "" +
 	"\n" +
 	"GetBalance\x12\x1a.web3.v1.GetBalanceRequest\x1a\x1b.web3.v1.GetBalanceResponse\"\x1e\x82\xb5\x18\x1a\x12\x04user\x12\x05admin\x12\vsuper-admin\x12q\n" +
 	"\x0eGetTransaction\x12\x1e.web3.v1.GetTransactionRequest\x1a\x1f.web3.v1.GetTransactionResponse\"\x1e\x82\xb5\x18\x1a\x12\x04user\x12\x05admin\x12\vsuper-admin\x12t\n" +
-	"\x0fGetTransactions\x12\x1f.web3.v1.GetTransactionsRequest\x1a .web3.v1.GetTransactionsResponse\"\x1e\x82\xb5\x18\x1a\x12\x04user\x12\x05admin\x12\vsuper-adminB<Z:github.com/Erain-byte/grpc_go_project/proto/web3/v1;web3v1b\x06proto3"
+	"\x0fGetTransactions\x12\x1f.web3.v1.GetTransactionsRequest\x1a .web3.v1.GetTransactionsResponse\"\x1e\x82\xb5\x18\x1a\x12\x04user\x12\x05admin\x12\vsuper-admin\x12q\n" +
+	"\x16CheckTronUSDTApprovals\x12&.web3.v1.CheckTronUSDTApprovalsRequest\x1a'.web3.v1.CheckTronUSDTApprovalsResponse\"\x06\x82\xb5\x18\x02\b\x01B<Z:github.com/Erain-byte/grpc_go_project/proto/web3/v1;web3v1b\x06proto3"
 
 var (
 	file_web3_v1_web3_proto_rawDescOnce sync.Once
@@ -1559,73 +2224,90 @@ func file_web3_v1_web3_proto_rawDescGZIP() []byte {
 	return file_web3_v1_web3_proto_rawDescData
 }
 
-var file_web3_v1_web3_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_web3_v1_web3_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_web3_v1_web3_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_web3_v1_web3_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_web3_v1_web3_proto_goTypes = []any{
-	(WalletStatus)(0),                  // 0: web3.v1.WalletStatus
-	(TransactionStatus)(0),             // 1: web3.v1.TransactionStatus
-	(*GetSupportedChainsRequest)(nil),  // 2: web3.v1.GetSupportedChainsRequest
-	(*GetSupportedChainsResponse)(nil), // 3: web3.v1.GetSupportedChainsResponse
-	(*ChainInfo)(nil),                  // 4: web3.v1.ChainInfo
-	(*CreateBindingNonceRequest)(nil),  // 5: web3.v1.CreateBindingNonceRequest
-	(*CreateBindingNonceResponse)(nil), // 6: web3.v1.CreateBindingNonceResponse
-	(*BindWalletRequest)(nil),          // 7: web3.v1.BindWalletRequest
-	(*BindWalletResponse)(nil),         // 8: web3.v1.BindWalletResponse
-	(*UnbindWalletRequest)(nil),        // 9: web3.v1.UnbindWalletRequest
-	(*UnbindWalletResponse)(nil),       // 10: web3.v1.UnbindWalletResponse
-	(*GetWalletsRequest)(nil),          // 11: web3.v1.GetWalletsRequest
-	(*GetWalletsResponse)(nil),         // 12: web3.v1.GetWalletsResponse
-	(*WalletInfo)(nil),                 // 13: web3.v1.WalletInfo
-	(*UpdateWalletRequest)(nil),        // 14: web3.v1.UpdateWalletRequest
-	(*UpdateWalletResponse)(nil),       // 15: web3.v1.UpdateWalletResponse
-	(*GetBalanceRequest)(nil),          // 16: web3.v1.GetBalanceRequest
-	(*GetBalanceResponse)(nil),         // 17: web3.v1.GetBalanceResponse
-	(*GetTransactionRequest)(nil),      // 18: web3.v1.GetTransactionRequest
-	(*GetTransactionResponse)(nil),     // 19: web3.v1.GetTransactionResponse
-	(*GetTransactionsRequest)(nil),     // 20: web3.v1.GetTransactionsRequest
-	(*GetTransactionsResponse)(nil),    // 21: web3.v1.GetTransactionsResponse
-	(*TransactionInfo)(nil),            // 22: web3.v1.TransactionInfo
-	(*timestamppb.Timestamp)(nil),      // 23: google.protobuf.Timestamp
+	(TronApprovalCheckStatus)(0),           // 0: web3.v1.TronApprovalCheckStatus
+	(TronSpenderType)(0),                   // 1: web3.v1.TronSpenderType
+	(TronUnlimitedStatus)(0),               // 2: web3.v1.TronUnlimitedStatus
+	(WalletStatus)(0),                      // 3: web3.v1.WalletStatus
+	(TransactionStatus)(0),                 // 4: web3.v1.TransactionStatus
+	(*CheckTronUSDTApprovalsRequest)(nil),  // 5: web3.v1.CheckTronUSDTApprovalsRequest
+	(*CheckTronUSDTApprovalsResponse)(nil), // 6: web3.v1.CheckTronUSDTApprovalsResponse
+	(*TronUSDTApproval)(nil),               // 7: web3.v1.TronUSDTApproval
+	(*TronApprovalPartialError)(nil),       // 8: web3.v1.TronApprovalPartialError
+	(*GetSupportedChainsRequest)(nil),      // 9: web3.v1.GetSupportedChainsRequest
+	(*GetSupportedChainsResponse)(nil),     // 10: web3.v1.GetSupportedChainsResponse
+	(*ChainInfo)(nil),                      // 11: web3.v1.ChainInfo
+	(*CreateBindingNonceRequest)(nil),      // 12: web3.v1.CreateBindingNonceRequest
+	(*CreateBindingNonceResponse)(nil),     // 13: web3.v1.CreateBindingNonceResponse
+	(*BindWalletRequest)(nil),              // 14: web3.v1.BindWalletRequest
+	(*BindWalletResponse)(nil),             // 15: web3.v1.BindWalletResponse
+	(*UnbindWalletRequest)(nil),            // 16: web3.v1.UnbindWalletRequest
+	(*UnbindWalletResponse)(nil),           // 17: web3.v1.UnbindWalletResponse
+	(*GetWalletsRequest)(nil),              // 18: web3.v1.GetWalletsRequest
+	(*GetWalletsResponse)(nil),             // 19: web3.v1.GetWalletsResponse
+	(*WalletInfo)(nil),                     // 20: web3.v1.WalletInfo
+	(*UpdateWalletRequest)(nil),            // 21: web3.v1.UpdateWalletRequest
+	(*UpdateWalletResponse)(nil),           // 22: web3.v1.UpdateWalletResponse
+	(*GetBalanceRequest)(nil),              // 23: web3.v1.GetBalanceRequest
+	(*GetBalanceResponse)(nil),             // 24: web3.v1.GetBalanceResponse
+	(*GetTransactionRequest)(nil),          // 25: web3.v1.GetTransactionRequest
+	(*GetTransactionResponse)(nil),         // 26: web3.v1.GetTransactionResponse
+	(*GetTransactionsRequest)(nil),         // 27: web3.v1.GetTransactionsRequest
+	(*GetTransactionsResponse)(nil),        // 28: web3.v1.GetTransactionsResponse
+	(*TransactionInfo)(nil),                // 29: web3.v1.TransactionInfo
+	(*timestamppb.Timestamp)(nil),          // 30: google.protobuf.Timestamp
 }
 var file_web3_v1_web3_proto_depIdxs = []int32{
-	4,  // 0: web3.v1.GetSupportedChainsResponse.chains:type_name -> web3.v1.ChainInfo
-	23, // 1: web3.v1.CreateBindingNonceResponse.expires_at:type_name -> google.protobuf.Timestamp
-	13, // 2: web3.v1.BindWalletResponse.wallet:type_name -> web3.v1.WalletInfo
-	13, // 3: web3.v1.GetWalletsResponse.wallets:type_name -> web3.v1.WalletInfo
-	0,  // 4: web3.v1.WalletInfo.status:type_name -> web3.v1.WalletStatus
-	23, // 5: web3.v1.WalletInfo.verified_at:type_name -> google.protobuf.Timestamp
-	23, // 6: web3.v1.WalletInfo.created_at:type_name -> google.protobuf.Timestamp
-	23, // 7: web3.v1.WalletInfo.updated_at:type_name -> google.protobuf.Timestamp
-	13, // 8: web3.v1.UpdateWalletResponse.wallet:type_name -> web3.v1.WalletInfo
-	23, // 9: web3.v1.GetBalanceResponse.observed_at:type_name -> google.protobuf.Timestamp
-	22, // 10: web3.v1.GetTransactionResponse.transaction:type_name -> web3.v1.TransactionInfo
-	1,  // 11: web3.v1.GetTransactionsRequest.status:type_name -> web3.v1.TransactionStatus
-	22, // 12: web3.v1.GetTransactionsResponse.transactions:type_name -> web3.v1.TransactionInfo
-	1,  // 13: web3.v1.TransactionInfo.status:type_name -> web3.v1.TransactionStatus
-	23, // 14: web3.v1.TransactionInfo.block_time:type_name -> google.protobuf.Timestamp
-	2,  // 15: web3.v1.Web3Service.GetSupportedChains:input_type -> web3.v1.GetSupportedChainsRequest
-	5,  // 16: web3.v1.Web3Service.CreateBindingNonce:input_type -> web3.v1.CreateBindingNonceRequest
-	7,  // 17: web3.v1.Web3Service.BindWallet:input_type -> web3.v1.BindWalletRequest
-	9,  // 18: web3.v1.Web3Service.UnbindWallet:input_type -> web3.v1.UnbindWalletRequest
-	11, // 19: web3.v1.Web3Service.GetWallets:input_type -> web3.v1.GetWalletsRequest
-	14, // 20: web3.v1.Web3Service.UpdateWallet:input_type -> web3.v1.UpdateWalletRequest
-	16, // 21: web3.v1.Web3Service.GetBalance:input_type -> web3.v1.GetBalanceRequest
-	18, // 22: web3.v1.Web3Service.GetTransaction:input_type -> web3.v1.GetTransactionRequest
-	20, // 23: web3.v1.Web3Service.GetTransactions:input_type -> web3.v1.GetTransactionsRequest
-	3,  // 24: web3.v1.Web3Service.GetSupportedChains:output_type -> web3.v1.GetSupportedChainsResponse
-	6,  // 25: web3.v1.Web3Service.CreateBindingNonce:output_type -> web3.v1.CreateBindingNonceResponse
-	8,  // 26: web3.v1.Web3Service.BindWallet:output_type -> web3.v1.BindWalletResponse
-	10, // 27: web3.v1.Web3Service.UnbindWallet:output_type -> web3.v1.UnbindWalletResponse
-	12, // 28: web3.v1.Web3Service.GetWallets:output_type -> web3.v1.GetWalletsResponse
-	15, // 29: web3.v1.Web3Service.UpdateWallet:output_type -> web3.v1.UpdateWalletResponse
-	17, // 30: web3.v1.Web3Service.GetBalance:output_type -> web3.v1.GetBalanceResponse
-	19, // 31: web3.v1.Web3Service.GetTransaction:output_type -> web3.v1.GetTransactionResponse
-	21, // 32: web3.v1.Web3Service.GetTransactions:output_type -> web3.v1.GetTransactionsResponse
-	24, // [24:33] is the sub-list for method output_type
-	15, // [15:24] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	0,  // 0: web3.v1.CheckTronUSDTApprovalsResponse.status:type_name -> web3.v1.TronApprovalCheckStatus
+	30, // 1: web3.v1.CheckTronUSDTApprovalsResponse.queried_at:type_name -> google.protobuf.Timestamp
+	7,  // 2: web3.v1.CheckTronUSDTApprovalsResponse.approvals:type_name -> web3.v1.TronUSDTApproval
+	8,  // 3: web3.v1.CheckTronUSDTApprovalsResponse.partial_errors:type_name -> web3.v1.TronApprovalPartialError
+	1,  // 4: web3.v1.TronUSDTApproval.spender_type:type_name -> web3.v1.TronSpenderType
+	2,  // 5: web3.v1.TronUSDTApproval.unlimited_status:type_name -> web3.v1.TronUnlimitedStatus
+	30, // 6: web3.v1.TronUSDTApproval.allowance_verified_at:type_name -> google.protobuf.Timestamp
+	30, // 7: web3.v1.TronUSDTApproval.risk_checked_at:type_name -> google.protobuf.Timestamp
+	11, // 8: web3.v1.GetSupportedChainsResponse.chains:type_name -> web3.v1.ChainInfo
+	30, // 9: web3.v1.CreateBindingNonceResponse.expires_at:type_name -> google.protobuf.Timestamp
+	20, // 10: web3.v1.BindWalletResponse.wallet:type_name -> web3.v1.WalletInfo
+	20, // 11: web3.v1.GetWalletsResponse.wallets:type_name -> web3.v1.WalletInfo
+	3,  // 12: web3.v1.WalletInfo.status:type_name -> web3.v1.WalletStatus
+	30, // 13: web3.v1.WalletInfo.verified_at:type_name -> google.protobuf.Timestamp
+	30, // 14: web3.v1.WalletInfo.created_at:type_name -> google.protobuf.Timestamp
+	30, // 15: web3.v1.WalletInfo.updated_at:type_name -> google.protobuf.Timestamp
+	20, // 16: web3.v1.UpdateWalletResponse.wallet:type_name -> web3.v1.WalletInfo
+	30, // 17: web3.v1.GetBalanceResponse.observed_at:type_name -> google.protobuf.Timestamp
+	29, // 18: web3.v1.GetTransactionResponse.transaction:type_name -> web3.v1.TransactionInfo
+	4,  // 19: web3.v1.GetTransactionsRequest.status:type_name -> web3.v1.TransactionStatus
+	29, // 20: web3.v1.GetTransactionsResponse.transactions:type_name -> web3.v1.TransactionInfo
+	4,  // 21: web3.v1.TransactionInfo.status:type_name -> web3.v1.TransactionStatus
+	30, // 22: web3.v1.TransactionInfo.block_time:type_name -> google.protobuf.Timestamp
+	9,  // 23: web3.v1.Web3Service.GetSupportedChains:input_type -> web3.v1.GetSupportedChainsRequest
+	12, // 24: web3.v1.Web3Service.CreateBindingNonce:input_type -> web3.v1.CreateBindingNonceRequest
+	14, // 25: web3.v1.Web3Service.BindWallet:input_type -> web3.v1.BindWalletRequest
+	16, // 26: web3.v1.Web3Service.UnbindWallet:input_type -> web3.v1.UnbindWalletRequest
+	18, // 27: web3.v1.Web3Service.GetWallets:input_type -> web3.v1.GetWalletsRequest
+	21, // 28: web3.v1.Web3Service.UpdateWallet:input_type -> web3.v1.UpdateWalletRequest
+	23, // 29: web3.v1.Web3Service.GetBalance:input_type -> web3.v1.GetBalanceRequest
+	25, // 30: web3.v1.Web3Service.GetTransaction:input_type -> web3.v1.GetTransactionRequest
+	27, // 31: web3.v1.Web3Service.GetTransactions:input_type -> web3.v1.GetTransactionsRequest
+	5,  // 32: web3.v1.Web3Service.CheckTronUSDTApprovals:input_type -> web3.v1.CheckTronUSDTApprovalsRequest
+	10, // 33: web3.v1.Web3Service.GetSupportedChains:output_type -> web3.v1.GetSupportedChainsResponse
+	13, // 34: web3.v1.Web3Service.CreateBindingNonce:output_type -> web3.v1.CreateBindingNonceResponse
+	15, // 35: web3.v1.Web3Service.BindWallet:output_type -> web3.v1.BindWalletResponse
+	17, // 36: web3.v1.Web3Service.UnbindWallet:output_type -> web3.v1.UnbindWalletResponse
+	19, // 37: web3.v1.Web3Service.GetWallets:output_type -> web3.v1.GetWalletsResponse
+	22, // 38: web3.v1.Web3Service.UpdateWallet:output_type -> web3.v1.UpdateWalletResponse
+	24, // 39: web3.v1.Web3Service.GetBalance:output_type -> web3.v1.GetBalanceResponse
+	26, // 40: web3.v1.Web3Service.GetTransaction:output_type -> web3.v1.GetTransactionResponse
+	28, // 41: web3.v1.Web3Service.GetTransactions:output_type -> web3.v1.GetTransactionsResponse
+	6,  // 42: web3.v1.Web3Service.CheckTronUSDTApprovals:output_type -> web3.v1.CheckTronUSDTApprovalsResponse
+	33, // [33:43] is the sub-list for method output_type
+	23, // [23:33] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_web3_v1_web3_proto_init() }
@@ -1633,14 +2315,14 @@ func file_web3_v1_web3_proto_init() {
 	if File_web3_v1_web3_proto != nil {
 		return
 	}
-	file_web3_v1_web3_proto_msgTypes[12].OneofWrappers = []any{}
+	file_web3_v1_web3_proto_msgTypes[16].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_web3_v1_web3_proto_rawDesc), len(file_web3_v1_web3_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   21,
+			NumEnums:      5,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

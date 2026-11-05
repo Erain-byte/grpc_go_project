@@ -157,6 +157,23 @@ blockchain:
       native_decimals: 18
       required_confirmations: 1
 
+# TRON 主网 USDT 授权体检。正式启用前必须配置 WEB3_TRON_API_KEY。
+# 授权对象由 TRONSCAN 枚举，当前 allowance 由 TRON 只读合约调用复核。
+tron_approvals:
+  enabled: false
+  tronscan_base_url: "https://apilist.tronscanapi.com"
+  trongrid_base_url: "https://api.trongrid.io"
+  usdt_contract: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+  cache_ttl: "60s"
+  request_timeout: "5s"
+  page_size: 50
+  max_pages: 20
+  max_spenders: 100
+  verify_workers: 8
+  daily_query_limit: 10000
+  daily_distinct_address_limit: 5000
+  daily_upstream_call_limit: 250000
+
 logger:
   level: "info"
   format: "json"
@@ -177,6 +194,16 @@ tracing:
   cert_file: ""
   key_file: ""
   server_name: "jaeger"
+
+# pprof 使用独立管理端口，不经过业务 gRPC 入口。
+pprof:
+  enabled: true
+  host: "127.0.0.1"
+  port: 6063
+  allow_remote: false
+  # 排查扫描器阻塞、channel 或锁竞争时临时改为 1。
+  block_profile_rate: 0
+  mutex_profile_fraction: 0
 
 # 单实例令牌桶和并发限制；外部请求仍由 Gateway 执行分布式限流。
 rate_limit:

@@ -2,6 +2,7 @@ package consul
 
 import (
 	"context"
+	"fmt"
 	"github.com/hashicorp/consul/api"
 	"go.uber.org/zap"
 	"sync"
@@ -24,10 +25,6 @@ func (r *ConsulRegistry) registerAndRemember(registration *api.AgentServiceRegis
 
 // reconcileRegistrations 查询失败不视为缺失，已有注册不重复写入。
 func (r *ConsulRegistry) reconcileRegistrations(ctx context.Context) error {
-	services, err := r.client.Agent().ServicesWithFilterOpts("", (&api.QueryOptions{}).WithContext(ctx))
-	if err != nil {
-		return err
-	}
 	r.registrationMu.Lock()
 	templates := make([]*api.AgentServiceRegistration, 0, len(r.registrations))
 	for _, registration := range r.registrations {
@@ -37,6 +34,13 @@ func (r *ConsulRegistry) reconcileRegistrations(ctx context.Context) error {
 	for _, registration := range templates {
 		if ctx.Err() != nil {
 			return ctx.Err()
+		}
+		services, err := r.client.Agent().ServicesWithFilterOpts(
+			fmt.Sprintf(`Service == %q`, registration.Name),
+			(&api.QueryOptions{}).WithContext(ctx),
+		)
+		if err != nil {
+			return err
 		}
 		if _, exists := services[registration.ID]; exists {
 			continue

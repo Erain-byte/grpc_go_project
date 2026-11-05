@@ -233,9 +233,12 @@ type AntiReplayConfig struct {
 
 // pprof配置
 type PprofConfig struct {
-	Enabled bool   `yaml:"enabled" default:"false"`
-	Host    string `yaml:"host" default:"localhost"`
-	Port    int    `yaml:"port" default:"6060"`
+	Enabled              bool   `yaml:"enabled" default:"false"`
+	Host                 string `yaml:"host" default:"127.0.0.1"`
+	Port                 int    `yaml:"port" default:"6060"`
+	AllowRemote          bool   `yaml:"allow_remote" default:"false"`
+	BlockProfileRate     int    `yaml:"block_profile_rate" default:"0"`
+	MutexProfileFraction int    `yaml:"mutex_profile_fraction" default:"0"`
 }
 
 //初始化配置

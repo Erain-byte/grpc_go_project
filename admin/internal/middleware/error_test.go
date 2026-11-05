@@ -6,6 +6,7 @@ import (
 	"errors"
 	"testing"
 
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -24,7 +25,7 @@ func TestErrorHandler(t *testing.T) {
 		{name: "unknown error", err: errors.New("database details"), wantCode: codes.Internal},
 	}
 
-	interceptor := ErrorHandler()
+	interceptor := ErrorHandler(zap.NewNop())
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := interceptor(
@@ -42,7 +43,7 @@ func TestErrorHandler(t *testing.T) {
 
 func TestErrorHandlerReturnsResponse(t *testing.T) {
 	want := struct{ Value string }{Value: "ok"}
-	got, err := ErrorHandler()(
+	got, err := ErrorHandler(zap.NewNop())(
 		context.Background(),
 		nil,
 		&grpc.UnaryServerInfo{FullMethod: "/admin.v1.AdminService/Test"},

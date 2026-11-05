@@ -162,25 +162,32 @@ func (h *UploadedFileHandler[Req, Resp]) Handle(c *gin.Context) {
 // 获取用户信息处理
 func WithMetadata(c *gin.Context) context.Context {
 	ctx := c.Request.Context()
+	requestID := c.GetString(middleware.RequestIDKey)
 	userID := c.GetString(middleware.ContextUserID)
 	username := c.GetString(middleware.ContextUsername)
 	role := c.GetString(middleware.ContextRole)
 	sessionID := c.GetString(middleware.ContextSessionID)
 	tokenID := c.GetString(middleware.ContextTokenID)
 	accessToken := c.GetString(middleware.ContextAccessToken)
-	// 登录、刷新等公开接口没有认证身份，不写入空 metadata。
-	if userID == "" {
+	metadataPairs := make([]string, 0, 14)
+	if requestID != "" {
+		metadataPairs = append(metadataPairs, "x-request-id", requestID)
+	}
+	// 登录、刷新及公开查询没有认证身份，但仍然传播 Request ID 和 Trace Context。
+	if userID != "" {
+		metadataPairs = append(metadataPairs,
+			"x-user-id", userID,
+			"x-user-name", username,
+			"x-user-role", role,
+			"x-session-id", sessionID,
+			"x-token-id", tokenID,
+			"authorization", "Bearer "+accessToken,
+		)
+	}
+	if len(metadataPairs) == 0 {
 		return ctx
 	}
-	return metadata.AppendToOutgoingContext(
-		ctx,
-		"x-user-id", userID,
-		"x-user-name", username,
-		"x-user-role", role,
-		"x-session-id", sessionID,
-		"x-token-id", tokenID,
-		"authorization", "Bearer "+accessToken,
-	)
+	return metadata.AppendToOutgoingContext(ctx, metadataPairs...)
 }
 
 func writeGrpcError(c *gin.Context, err error) {

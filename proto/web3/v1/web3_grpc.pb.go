@@ -19,15 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Web3Service_GetSupportedChains_FullMethodName = "/web3.v1.Web3Service/GetSupportedChains"
-	Web3Service_CreateBindingNonce_FullMethodName = "/web3.v1.Web3Service/CreateBindingNonce"
-	Web3Service_BindWallet_FullMethodName         = "/web3.v1.Web3Service/BindWallet"
-	Web3Service_UnbindWallet_FullMethodName       = "/web3.v1.Web3Service/UnbindWallet"
-	Web3Service_GetWallets_FullMethodName         = "/web3.v1.Web3Service/GetWallets"
-	Web3Service_UpdateWallet_FullMethodName       = "/web3.v1.Web3Service/UpdateWallet"
-	Web3Service_GetBalance_FullMethodName         = "/web3.v1.Web3Service/GetBalance"
-	Web3Service_GetTransaction_FullMethodName     = "/web3.v1.Web3Service/GetTransaction"
-	Web3Service_GetTransactions_FullMethodName    = "/web3.v1.Web3Service/GetTransactions"
+	Web3Service_GetSupportedChains_FullMethodName     = "/web3.v1.Web3Service/GetSupportedChains"
+	Web3Service_CreateBindingNonce_FullMethodName     = "/web3.v1.Web3Service/CreateBindingNonce"
+	Web3Service_BindWallet_FullMethodName             = "/web3.v1.Web3Service/BindWallet"
+	Web3Service_UnbindWallet_FullMethodName           = "/web3.v1.Web3Service/UnbindWallet"
+	Web3Service_GetWallets_FullMethodName             = "/web3.v1.Web3Service/GetWallets"
+	Web3Service_UpdateWallet_FullMethodName           = "/web3.v1.Web3Service/UpdateWallet"
+	Web3Service_GetBalance_FullMethodName             = "/web3.v1.Web3Service/GetBalance"
+	Web3Service_GetTransaction_FullMethodName         = "/web3.v1.Web3Service/GetTransaction"
+	Web3Service_GetTransactions_FullMethodName        = "/web3.v1.Web3Service/GetTransactions"
+	Web3Service_CheckTronUSDTApprovals_FullMethodName = "/web3.v1.Web3Service/CheckTronUSDTApprovals"
 )
 
 // Web3ServiceClient is the client API for Web3Service service.
@@ -55,6 +56,9 @@ type Web3ServiceClient interface {
 	GetTransaction(ctx context.Context, in *GetTransactionRequest, opts ...grpc.CallOption) (*GetTransactionResponse, error)
 	// GetTransactions 分页查询已绑定钱包的交易记录。
 	GetTransactions(ctx context.Context, in *GetTransactionsRequest, opts ...grpc.CallOption) (*GetTransactionsResponse, error)
+	// CheckTronUSDTApprovals 查询公开 TRON 主网地址的 USDT 授权情况。
+	// 查询不要求证明地址归属，也不会创建签名或广播链上交易。
+	CheckTronUSDTApprovals(ctx context.Context, in *CheckTronUSDTApprovalsRequest, opts ...grpc.CallOption) (*CheckTronUSDTApprovalsResponse, error)
 }
 
 type web3ServiceClient struct {
@@ -155,6 +159,16 @@ func (c *web3ServiceClient) GetTransactions(ctx context.Context, in *GetTransact
 	return out, nil
 }
 
+func (c *web3ServiceClient) CheckTronUSDTApprovals(ctx context.Context, in *CheckTronUSDTApprovalsRequest, opts ...grpc.CallOption) (*CheckTronUSDTApprovalsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckTronUSDTApprovalsResponse)
+	err := c.cc.Invoke(ctx, Web3Service_CheckTronUSDTApprovals_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Web3ServiceServer is the server API for Web3Service service.
 // All implementations must embed UnimplementedWeb3ServiceServer
 // for forward compatibility.
@@ -180,6 +194,9 @@ type Web3ServiceServer interface {
 	GetTransaction(context.Context, *GetTransactionRequest) (*GetTransactionResponse, error)
 	// GetTransactions 分页查询已绑定钱包的交易记录。
 	GetTransactions(context.Context, *GetTransactionsRequest) (*GetTransactionsResponse, error)
+	// CheckTronUSDTApprovals 查询公开 TRON 主网地址的 USDT 授权情况。
+	// 查询不要求证明地址归属，也不会创建签名或广播链上交易。
+	CheckTronUSDTApprovals(context.Context, *CheckTronUSDTApprovalsRequest) (*CheckTronUSDTApprovalsResponse, error)
 	mustEmbedUnimplementedWeb3ServiceServer()
 }
 
@@ -216,6 +233,9 @@ func (UnimplementedWeb3ServiceServer) GetTransaction(context.Context, *GetTransa
 }
 func (UnimplementedWeb3ServiceServer) GetTransactions(context.Context, *GetTransactionsRequest) (*GetTransactionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTransactions not implemented")
+}
+func (UnimplementedWeb3ServiceServer) CheckTronUSDTApprovals(context.Context, *CheckTronUSDTApprovalsRequest) (*CheckTronUSDTApprovalsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckTronUSDTApprovals not implemented")
 }
 func (UnimplementedWeb3ServiceServer) mustEmbedUnimplementedWeb3ServiceServer() {}
 func (UnimplementedWeb3ServiceServer) testEmbeddedByValue()                     {}
@@ -400,6 +420,24 @@ func _Web3Service_GetTransactions_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Web3Service_CheckTronUSDTApprovals_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckTronUSDTApprovalsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Web3ServiceServer).CheckTronUSDTApprovals(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Web3Service_CheckTronUSDTApprovals_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Web3ServiceServer).CheckTronUSDTApprovals(ctx, req.(*CheckTronUSDTApprovalsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Web3Service_ServiceDesc is the grpc.ServiceDesc for Web3Service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -442,6 +480,10 @@ var Web3Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTransactions",
 			Handler:    _Web3Service_GetTransactions_Handler,
+		},
+		{
+			MethodName: "CheckTronUSDTApprovals",
+			Handler:    _Web3Service_CheckTronUSDTApprovals_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -215,10 +215,32 @@ func Run() error {
 			http.StatusInternalServerError,
 		)
 	}
-	var severErr = make(chan error, 1)
+	pprofServer, pprofErr := server.NewPprofServer(cfg.Pprof)
+	if pprofErr != nil {
+		return apperror.Wrap(
+			pprofErr,
+			apperror.CodeInternal,
+			"failed to initialize pprof server",
+			http.StatusInternalServerError,
+		)
+	}
+	type serverResult struct {
+		name string
+		err  error
+	}
+	serverCount := 1
+	if pprofServer != nil {
+		serverCount++
+	}
+	serverErr := make(chan serverResult, serverCount)
 	go func() {
-		severErr <- grpcServer.Start()
+		serverErr <- serverResult{name: "gRPC", err: grpcServer.Start()}
 	}()
+	if pprofServer != nil {
+		go func() {
+			serverErr <- serverResult{name: "pprof", err: pprofServer.Run()}
+		}()
+	}
 	//grpc注册consul
 	if err := consulClenit.RegisterGRPC(
 		cfg.Name,
@@ -280,12 +302,13 @@ func Run() error {
 	select {
 	case <-signlCatxh.Done():
 		logger.SugaredLogger.Infof("Received OS shutdown signal: %v", signlCatxh.Err())
-	case runErr = <-severErr:
-		logger.SugaredLogger.Errorf("Failed to run grpc server: %v", runErr)
+	case result := <-serverErr:
+		runErr = result.err
+		logger.SugaredLogger.Errorf("Failed to run %s server: %v", result.name, runErr)
 		runErr = apperror.Wrap(
 			runErr,
 			apperror.CodeInternal,
-			"failed to run gRPC server",
+			"failed to run "+result.name+" server",
 			http.StatusInternalServerError,
 		)
 	}
@@ -298,9 +321,21 @@ func Run() error {
 	}
 	stopCtx, stopCtxCancel := context.WithTimeout(context.Background(), dependencyCheckTimeout)
 	defer stopCtxCancel()
-	if err := grpcServer.Stop(stopCtx); err != nil {
-		logger.SugaredLogger.Errorf("Failed to stop grpc server: %v", err)
-		runErr = errors.Join(runErr, err)
+	shutdownTasks := []func(context.Context) error{grpcServer.Stop}
+	if pprofServer != nil {
+		shutdownTasks = append(shutdownTasks, pprofServer.Shutdown)
+	}
+	shutdownErrors := make(chan error, len(shutdownTasks))
+	for _, task := range shutdownTasks {
+		go func(shutdown func(context.Context) error) {
+			shutdownErrors <- shutdown(stopCtx)
+		}(task)
+	}
+	for range shutdownTasks {
+		if shutdownErr := <-shutdownErrors; shutdownErr != nil {
+			logger.SugaredLogger.Errorf("Failed to stop server: %v", shutdownErr)
+			runErr = errors.Join(runErr, shutdownErr)
+		}
 	}
 	return runErr
 }

@@ -33,6 +33,9 @@ func Tracing(serviceName string) gin.HandlerFunc {
 				attribute.String("url.path", c.Request.URL.Path),
 			),
 		)
+		if requestID := c.GetString(RequestIDKey); requestID != "" {
+			span.SetAttributes(attribute.String("request.id", requestID))
+		}
 		defer span.End()
 
 		c.Request = c.Request.WithContext(ctx)

@@ -63,13 +63,17 @@ func NewGrpcServer(cfg *config.Config, svcCtx *svc.ServiceContext) (*GrpcServer,
 		//注册多个一元拦截器
 		grpc.ChainUnaryInterceptor(
 			middleware.RequestID(),
-			middleware.ErrorHandler(),
+			middleware.Recovery(svcCtx.Logger),
+			middleware.ErrorHandler(svcCtx.Logger),
 			authInterceptor.Unary(),
 			rateLimitInterceptor.Unary(),
 		),
 
 		//注册多个流式拦截器
 		grpc.ChainStreamInterceptor(
+			middleware.StreamRequestID(),
+			middleware.StreamRecovery(svcCtx.Logger),
+			middleware.StreamErrorHandler(svcCtx.Logger),
 			authInterceptor.Stream(),
 			rateLimitInterceptor.Stream(),
 		),

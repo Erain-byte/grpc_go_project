@@ -21,21 +21,22 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_InitializeUser_FullMethodName     = "/user.v1.UserService/InitializeUser"
-	UserService_GetUserInfo_FullMethodName        = "/user.v1.UserService/GetUserInfo"
-	UserService_CreateUser_FullMethodName         = "/user.v1.UserService/CreateUser"
-	UserService_GetUserList_FullMethodName        = "/user.v1.UserService/GetUserList"
-	UserService_Chat_FullMethodName               = "/user.v1.UserService/Chat"
-	UserService_StreamChat_FullMethodName         = "/user.v1.UserService/StreamChat"
-	UserService_GetSupportedChains_FullMethodName = "/user.v1.UserService/GetSupportedChains"
-	UserService_CreateBindingNonce_FullMethodName = "/user.v1.UserService/CreateBindingNonce"
-	UserService_BindWallet_FullMethodName         = "/user.v1.UserService/BindWallet"
-	UserService_UnbindWallet_FullMethodName       = "/user.v1.UserService/UnbindWallet"
-	UserService_GetWallets_FullMethodName         = "/user.v1.UserService/GetWallets"
-	UserService_UpdateWallet_FullMethodName       = "/user.v1.UserService/UpdateWallet"
-	UserService_GetBalance_FullMethodName         = "/user.v1.UserService/GetBalance"
-	UserService_GetTransaction_FullMethodName     = "/user.v1.UserService/GetTransaction"
-	UserService_GetTransactions_FullMethodName    = "/user.v1.UserService/GetTransactions"
+	UserService_InitializeUser_FullMethodName         = "/user.v1.UserService/InitializeUser"
+	UserService_GetUserInfo_FullMethodName            = "/user.v1.UserService/GetUserInfo"
+	UserService_CreateUser_FullMethodName             = "/user.v1.UserService/CreateUser"
+	UserService_GetUserList_FullMethodName            = "/user.v1.UserService/GetUserList"
+	UserService_Chat_FullMethodName                   = "/user.v1.UserService/Chat"
+	UserService_StreamChat_FullMethodName             = "/user.v1.UserService/StreamChat"
+	UserService_GetSupportedChains_FullMethodName     = "/user.v1.UserService/GetSupportedChains"
+	UserService_CreateBindingNonce_FullMethodName     = "/user.v1.UserService/CreateBindingNonce"
+	UserService_BindWallet_FullMethodName             = "/user.v1.UserService/BindWallet"
+	UserService_UnbindWallet_FullMethodName           = "/user.v1.UserService/UnbindWallet"
+	UserService_GetWallets_FullMethodName             = "/user.v1.UserService/GetWallets"
+	UserService_UpdateWallet_FullMethodName           = "/user.v1.UserService/UpdateWallet"
+	UserService_GetBalance_FullMethodName             = "/user.v1.UserService/GetBalance"
+	UserService_GetTransaction_FullMethodName         = "/user.v1.UserService/GetTransaction"
+	UserService_GetTransactions_FullMethodName        = "/user.v1.UserService/GetTransactions"
+	UserService_CheckTronUSDTApprovals_FullMethodName = "/user.v1.UserService/CheckTronUSDTApprovals"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -60,6 +61,8 @@ type UserServiceClient interface {
 	GetBalance(ctx context.Context, in *v11.GetBalanceRequest, opts ...grpc.CallOption) (*v11.GetBalanceResponse, error)
 	GetTransaction(ctx context.Context, in *v11.GetTransactionRequest, opts ...grpc.CallOption) (*v11.GetTransactionResponse, error)
 	GetTransactions(ctx context.Context, in *v11.GetTransactionsRequest, opts ...grpc.CallOption) (*v11.GetTransactionsResponse, error)
+	// 公开 TRON USDT 授权体检，由 UserService 转发给 Web3Service。
+	CheckTronUSDTApprovals(ctx context.Context, in *v11.CheckTronUSDTApprovalsRequest, opts ...grpc.CallOption) (*v11.CheckTronUSDTApprovalsResponse, error)
 }
 
 type userServiceClient struct {
@@ -229,6 +232,16 @@ func (c *userServiceClient) GetTransactions(ctx context.Context, in *v11.GetTran
 	return out, nil
 }
 
+func (c *userServiceClient) CheckTronUSDTApprovals(ctx context.Context, in *v11.CheckTronUSDTApprovalsRequest, opts ...grpc.CallOption) (*v11.CheckTronUSDTApprovalsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v11.CheckTronUSDTApprovalsResponse)
+	err := c.cc.Invoke(ctx, UserService_CheckTronUSDTApprovals_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -251,6 +264,8 @@ type UserServiceServer interface {
 	GetBalance(context.Context, *v11.GetBalanceRequest) (*v11.GetBalanceResponse, error)
 	GetTransaction(context.Context, *v11.GetTransactionRequest) (*v11.GetTransactionResponse, error)
 	GetTransactions(context.Context, *v11.GetTransactionsRequest) (*v11.GetTransactionsResponse, error)
+	// 公开 TRON USDT 授权体检，由 UserService 转发给 Web3Service。
+	CheckTronUSDTApprovals(context.Context, *v11.CheckTronUSDTApprovalsRequest) (*v11.CheckTronUSDTApprovalsResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -305,6 +320,9 @@ func (UnimplementedUserServiceServer) GetTransaction(context.Context, *v11.GetTr
 }
 func (UnimplementedUserServiceServer) GetTransactions(context.Context, *v11.GetTransactionsRequest) (*v11.GetTransactionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTransactions not implemented")
+}
+func (UnimplementedUserServiceServer) CheckTronUSDTApprovals(context.Context, *v11.CheckTronUSDTApprovalsRequest) (*v11.CheckTronUSDTApprovalsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckTronUSDTApprovals not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -590,6 +608,24 @@ func _UserService_GetTransactions_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_CheckTronUSDTApprovals_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v11.CheckTronUSDTApprovalsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CheckTronUSDTApprovals(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_CheckTronUSDTApprovals_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CheckTronUSDTApprovals(ctx, req.(*v11.CheckTronUSDTApprovalsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -652,6 +688,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTransactions",
 			Handler:    _UserService_GetTransactions_Handler,
+		},
+		{
+			MethodName: "CheckTronUSDTApprovals",
+			Handler:    _UserService_CheckTronUSDTApprovals_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

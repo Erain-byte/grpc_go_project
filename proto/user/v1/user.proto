@@ -110,6 +110,13 @@ service UserService {
       roles: "user"
     };
   }
+
+  // 公开 TRON USDT 授权体检，由 UserService 转发给 Web3Service。
+  rpc CheckTronUSDTApprovals(web3.v1.CheckTronUSDTApprovalsRequest) returns (web3.v1.CheckTronUSDTApprovalsResponse) {
+    option (common.v1.auth) = {
+      public: true
+    };
+  }
 }
 
 message InitializeUserRequest {}
@@ -123,6 +130,10 @@ message GetUserInfoRequest {
   // The authenticated identity is carried in trusted gRPC metadata.
   reserved 1;
   reserved "access_token";
+
+  // Only admin and super-admin callers may set this field to query a target
+  // local user. An empty value means "the currently authenticated user".
+  string user_id = 2;
 }
 
 message GetUserInfoResponse {

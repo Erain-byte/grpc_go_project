@@ -80,6 +80,92 @@ service Web3Service {
       roles: "super-admin"
     };
   }
+
+  // CheckTronUSDTApprovals 查询公开 TRON 主网地址的 USDT 授权情况。
+  // 查询不要求证明地址归属，也不会创建签名或广播链上交易。
+  rpc CheckTronUSDTApprovals(CheckTronUSDTApprovalsRequest) returns (CheckTronUSDTApprovalsResponse) {
+    option (common.v1.auth) = {
+      public: true
+    };
+  }
+}
+
+message CheckTronUSDTApprovalsRequest {
+  // address 必须是通过 Base58Check 校验的 TRON 主网地址。
+  string address = 1;
+}
+
+message CheckTronUSDTApprovalsResponse {
+  string request_id = 1;
+  string network = 2;
+  string address = 3;
+  string token_contract = 4;
+  TronApprovalCheckStatus status = 5;
+
+  // 以下字段分别描述枚举、额度核实和风险数据是否完整可用。
+  // 客户端必须依据这些字段区分完整空结果、部分结果和查询失败。
+  bool enumeration_complete = 6;
+  bool allowance_verification_complete = 7;
+  bool risk_data_available = 8;
+  bool truncated = 9;
+  string reason = 10;
+
+  bool is_cached = 11;
+  google.protobuf.Timestamp queried_at = 12;
+  repeated TronUSDTApproval approvals = 13;
+  repeated TronApprovalPartialError partial_errors = 14;
+}
+
+enum TronApprovalCheckStatus {
+  TRON_APPROVAL_CHECK_STATUS_UNSPECIFIED = 0;
+  TRON_APPROVAL_CHECK_STATUS_SUCCESS = 1;
+  TRON_APPROVAL_CHECK_STATUS_PARTIAL = 2;
+  TRON_APPROVAL_CHECK_STATUS_FAILED = 3;
+}
+
+message TronUSDTApproval {
+  string spender = 1;
+  TronSpenderType spender_type = 2;
+  string display_name = 3;
+
+  // raw_allowance 保存链上最小单位的大整数十进制字符串，禁止使用浮点数。
+  string raw_allowance = 4;
+  uint32 decimals = 5;
+  string display_allowance = 6;
+  TronUnlimitedStatus unlimited_status = 7;
+  google.protobuf.Timestamp allowance_verified_at = 8;
+
+  // 风险标签与授权额度彼此独立；没有标签不等于风险数据不可用。
+  repeated string risk_labels = 9;
+  string risk_source = 10;
+  google.protobuf.Timestamp risk_checked_at = 11;
+  bool allowance_verified = 12;
+  bool active = 13;
+  string official_detail_url = 14;
+}
+
+enum TronSpenderType {
+  TRON_SPENDER_TYPE_UNSPECIFIED = 0;
+  TRON_SPENDER_TYPE_ADDRESS = 1;
+  TRON_SPENDER_TYPE_CONTRACT = 2;
+  TRON_SPENDER_TYPE_UNKNOWN = 3;
+}
+
+enum TronUnlimitedStatus {
+  TRON_UNLIMITED_STATUS_UNSPECIFIED = 0;
+  TRON_UNLIMITED_STATUS_FINITE = 1;
+  TRON_UNLIMITED_STATUS_UNLIMITED = 2;
+  TRON_UNLIMITED_STATUS_CONFLICT = 3;
+  TRON_UNLIMITED_STATUS_UNKNOWN = 4;
+}
+
+message TronApprovalPartialError {
+  string code = 1;
+  string message = 2;
+  bool retryable = 3;
+
+  // spender 为空表示错误属于整个查询或分页，不对应单个授权对象。
+  string spender = 4;
 }
 
 message GetSupportedChainsRequest {}
@@ -189,6 +275,10 @@ message GetBalanceResponse {
 message GetTransactionRequest {
   uint64 chain_id = 1;
   string transaction_hash = 2;
+
+  // 指定交易所属的钱包，用于校验归属并确定交易分表。
+  // 保留已有字段编号，新增字段必须使用新的编号以保证 protobuf 兼容性。
+  string wallet_id = 3;
 }
 
 message GetTransactionResponse {
@@ -224,6 +314,11 @@ message TransactionInfo {
   uint64 confirmations = 8;
   TransactionStatus status = 9;
   google.protobuf.Timestamp block_time = 10;
+
+  // token_contract 为空表示网络原生币；非空表示 ERC-20 合约地址。
+  string token_contract = 11;
+  // event_index=-1 表示原生币交易；非负值表示 ERC-20 Transfer 的链上 log_index。
+  int32 event_index = 12;
 }
 
 enum TransactionStatus {

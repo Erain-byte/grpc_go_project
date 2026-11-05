@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"strconv"
 	"strings"
 	"time"
@@ -18,7 +17,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"gorm.io/gorm"
 )
 
 type UserService struct {
@@ -67,34 +65,6 @@ func (s *UserService) InitializeUser(
 		return nil, err
 	}
 	return &userv1.InitializeUserResponse{UserInfo: toProtoUser(user), NewlyCreated: created}, nil
-}
-
-func (s *UserService) GetUserInfo(
-	ctx context.Context,
-	_ *userv1.GetUserInfoRequest,
-) (response *userv1.GetUserInfoResponse, returnErr error) {
-	ctx, span := s.tracer.Start(
-		ctx,
-		"user.get_user_info",
-		trace.WithSpanKind(trace.SpanKindInternal),
-	)
-	defer func() {
-		tracing.RecordError(span, returnErr, "get user information failed")
-		span.End()
-	}()
-
-	identity, err := authenticatedIdentity(ctx)
-	if err != nil {
-		return nil, err
-	}
-	user, err := s.repository.FindBySubject(ctx, identity.Subject)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, apperror.NotFound("local user has not been initialized")
-	}
-	if err != nil {
-		return nil, err
-	}
-	return &userv1.GetUserInfoResponse{Success: true, UserInfo: toProtoUser(user)}, nil
 }
 
 func authenticatedIdentity(ctx context.Context) (auth.Identity, error) {

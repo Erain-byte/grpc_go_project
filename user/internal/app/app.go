@@ -181,7 +181,7 @@ func Run() error {
 		}
 	}()
 	//初始化grpc
-	grpcclient, err := server.NewGrpcServer(cfg, svc)
+	grpcServer, err := server.NewGrpcServer(cfg, svc)
 	if err != nil {
 		return apperror.Wrap(
 			err,
@@ -190,13 +190,34 @@ func Run() error {
 			http.StatusInternalServerError,
 		)
 	}
+	pprofServer, err := server.NewPprofServer(cfg.Pprof)
+	if err != nil {
+		return apperror.Wrap(
+			err,
+			apperror.CodeInternal,
+			"failed to initialize pprof server",
+			http.StatusInternalServerError,
+		)
+	}
 	//统一的异常退出
-	var severErr = make(chan error, 1)
+	type serverResult struct {
+		name string
+		err  error
+	}
+	serverCount := 1
+	if pprofServer != nil {
+		serverCount++
+	}
+	serverErr := make(chan serverResult, serverCount)
 	//协程启动grpc
 	go func() {
-		//将启动状态写入severErr
-		severErr <- grpcclient.Start()
+		serverErr <- serverResult{name: "gRPC", err: grpcServer.Start()}
 	}()
+	if pprofServer != nil {
+		go func() {
+			serverErr <- serverResult{name: "pprof", err: pprofServer.Run()}
+		}()
+	}
 	//grpc注册consul
 	if err := consulClenit.RegisterService(
 		cfg.Name,
@@ -224,7 +245,7 @@ func Run() error {
 	//兜底异常退出依然动态补注册
 	defer stopRegistration()
 	//监听证书
-	go grpcclient.MonitorCertificate(
+	go grpcServer.MonitorCertificate(
 		signlCatxh,
 		12*time.Hour,
 		logger.Logger,
@@ -235,12 +256,13 @@ func Run() error {
 	case <-signlCatxh.Done():
 		//接收到退出信号写入日志
 		logger.SugaredLogger.Infof("Received OS shutdown signal: %v", signlCatxh.Err())
-	case runErr = <-severErr:
-		logger.SugaredLogger.Errorf("Failed to run grpc server: %v", runErr)
+	case result := <-serverErr:
+		runErr = result.err
+		logger.SugaredLogger.Errorf("Failed to run %s server: %v", result.name, runErr)
 		runErr = apperror.Wrap(
 			runErr,
 			apperror.CodeInternal,
-			"failed to run gRPC server",
+			"failed to run "+result.name+" server",
 			http.StatusInternalServerError,
 		)
 	}
@@ -254,10 +276,21 @@ func Run() error {
 	}
 	closeCtx, closeCancel := context.WithTimeout(context.Background(), dependencyCheckTimeout)
 	defer closeCancel()
-	//关闭grpc
-	if err := grpcclient.Stop(closeCtx); err != nil {
-		logger.SugaredLogger.Errorf("Failed to gracefully shutdown grpc server: %v", err)
-		runErr = errors.Join(runErr, err)
+	shutdownTasks := []func(context.Context) error{grpcServer.Stop}
+	if pprofServer != nil {
+		shutdownTasks = append(shutdownTasks, pprofServer.Shutdown)
+	}
+	shutdownErrors := make(chan error, len(shutdownTasks))
+	for _, task := range shutdownTasks {
+		go func(shutdown func(context.Context) error) {
+			shutdownErrors <- shutdown(closeCtx)
+		}(task)
+	}
+	for range shutdownTasks {
+		if shutdownErr := <-shutdownErrors; shutdownErr != nil {
+			logger.SugaredLogger.Errorf("Failed to gracefully shutdown server: %v", shutdownErr)
+			runErr = errors.Join(runErr, shutdownErr)
+		}
 	}
 	return runErr
 }

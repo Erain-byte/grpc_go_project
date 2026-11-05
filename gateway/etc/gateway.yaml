@@ -18,6 +18,11 @@ pprof:
   enabled: true
   port: 6060
   host: "127.0.0.1"
+  # 默认只允许回环地址；确需在受控内网监听时才显式改为 true。
+  allow_remote: false
+  # 默认关闭以避免额外开销；排查 channel/锁阻塞时可临时设为 1 后重启。
+  block_profile_rate: 0
+  mutex_profile_fraction: 0
 # Redis Configuration
 # 单节点模式：配置host+port，cluster_addresses留空
 # 集群模式：配置cluster_addresses，host+port将被忽略
