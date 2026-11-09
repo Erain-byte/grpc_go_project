@@ -3,7 +3,7 @@ module user
 go 1.26.2
 
 require (
-	github.com/Erain-byte/grpc_go_project/proto v0.6.0
+	github.com/Erain-byte/grpc_go_project/proto v0.7.0
 	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
