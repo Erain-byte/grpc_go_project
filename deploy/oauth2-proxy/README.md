@@ -35,12 +35,12 @@ docker compose --env-file deploy/oauth2-proxy/.env -f deploy/oauth2-proxy/compos
 - User：打开 `http://localhost:4180/`
 - Admin：打开 `http://localhost:4181/`
 
-当前上游使用 `static://200`，用于先验证 Keycloak 登录、回调、角色限制、Cookie 和 Redis Session。登录成功后页面可能只有空白的 200 响应，这是预期现象。
+当前上游是运行在 Windows 主机 `9080` 端口的 Gateway。管理前端运行在 `http://localhost:3000`，浏览器通过 `http://localhost:4181` 访问管理 API；OAuth2 Proxy 校验会话后向 Gateway 转发请求并注入 Access Token。
 
 验证项目：
 
-1. `user-test` 能进入 4180，不能进入 4181。
-2. `admin-test` 能进入 4181，不能进入 4180。
+1. `user-test` 能通过 4180 的用户认证入口，不能通过 4181 的管理认证入口。
+2. `admin-test` 能访问 4181 后面的管理 API，不能通过 4180 的用户认证入口。
 3. 浏览器存在两个不同 Cookie。
 4. Redis `DBSIZE` 在登录后增加。
 5. OAuth2 Proxy 日志没有 Client Secret、Issuer、Audience 或角色错误。

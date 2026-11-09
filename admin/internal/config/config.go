@@ -128,8 +128,20 @@ func (c RedisConfig) GetRedisAddress() []string {
 }
 
 type AuthConfig struct {
-	AccessToken     AccessTokenConfig `yaml:"access_token" mapstructure:"access_token"`
-	ProfileCacheTTL string            `yaml:"profile_cache_ttl" mapstructure:"profile_cache_ttl"`
+	AccessToken     AccessTokenConfig        `yaml:"access_token" mapstructure:"access_token"`
+	ProfileCacheTTL string                   `yaml:"profile_cache_ttl" mapstructure:"profile_cache_ttl"`
+	Management      IdentityManagementConfig `yaml:"management" mapstructure:"management"`
+}
+
+// IdentityManagementConfig controls the service-account client used to create
+// administrator identities in Keycloak. The client secret is environment-only.
+type IdentityManagementConfig struct {
+	Enabled      bool   `yaml:"enabled" mapstructure:"enabled"`
+	BaseURL      string `yaml:"base_url" mapstructure:"base_url"`
+	Realm        string `yaml:"realm" mapstructure:"realm"`
+	ClientID     string `yaml:"client_id" mapstructure:"client_id"`
+	ClientSecret string `yaml:"-" mapstructure:"-"`
+	Timeout      string `yaml:"timeout" mapstructure:"timeout"`
 }
 
 type AccessTokenConfig struct {
@@ -289,6 +301,11 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("pprof.mutex_profile_fraction", 0)
 	v.SetDefault("shutdown.timeout", "10s")
 	v.SetDefault("auth.profile_cache_ttl", "15m")
+	v.SetDefault("auth.management.enabled", false)
+	v.SetDefault("auth.management.base_url", "http://localhost:8180")
+	v.SetDefault("auth.management.realm", "grpc-project")
+	v.SetDefault("auth.management.client_id", "admin-management")
+	v.SetDefault("auth.management.timeout", "10s")
 	//限流配置
 	v.SetDefault("rate_limit.enabled", true)
 	v.SetDefault("rate_limit.redis_timeout", "300ms")
@@ -312,6 +329,9 @@ func applyEnvironment(cfg *Config) {
 	}
 	if value := os.Getenv("ADMIN_CONSUL_TOKEN"); value != "" {
 		cfg.Consul.Token = value
+	}
+	if value := os.Getenv("ADMIN_KEYCLOAK_CLIENT_SECRET"); value != "" {
+		cfg.Auth.Management.ClientSecret = value
 	}
 }
 func validateRateLimitConfig(cfg RateLimitConfig) error {
@@ -477,6 +497,17 @@ func (c Config) Validate() error {
 	profileCacheTTL, err := time.ParseDuration(c.Auth.ProfileCacheTTL)
 	if err != nil || profileCacheTTL <= 0 {
 		return fmt.Errorf("admin profile cache TTL must be a positive duration")
+	}
+	if c.Auth.Management.Enabled {
+		management := c.Auth.Management
+		if strings.TrimSpace(management.BaseURL) == "" || strings.TrimSpace(management.Realm) == "" ||
+			strings.TrimSpace(management.ClientID) == "" || strings.TrimSpace(management.ClientSecret) == "" {
+			return fmt.Errorf("Keycloak management base URL, realm, client ID and client secret are required")
+		}
+		managementTimeout, err := time.ParseDuration(management.Timeout)
+		if err != nil || managementTimeout <= 0 {
+			return fmt.Errorf("Keycloak management timeout must be a positive duration")
+		}
 	}
 	if c.GRPC.UseTLS && (strings.TrimSpace(c.GRPC.CertFile) == "" || strings.TrimSpace(c.GRPC.KeyFile) == "") {
 		return fmt.Errorf("admin gRPC certificate and private key are required when TLS is enabled")

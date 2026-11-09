@@ -13,9 +13,10 @@ import (
 
 type AdminHandler struct {
 	adminv1.UnimplementedAdminServiceServer
-	info *service.GetAdminInfoService
-	user *forwarder.UserForwarder
-	llm  *forwarder.LlmForwarder
+	info       *service.GetAdminInfoService
+	management *service.AdminManagementService
+	user       *forwarder.UserForwarder
+	llm        *forwarder.LlmForwarder
 }
 
 var _ adminv1.AdminServiceServer = (*AdminHandler)(nil)
@@ -25,11 +26,24 @@ func NewAdminHandler(svcCtx *svc.ServiceContext) (*AdminHandler, error) {
 	if err != nil {
 		return nil, err
 	}
+	management, err := service.NewAdminManagementService(svcCtx)
+	if err != nil {
+		return nil, err
+	}
 	return &AdminHandler{
-		info: info,
-		user: forwarder.NewUserForwarder(svcCtx.GRPCClients),
-		llm:  forwarder.NewLlmForwarder(svcCtx.GRPCClients),
+		info:       info,
+		management: management,
+		user:       forwarder.NewUserForwarder(svcCtx.GRPCClients),
+		llm:        forwarder.NewLlmForwarder(svcCtx.GRPCClients),
 	}, nil
+}
+
+func (h *AdminHandler) CreateAdmin(ctx context.Context, req *adminv1.CreateAdminRequest) (*adminv1.CreateAdminResponse, error) {
+	return h.management.CreateAdmin(ctx, req)
+}
+
+func (h *AdminHandler) GetAdminList(ctx context.Context, req *adminv1.GetAdminListRequest) (*adminv1.GetAdminListResponse, error) {
+	return h.management.GetAdminList(ctx, req)
 }
 
 func (h *AdminHandler) GetAdminInfo(ctx context.Context, req *adminv1.GetAdminInfoRequest) (*adminv1.GetAdminInfoResponse, error) {

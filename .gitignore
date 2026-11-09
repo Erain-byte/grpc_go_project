@@ -8,6 +8,7 @@
 **/.vscode/
 .gotmp/
 **/.gocache/
+.npm-cache/
 # Local Go workspace
 go.work
 go.work.sum

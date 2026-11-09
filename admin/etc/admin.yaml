@@ -83,6 +83,14 @@ auth:
       - "super-admin"
       - "admin"
       - "user"
+  # 创建管理员时使用的 Keycloak Service Account。Secret 只能通过
+  # ADMIN_KEYCLOAK_CLIENT_SECRET 注入；创建并授权该客户端后再改为 true。
+  management:
+    enabled: false
+    base_url: "http://localhost:8180"
+    realm: "grpc-project"
+    client_id: "admin-management"
+    timeout: "10s"
 
 consul:
   host: "127.0.0.1"

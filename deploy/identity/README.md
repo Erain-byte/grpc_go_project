@@ -78,6 +78,22 @@ docker compose ps
 
 两个 Client 都将 `grpc-api-audience` 设为 Default Client Scope。验证 Access Token 时必须看到 `iss=http://localhost:8180/realms/grpc-project`，且 `aud` 包含 `grpc-api`。
 
+## Admin 服务创建管理员
+
+`POST /admin/create` 需要通过 Keycloak Admin REST API 同时创建可登录身份。应在
+`grpc-project` Realm 新建专用机密客户端 `admin-management`：
+
+1. 开启 `Client authentication` 和 `Service account roles`；
+2. 关闭 Standard Flow、Direct Access Grants 等交互式流程；
+3. 在 Service Account Roles 中分配 `realm-management` 的 `manage-users`、
+   `query-users` 和 `view-realm`；
+4. 复制 Client Secret，通过 `ADMIN_KEYCLOAK_CLIENT_SECRET` 注入 Admin 进程；
+5. 将 `admin/etc/admin.yaml` 中 `auth.management.enabled` 改为 `true`。
+
+该客户端只供 Admin 服务使用，不得暴露给浏览器、移动端或提交到仓库。创建流程会先创建
+Keycloak 用户并分配 `admin`/`super-admin` Realm Role，再写入本地 PostgreSQL；本地写入失败时
+会尝试删除刚创建的 Keycloak 用户，避免留下无法管理的半成品账号。
+
 ## 生产配置
 
 生产模板使用 `start`，要求正式 Hostname，并假设同机 Nginx/Traefik 终止 HTTPS 后把请求转发到回环端口：

@@ -13,6 +13,7 @@ import (
 type AdminRepository interface {
 	// CreateAdmin creates a new admin
 	Create(ctx context.Context, admin *model.AdminModel) error
+	CreateWithRole(ctx context.Context, admin *model.AdminModel, role *model.RoleModel) error
 	FindByID(ctx context.Context, id uint) (*model.AdminModel, error)
 	FindByKeycloakSubject(ctx context.Context, subject string) (*model.AdminModel, error)
 	FindByUsername(ctx context.Context, username string) (*model.AdminModel, error)
@@ -43,6 +44,20 @@ func (r *adminRepository) Create(ctx context.Context, admin *model.AdminModel) e
 		Omit("Roles").
 		Create(admin).
 		Error
+}
+
+// CreateWithRole atomically creates the local administrator and its role link.
+// Keycloak is a separate system and is compensated by the service on failure.
+func (r *adminRepository) CreateWithRole(ctx context.Context, admin *model.AdminModel, role *model.RoleModel) error {
+	if admin == nil || role == nil || role.ID == 0 {
+		return apperorr.InvalidArgument("admin and role are required")
+	}
+	return r.svc.DB.Gorm().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Omit("Roles").Create(admin).Error; err != nil {
+			return err
+		}
+		return tx.Model(admin).Association("Roles").Replace(role)
+	})
 }
 
 func (r *adminRepository) FindByKeycloakSubject(ctx context.Context, subject string) (*model.AdminModel, error) {
