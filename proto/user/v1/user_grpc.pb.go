@@ -8,8 +8,8 @@ package userv1
 
 import (
 	context "context"
-	v1 "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
-	v11 "github.com/Erain-byte/grpc_go_project/proto/web3/v1"
+	v11 "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
+	v1 "github.com/Erain-byte/grpc_go_project/proto/web3/v1"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -21,6 +21,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	UserService_GetPublicWeb3Config_FullMethodName    = "/user.v1.UserService/GetPublicWeb3Config"
+	UserService_RecordClientEvent_FullMethodName      = "/user.v1.UserService/RecordClientEvent"
+	UserService_SubmitFeedback_FullMethodName         = "/user.v1.UserService/SubmitFeedback"
 	UserService_InitializeUser_FullMethodName         = "/user.v1.UserService/InitializeUser"
 	UserService_GetUserInfo_FullMethodName            = "/user.v1.UserService/GetUserInfo"
 	UserService_CreateUser_FullMethodName             = "/user.v1.UserService/CreateUser"
@@ -37,32 +40,44 @@ const (
 	UserService_GetTransaction_FullMethodName         = "/user.v1.UserService/GetTransaction"
 	UserService_GetTransactions_FullMethodName        = "/user.v1.UserService/GetTransactions"
 	UserService_CheckTronUSDTApprovals_FullMethodName = "/user.v1.UserService/CheckTronUSDTApprovals"
+	UserService_CheckEvmAirdrops_FullMethodName       = "/user.v1.UserService/CheckEvmAirdrops"
+	UserService_GetWeb3UsageSummary_FullMethodName    = "/user.v1.UserService/GetWeb3UsageSummary"
+	UserService_GetWeb3RuntimeStatus_FullMethodName   = "/user.v1.UserService/GetWeb3RuntimeStatus"
+	UserService_GetFeedbackList_FullMethodName        = "/user.v1.UserService/GetFeedbackList"
 )
 
 // UserServiceClient is the client API for UserService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
+	// 钱包体检公共产品配置，由 UserService 转发给 Web3Service。
+	GetPublicWeb3Config(ctx context.Context, in *v1.GetPublicWeb3ConfigRequest, opts ...grpc.CallOption) (*v1.GetPublicWeb3ConfigResponse, error)
+	RecordClientEvent(ctx context.Context, in *v1.RecordClientEventRequest, opts ...grpc.CallOption) (*v1.RecordClientEventResponse, error)
+	SubmitFeedback(ctx context.Context, in *v1.SubmitFeedbackRequest, opts ...grpc.CallOption) (*v1.SubmitFeedbackResponse, error)
 	// InitializeUser creates the local business user after Keycloak login.
 	// Repeated calls for the same authenticated subject are idempotent.
 	InitializeUser(ctx context.Context, in *InitializeUserRequest, opts ...grpc.CallOption) (*InitializeUserResponse, error)
 	GetUserInfo(ctx context.Context, in *GetUserInfoRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 	GetUserList(ctx context.Context, in *GetUserListRequest, opts ...grpc.CallOption) (*GetUserListResponse, error)
-	Chat(ctx context.Context, in *v1.ChatRequest, opts ...grpc.CallOption) (*v1.ChatResponse, error)
-	StreamChat(ctx context.Context, in *v1.StreamChatRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[v1.StreamChatResponse], error)
+	Chat(ctx context.Context, in *v11.ChatRequest, opts ...grpc.CallOption) (*v11.ChatResponse, error)
+	StreamChat(ctx context.Context, in *v11.StreamChatRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[v11.StreamChatResponse], error)
 	// Web3 wallet operations forwarded by UserService to Web3Service.
-	GetSupportedChains(ctx context.Context, in *v11.GetSupportedChainsRequest, opts ...grpc.CallOption) (*v11.GetSupportedChainsResponse, error)
-	CreateBindingNonce(ctx context.Context, in *v11.CreateBindingNonceRequest, opts ...grpc.CallOption) (*v11.CreateBindingNonceResponse, error)
-	BindWallet(ctx context.Context, in *v11.BindWalletRequest, opts ...grpc.CallOption) (*v11.BindWalletResponse, error)
-	UnbindWallet(ctx context.Context, in *v11.UnbindWalletRequest, opts ...grpc.CallOption) (*v11.UnbindWalletResponse, error)
-	GetWallets(ctx context.Context, in *v11.GetWalletsRequest, opts ...grpc.CallOption) (*v11.GetWalletsResponse, error)
-	UpdateWallet(ctx context.Context, in *v11.UpdateWalletRequest, opts ...grpc.CallOption) (*v11.UpdateWalletResponse, error)
-	GetBalance(ctx context.Context, in *v11.GetBalanceRequest, opts ...grpc.CallOption) (*v11.GetBalanceResponse, error)
-	GetTransaction(ctx context.Context, in *v11.GetTransactionRequest, opts ...grpc.CallOption) (*v11.GetTransactionResponse, error)
-	GetTransactions(ctx context.Context, in *v11.GetTransactionsRequest, opts ...grpc.CallOption) (*v11.GetTransactionsResponse, error)
+	GetSupportedChains(ctx context.Context, in *v1.GetSupportedChainsRequest, opts ...grpc.CallOption) (*v1.GetSupportedChainsResponse, error)
+	CreateBindingNonce(ctx context.Context, in *v1.CreateBindingNonceRequest, opts ...grpc.CallOption) (*v1.CreateBindingNonceResponse, error)
+	BindWallet(ctx context.Context, in *v1.BindWalletRequest, opts ...grpc.CallOption) (*v1.BindWalletResponse, error)
+	UnbindWallet(ctx context.Context, in *v1.UnbindWalletRequest, opts ...grpc.CallOption) (*v1.UnbindWalletResponse, error)
+	GetWallets(ctx context.Context, in *v1.GetWalletsRequest, opts ...grpc.CallOption) (*v1.GetWalletsResponse, error)
+	UpdateWallet(ctx context.Context, in *v1.UpdateWalletRequest, opts ...grpc.CallOption) (*v1.UpdateWalletResponse, error)
+	GetBalance(ctx context.Context, in *v1.GetBalanceRequest, opts ...grpc.CallOption) (*v1.GetBalanceResponse, error)
+	GetTransaction(ctx context.Context, in *v1.GetTransactionRequest, opts ...grpc.CallOption) (*v1.GetTransactionResponse, error)
+	GetTransactions(ctx context.Context, in *v1.GetTransactionsRequest, opts ...grpc.CallOption) (*v1.GetTransactionsResponse, error)
 	// 公开 TRON USDT 授权体检，由 UserService 转发给 Web3Service。
-	CheckTronUSDTApprovals(ctx context.Context, in *v11.CheckTronUSDTApprovalsRequest, opts ...grpc.CallOption) (*v11.CheckTronUSDTApprovalsResponse, error)
+	CheckTronUSDTApprovals(ctx context.Context, in *v1.CheckTronUSDTApprovalsRequest, opts ...grpc.CallOption) (*v1.CheckTronUSDTApprovalsResponse, error)
+	CheckEvmAirdrops(ctx context.Context, in *v1.CheckEvmAirdropsRequest, opts ...grpc.CallOption) (*v1.CheckEvmAirdropsResponse, error)
+	GetWeb3UsageSummary(ctx context.Context, in *v1.GetWeb3UsageSummaryRequest, opts ...grpc.CallOption) (*v1.GetWeb3UsageSummaryResponse, error)
+	GetWeb3RuntimeStatus(ctx context.Context, in *v1.GetWeb3RuntimeStatusRequest, opts ...grpc.CallOption) (*v1.GetWeb3RuntimeStatusResponse, error)
+	GetFeedbackList(ctx context.Context, in *v1.GetFeedbackListRequest, opts ...grpc.CallOption) (*v1.GetFeedbackListResponse, error)
 }
 
 type userServiceClient struct {
@@ -71,6 +86,36 @@ type userServiceClient struct {
 
 func NewUserServiceClient(cc grpc.ClientConnInterface) UserServiceClient {
 	return &userServiceClient{cc}
+}
+
+func (c *userServiceClient) GetPublicWeb3Config(ctx context.Context, in *v1.GetPublicWeb3ConfigRequest, opts ...grpc.CallOption) (*v1.GetPublicWeb3ConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.GetPublicWeb3ConfigResponse)
+	err := c.cc.Invoke(ctx, UserService_GetPublicWeb3Config_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) RecordClientEvent(ctx context.Context, in *v1.RecordClientEventRequest, opts ...grpc.CallOption) (*v1.RecordClientEventResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.RecordClientEventResponse)
+	err := c.cc.Invoke(ctx, UserService_RecordClientEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) SubmitFeedback(ctx context.Context, in *v1.SubmitFeedbackRequest, opts ...grpc.CallOption) (*v1.SubmitFeedbackResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.SubmitFeedbackResponse)
+	err := c.cc.Invoke(ctx, UserService_SubmitFeedback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *userServiceClient) InitializeUser(ctx context.Context, in *InitializeUserRequest, opts ...grpc.CallOption) (*InitializeUserResponse, error) {
@@ -113,9 +158,9 @@ func (c *userServiceClient) GetUserList(ctx context.Context, in *GetUserListRequ
 	return out, nil
 }
 
-func (c *userServiceClient) Chat(ctx context.Context, in *v1.ChatRequest, opts ...grpc.CallOption) (*v1.ChatResponse, error) {
+func (c *userServiceClient) Chat(ctx context.Context, in *v11.ChatRequest, opts ...grpc.CallOption) (*v11.ChatResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.ChatResponse)
+	out := new(v11.ChatResponse)
 	err := c.cc.Invoke(ctx, UserService_Chat_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -123,13 +168,13 @@ func (c *userServiceClient) Chat(ctx context.Context, in *v1.ChatRequest, opts .
 	return out, nil
 }
 
-func (c *userServiceClient) StreamChat(ctx context.Context, in *v1.StreamChatRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[v1.StreamChatResponse], error) {
+func (c *userServiceClient) StreamChat(ctx context.Context, in *v11.StreamChatRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[v11.StreamChatResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &UserService_ServiceDesc.Streams[0], UserService_StreamChat_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[v1.StreamChatRequest, v1.StreamChatResponse]{ClientStream: stream}
+	x := &grpc.GenericClientStream[v11.StreamChatRequest, v11.StreamChatResponse]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -140,11 +185,11 @@ func (c *userServiceClient) StreamChat(ctx context.Context, in *v1.StreamChatReq
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type UserService_StreamChatClient = grpc.ServerStreamingClient[v1.StreamChatResponse]
+type UserService_StreamChatClient = grpc.ServerStreamingClient[v11.StreamChatResponse]
 
-func (c *userServiceClient) GetSupportedChains(ctx context.Context, in *v11.GetSupportedChainsRequest, opts ...grpc.CallOption) (*v11.GetSupportedChainsResponse, error) {
+func (c *userServiceClient) GetSupportedChains(ctx context.Context, in *v1.GetSupportedChainsRequest, opts ...grpc.CallOption) (*v1.GetSupportedChainsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v11.GetSupportedChainsResponse)
+	out := new(v1.GetSupportedChainsResponse)
 	err := c.cc.Invoke(ctx, UserService_GetSupportedChains_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -152,9 +197,9 @@ func (c *userServiceClient) GetSupportedChains(ctx context.Context, in *v11.GetS
 	return out, nil
 }
 
-func (c *userServiceClient) CreateBindingNonce(ctx context.Context, in *v11.CreateBindingNonceRequest, opts ...grpc.CallOption) (*v11.CreateBindingNonceResponse, error) {
+func (c *userServiceClient) CreateBindingNonce(ctx context.Context, in *v1.CreateBindingNonceRequest, opts ...grpc.CallOption) (*v1.CreateBindingNonceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v11.CreateBindingNonceResponse)
+	out := new(v1.CreateBindingNonceResponse)
 	err := c.cc.Invoke(ctx, UserService_CreateBindingNonce_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -162,9 +207,9 @@ func (c *userServiceClient) CreateBindingNonce(ctx context.Context, in *v11.Crea
 	return out, nil
 }
 
-func (c *userServiceClient) BindWallet(ctx context.Context, in *v11.BindWalletRequest, opts ...grpc.CallOption) (*v11.BindWalletResponse, error) {
+func (c *userServiceClient) BindWallet(ctx context.Context, in *v1.BindWalletRequest, opts ...grpc.CallOption) (*v1.BindWalletResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v11.BindWalletResponse)
+	out := new(v1.BindWalletResponse)
 	err := c.cc.Invoke(ctx, UserService_BindWallet_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -172,9 +217,9 @@ func (c *userServiceClient) BindWallet(ctx context.Context, in *v11.BindWalletRe
 	return out, nil
 }
 
-func (c *userServiceClient) UnbindWallet(ctx context.Context, in *v11.UnbindWalletRequest, opts ...grpc.CallOption) (*v11.UnbindWalletResponse, error) {
+func (c *userServiceClient) UnbindWallet(ctx context.Context, in *v1.UnbindWalletRequest, opts ...grpc.CallOption) (*v1.UnbindWalletResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v11.UnbindWalletResponse)
+	out := new(v1.UnbindWalletResponse)
 	err := c.cc.Invoke(ctx, UserService_UnbindWallet_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -182,9 +227,9 @@ func (c *userServiceClient) UnbindWallet(ctx context.Context, in *v11.UnbindWall
 	return out, nil
 }
 
-func (c *userServiceClient) GetWallets(ctx context.Context, in *v11.GetWalletsRequest, opts ...grpc.CallOption) (*v11.GetWalletsResponse, error) {
+func (c *userServiceClient) GetWallets(ctx context.Context, in *v1.GetWalletsRequest, opts ...grpc.CallOption) (*v1.GetWalletsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v11.GetWalletsResponse)
+	out := new(v1.GetWalletsResponse)
 	err := c.cc.Invoke(ctx, UserService_GetWallets_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -192,9 +237,9 @@ func (c *userServiceClient) GetWallets(ctx context.Context, in *v11.GetWalletsRe
 	return out, nil
 }
 
-func (c *userServiceClient) UpdateWallet(ctx context.Context, in *v11.UpdateWalletRequest, opts ...grpc.CallOption) (*v11.UpdateWalletResponse, error) {
+func (c *userServiceClient) UpdateWallet(ctx context.Context, in *v1.UpdateWalletRequest, opts ...grpc.CallOption) (*v1.UpdateWalletResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v11.UpdateWalletResponse)
+	out := new(v1.UpdateWalletResponse)
 	err := c.cc.Invoke(ctx, UserService_UpdateWallet_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -202,9 +247,9 @@ func (c *userServiceClient) UpdateWallet(ctx context.Context, in *v11.UpdateWall
 	return out, nil
 }
 
-func (c *userServiceClient) GetBalance(ctx context.Context, in *v11.GetBalanceRequest, opts ...grpc.CallOption) (*v11.GetBalanceResponse, error) {
+func (c *userServiceClient) GetBalance(ctx context.Context, in *v1.GetBalanceRequest, opts ...grpc.CallOption) (*v1.GetBalanceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v11.GetBalanceResponse)
+	out := new(v1.GetBalanceResponse)
 	err := c.cc.Invoke(ctx, UserService_GetBalance_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -212,9 +257,9 @@ func (c *userServiceClient) GetBalance(ctx context.Context, in *v11.GetBalanceRe
 	return out, nil
 }
 
-func (c *userServiceClient) GetTransaction(ctx context.Context, in *v11.GetTransactionRequest, opts ...grpc.CallOption) (*v11.GetTransactionResponse, error) {
+func (c *userServiceClient) GetTransaction(ctx context.Context, in *v1.GetTransactionRequest, opts ...grpc.CallOption) (*v1.GetTransactionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v11.GetTransactionResponse)
+	out := new(v1.GetTransactionResponse)
 	err := c.cc.Invoke(ctx, UserService_GetTransaction_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -222,9 +267,9 @@ func (c *userServiceClient) GetTransaction(ctx context.Context, in *v11.GetTrans
 	return out, nil
 }
 
-func (c *userServiceClient) GetTransactions(ctx context.Context, in *v11.GetTransactionsRequest, opts ...grpc.CallOption) (*v11.GetTransactionsResponse, error) {
+func (c *userServiceClient) GetTransactions(ctx context.Context, in *v1.GetTransactionsRequest, opts ...grpc.CallOption) (*v1.GetTransactionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v11.GetTransactionsResponse)
+	out := new(v1.GetTransactionsResponse)
 	err := c.cc.Invoke(ctx, UserService_GetTransactions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -232,10 +277,50 @@ func (c *userServiceClient) GetTransactions(ctx context.Context, in *v11.GetTran
 	return out, nil
 }
 
-func (c *userServiceClient) CheckTronUSDTApprovals(ctx context.Context, in *v11.CheckTronUSDTApprovalsRequest, opts ...grpc.CallOption) (*v11.CheckTronUSDTApprovalsResponse, error) {
+func (c *userServiceClient) CheckTronUSDTApprovals(ctx context.Context, in *v1.CheckTronUSDTApprovalsRequest, opts ...grpc.CallOption) (*v1.CheckTronUSDTApprovalsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v11.CheckTronUSDTApprovalsResponse)
+	out := new(v1.CheckTronUSDTApprovalsResponse)
 	err := c.cc.Invoke(ctx, UserService_CheckTronUSDTApprovals_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) CheckEvmAirdrops(ctx context.Context, in *v1.CheckEvmAirdropsRequest, opts ...grpc.CallOption) (*v1.CheckEvmAirdropsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.CheckEvmAirdropsResponse)
+	err := c.cc.Invoke(ctx, UserService_CheckEvmAirdrops_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetWeb3UsageSummary(ctx context.Context, in *v1.GetWeb3UsageSummaryRequest, opts ...grpc.CallOption) (*v1.GetWeb3UsageSummaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.GetWeb3UsageSummaryResponse)
+	err := c.cc.Invoke(ctx, UserService_GetWeb3UsageSummary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetWeb3RuntimeStatus(ctx context.Context, in *v1.GetWeb3RuntimeStatusRequest, opts ...grpc.CallOption) (*v1.GetWeb3RuntimeStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.GetWeb3RuntimeStatusResponse)
+	err := c.cc.Invoke(ctx, UserService_GetWeb3RuntimeStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetFeedbackList(ctx context.Context, in *v1.GetFeedbackListRequest, opts ...grpc.CallOption) (*v1.GetFeedbackListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v1.GetFeedbackListResponse)
+	err := c.cc.Invoke(ctx, UserService_GetFeedbackList_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -246,26 +331,34 @@ func (c *userServiceClient) CheckTronUSDTApprovals(ctx context.Context, in *v11.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
 type UserServiceServer interface {
+	// 钱包体检公共产品配置，由 UserService 转发给 Web3Service。
+	GetPublicWeb3Config(context.Context, *v1.GetPublicWeb3ConfigRequest) (*v1.GetPublicWeb3ConfigResponse, error)
+	RecordClientEvent(context.Context, *v1.RecordClientEventRequest) (*v1.RecordClientEventResponse, error)
+	SubmitFeedback(context.Context, *v1.SubmitFeedbackRequest) (*v1.SubmitFeedbackResponse, error)
 	// InitializeUser creates the local business user after Keycloak login.
 	// Repeated calls for the same authenticated subject are idempotent.
 	InitializeUser(context.Context, *InitializeUserRequest) (*InitializeUserResponse, error)
 	GetUserInfo(context.Context, *GetUserInfoRequest) (*GetUserInfoResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error)
-	Chat(context.Context, *v1.ChatRequest) (*v1.ChatResponse, error)
-	StreamChat(*v1.StreamChatRequest, grpc.ServerStreamingServer[v1.StreamChatResponse]) error
+	Chat(context.Context, *v11.ChatRequest) (*v11.ChatResponse, error)
+	StreamChat(*v11.StreamChatRequest, grpc.ServerStreamingServer[v11.StreamChatResponse]) error
 	// Web3 wallet operations forwarded by UserService to Web3Service.
-	GetSupportedChains(context.Context, *v11.GetSupportedChainsRequest) (*v11.GetSupportedChainsResponse, error)
-	CreateBindingNonce(context.Context, *v11.CreateBindingNonceRequest) (*v11.CreateBindingNonceResponse, error)
-	BindWallet(context.Context, *v11.BindWalletRequest) (*v11.BindWalletResponse, error)
-	UnbindWallet(context.Context, *v11.UnbindWalletRequest) (*v11.UnbindWalletResponse, error)
-	GetWallets(context.Context, *v11.GetWalletsRequest) (*v11.GetWalletsResponse, error)
-	UpdateWallet(context.Context, *v11.UpdateWalletRequest) (*v11.UpdateWalletResponse, error)
-	GetBalance(context.Context, *v11.GetBalanceRequest) (*v11.GetBalanceResponse, error)
-	GetTransaction(context.Context, *v11.GetTransactionRequest) (*v11.GetTransactionResponse, error)
-	GetTransactions(context.Context, *v11.GetTransactionsRequest) (*v11.GetTransactionsResponse, error)
+	GetSupportedChains(context.Context, *v1.GetSupportedChainsRequest) (*v1.GetSupportedChainsResponse, error)
+	CreateBindingNonce(context.Context, *v1.CreateBindingNonceRequest) (*v1.CreateBindingNonceResponse, error)
+	BindWallet(context.Context, *v1.BindWalletRequest) (*v1.BindWalletResponse, error)
+	UnbindWallet(context.Context, *v1.UnbindWalletRequest) (*v1.UnbindWalletResponse, error)
+	GetWallets(context.Context, *v1.GetWalletsRequest) (*v1.GetWalletsResponse, error)
+	UpdateWallet(context.Context, *v1.UpdateWalletRequest) (*v1.UpdateWalletResponse, error)
+	GetBalance(context.Context, *v1.GetBalanceRequest) (*v1.GetBalanceResponse, error)
+	GetTransaction(context.Context, *v1.GetTransactionRequest) (*v1.GetTransactionResponse, error)
+	GetTransactions(context.Context, *v1.GetTransactionsRequest) (*v1.GetTransactionsResponse, error)
 	// 公开 TRON USDT 授权体检，由 UserService 转发给 Web3Service。
-	CheckTronUSDTApprovals(context.Context, *v11.CheckTronUSDTApprovalsRequest) (*v11.CheckTronUSDTApprovalsResponse, error)
+	CheckTronUSDTApprovals(context.Context, *v1.CheckTronUSDTApprovalsRequest) (*v1.CheckTronUSDTApprovalsResponse, error)
+	CheckEvmAirdrops(context.Context, *v1.CheckEvmAirdropsRequest) (*v1.CheckEvmAirdropsResponse, error)
+	GetWeb3UsageSummary(context.Context, *v1.GetWeb3UsageSummaryRequest) (*v1.GetWeb3UsageSummaryResponse, error)
+	GetWeb3RuntimeStatus(context.Context, *v1.GetWeb3RuntimeStatusRequest) (*v1.GetWeb3RuntimeStatusResponse, error)
+	GetFeedbackList(context.Context, *v1.GetFeedbackListRequest) (*v1.GetFeedbackListResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -276,6 +369,15 @@ type UserServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedUserServiceServer struct{}
 
+func (UnimplementedUserServiceServer) GetPublicWeb3Config(context.Context, *v1.GetPublicWeb3ConfigRequest) (*v1.GetPublicWeb3ConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPublicWeb3Config not implemented")
+}
+func (UnimplementedUserServiceServer) RecordClientEvent(context.Context, *v1.RecordClientEventRequest) (*v1.RecordClientEventResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RecordClientEvent not implemented")
+}
+func (UnimplementedUserServiceServer) SubmitFeedback(context.Context, *v1.SubmitFeedbackRequest) (*v1.SubmitFeedbackResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SubmitFeedback not implemented")
+}
 func (UnimplementedUserServiceServer) InitializeUser(context.Context, *InitializeUserRequest) (*InitializeUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method InitializeUser not implemented")
 }
@@ -288,41 +390,53 @@ func (UnimplementedUserServiceServer) CreateUser(context.Context, *CreateUserReq
 func (UnimplementedUserServiceServer) GetUserList(context.Context, *GetUserListRequest) (*GetUserListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserList not implemented")
 }
-func (UnimplementedUserServiceServer) Chat(context.Context, *v1.ChatRequest) (*v1.ChatResponse, error) {
+func (UnimplementedUserServiceServer) Chat(context.Context, *v11.ChatRequest) (*v11.ChatResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Chat not implemented")
 }
-func (UnimplementedUserServiceServer) StreamChat(*v1.StreamChatRequest, grpc.ServerStreamingServer[v1.StreamChatResponse]) error {
+func (UnimplementedUserServiceServer) StreamChat(*v11.StreamChatRequest, grpc.ServerStreamingServer[v11.StreamChatResponse]) error {
 	return status.Error(codes.Unimplemented, "method StreamChat not implemented")
 }
-func (UnimplementedUserServiceServer) GetSupportedChains(context.Context, *v11.GetSupportedChainsRequest) (*v11.GetSupportedChainsResponse, error) {
+func (UnimplementedUserServiceServer) GetSupportedChains(context.Context, *v1.GetSupportedChainsRequest) (*v1.GetSupportedChainsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSupportedChains not implemented")
 }
-func (UnimplementedUserServiceServer) CreateBindingNonce(context.Context, *v11.CreateBindingNonceRequest) (*v11.CreateBindingNonceResponse, error) {
+func (UnimplementedUserServiceServer) CreateBindingNonce(context.Context, *v1.CreateBindingNonceRequest) (*v1.CreateBindingNonceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateBindingNonce not implemented")
 }
-func (UnimplementedUserServiceServer) BindWallet(context.Context, *v11.BindWalletRequest) (*v11.BindWalletResponse, error) {
+func (UnimplementedUserServiceServer) BindWallet(context.Context, *v1.BindWalletRequest) (*v1.BindWalletResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BindWallet not implemented")
 }
-func (UnimplementedUserServiceServer) UnbindWallet(context.Context, *v11.UnbindWalletRequest) (*v11.UnbindWalletResponse, error) {
+func (UnimplementedUserServiceServer) UnbindWallet(context.Context, *v1.UnbindWalletRequest) (*v1.UnbindWalletResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UnbindWallet not implemented")
 }
-func (UnimplementedUserServiceServer) GetWallets(context.Context, *v11.GetWalletsRequest) (*v11.GetWalletsResponse, error) {
+func (UnimplementedUserServiceServer) GetWallets(context.Context, *v1.GetWalletsRequest) (*v1.GetWalletsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetWallets not implemented")
 }
-func (UnimplementedUserServiceServer) UpdateWallet(context.Context, *v11.UpdateWalletRequest) (*v11.UpdateWalletResponse, error) {
+func (UnimplementedUserServiceServer) UpdateWallet(context.Context, *v1.UpdateWalletRequest) (*v1.UpdateWalletResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateWallet not implemented")
 }
-func (UnimplementedUserServiceServer) GetBalance(context.Context, *v11.GetBalanceRequest) (*v11.GetBalanceResponse, error) {
+func (UnimplementedUserServiceServer) GetBalance(context.Context, *v1.GetBalanceRequest) (*v1.GetBalanceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBalance not implemented")
 }
-func (UnimplementedUserServiceServer) GetTransaction(context.Context, *v11.GetTransactionRequest) (*v11.GetTransactionResponse, error) {
+func (UnimplementedUserServiceServer) GetTransaction(context.Context, *v1.GetTransactionRequest) (*v1.GetTransactionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTransaction not implemented")
 }
-func (UnimplementedUserServiceServer) GetTransactions(context.Context, *v11.GetTransactionsRequest) (*v11.GetTransactionsResponse, error) {
+func (UnimplementedUserServiceServer) GetTransactions(context.Context, *v1.GetTransactionsRequest) (*v1.GetTransactionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTransactions not implemented")
 }
-func (UnimplementedUserServiceServer) CheckTronUSDTApprovals(context.Context, *v11.CheckTronUSDTApprovalsRequest) (*v11.CheckTronUSDTApprovalsResponse, error) {
+func (UnimplementedUserServiceServer) CheckTronUSDTApprovals(context.Context, *v1.CheckTronUSDTApprovalsRequest) (*v1.CheckTronUSDTApprovalsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CheckTronUSDTApprovals not implemented")
+}
+func (UnimplementedUserServiceServer) CheckEvmAirdrops(context.Context, *v1.CheckEvmAirdropsRequest) (*v1.CheckEvmAirdropsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckEvmAirdrops not implemented")
+}
+func (UnimplementedUserServiceServer) GetWeb3UsageSummary(context.Context, *v1.GetWeb3UsageSummaryRequest) (*v1.GetWeb3UsageSummaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetWeb3UsageSummary not implemented")
+}
+func (UnimplementedUserServiceServer) GetWeb3RuntimeStatus(context.Context, *v1.GetWeb3RuntimeStatusRequest) (*v1.GetWeb3RuntimeStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetWeb3RuntimeStatus not implemented")
+}
+func (UnimplementedUserServiceServer) GetFeedbackList(context.Context, *v1.GetFeedbackListRequest) (*v1.GetFeedbackListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFeedbackList not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -343,6 +457,60 @@ func RegisterUserServiceServer(s grpc.ServiceRegistrar, srv UserServiceServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&UserService_ServiceDesc, srv)
+}
+
+func _UserService_GetPublicWeb3Config_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.GetPublicWeb3ConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetPublicWeb3Config(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetPublicWeb3Config_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetPublicWeb3Config(ctx, req.(*v1.GetPublicWeb3ConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_RecordClientEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RecordClientEventRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).RecordClientEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_RecordClientEvent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).RecordClientEvent(ctx, req.(*v1.RecordClientEventRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_SubmitFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.SubmitFeedbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).SubmitFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_SubmitFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).SubmitFeedback(ctx, req.(*v1.SubmitFeedbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_InitializeUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -418,7 +586,7 @@ func _UserService_GetUserList_Handler(srv interface{}, ctx context.Context, dec 
 }
 
 func _UserService_Chat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v1.ChatRequest)
+	in := new(v11.ChatRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -430,24 +598,24 @@ func _UserService_Chat_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: UserService_Chat_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).Chat(ctx, req.(*v1.ChatRequest))
+		return srv.(UserServiceServer).Chat(ctx, req.(*v11.ChatRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_StreamChat_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(v1.StreamChatRequest)
+	m := new(v11.StreamChatRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(UserServiceServer).StreamChat(m, &grpc.GenericServerStream[v1.StreamChatRequest, v1.StreamChatResponse]{ServerStream: stream})
+	return srv.(UserServiceServer).StreamChat(m, &grpc.GenericServerStream[v11.StreamChatRequest, v11.StreamChatResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type UserService_StreamChatServer = grpc.ServerStreamingServer[v1.StreamChatResponse]
+type UserService_StreamChatServer = grpc.ServerStreamingServer[v11.StreamChatResponse]
 
 func _UserService_GetSupportedChains_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v11.GetSupportedChainsRequest)
+	in := new(v1.GetSupportedChainsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -459,13 +627,13 @@ func _UserService_GetSupportedChains_Handler(srv interface{}, ctx context.Contex
 		FullMethod: UserService_GetSupportedChains_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetSupportedChains(ctx, req.(*v11.GetSupportedChainsRequest))
+		return srv.(UserServiceServer).GetSupportedChains(ctx, req.(*v1.GetSupportedChainsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_CreateBindingNonce_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v11.CreateBindingNonceRequest)
+	in := new(v1.CreateBindingNonceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -477,13 +645,13 @@ func _UserService_CreateBindingNonce_Handler(srv interface{}, ctx context.Contex
 		FullMethod: UserService_CreateBindingNonce_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).CreateBindingNonce(ctx, req.(*v11.CreateBindingNonceRequest))
+		return srv.(UserServiceServer).CreateBindingNonce(ctx, req.(*v1.CreateBindingNonceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_BindWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v11.BindWalletRequest)
+	in := new(v1.BindWalletRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -495,13 +663,13 @@ func _UserService_BindWallet_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: UserService_BindWallet_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).BindWallet(ctx, req.(*v11.BindWalletRequest))
+		return srv.(UserServiceServer).BindWallet(ctx, req.(*v1.BindWalletRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_UnbindWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v11.UnbindWalletRequest)
+	in := new(v1.UnbindWalletRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -513,13 +681,13 @@ func _UserService_UnbindWallet_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: UserService_UnbindWallet_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).UnbindWallet(ctx, req.(*v11.UnbindWalletRequest))
+		return srv.(UserServiceServer).UnbindWallet(ctx, req.(*v1.UnbindWalletRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_GetWallets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v11.GetWalletsRequest)
+	in := new(v1.GetWalletsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -531,13 +699,13 @@ func _UserService_GetWallets_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: UserService_GetWallets_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetWallets(ctx, req.(*v11.GetWalletsRequest))
+		return srv.(UserServiceServer).GetWallets(ctx, req.(*v1.GetWalletsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_UpdateWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v11.UpdateWalletRequest)
+	in := new(v1.UpdateWalletRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -549,13 +717,13 @@ func _UserService_UpdateWallet_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: UserService_UpdateWallet_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).UpdateWallet(ctx, req.(*v11.UpdateWalletRequest))
+		return srv.(UserServiceServer).UpdateWallet(ctx, req.(*v1.UpdateWalletRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_GetBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v11.GetBalanceRequest)
+	in := new(v1.GetBalanceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -567,13 +735,13 @@ func _UserService_GetBalance_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: UserService_GetBalance_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetBalance(ctx, req.(*v11.GetBalanceRequest))
+		return srv.(UserServiceServer).GetBalance(ctx, req.(*v1.GetBalanceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_GetTransaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v11.GetTransactionRequest)
+	in := new(v1.GetTransactionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -585,13 +753,13 @@ func _UserService_GetTransaction_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: UserService_GetTransaction_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetTransaction(ctx, req.(*v11.GetTransactionRequest))
+		return srv.(UserServiceServer).GetTransaction(ctx, req.(*v1.GetTransactionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_GetTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v11.GetTransactionsRequest)
+	in := new(v1.GetTransactionsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -603,13 +771,13 @@ func _UserService_GetTransactions_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: UserService_GetTransactions_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetTransactions(ctx, req.(*v11.GetTransactionsRequest))
+		return srv.(UserServiceServer).GetTransactions(ctx, req.(*v1.GetTransactionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_CheckTronUSDTApprovals_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v11.CheckTronUSDTApprovalsRequest)
+	in := new(v1.CheckTronUSDTApprovalsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -621,7 +789,79 @@ func _UserService_CheckTronUSDTApprovals_Handler(srv interface{}, ctx context.Co
 		FullMethod: UserService_CheckTronUSDTApprovals_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).CheckTronUSDTApprovals(ctx, req.(*v11.CheckTronUSDTApprovalsRequest))
+		return srv.(UserServiceServer).CheckTronUSDTApprovals(ctx, req.(*v1.CheckTronUSDTApprovalsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_CheckEvmAirdrops_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.CheckEvmAirdropsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CheckEvmAirdrops(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_CheckEvmAirdrops_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CheckEvmAirdrops(ctx, req.(*v1.CheckEvmAirdropsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetWeb3UsageSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.GetWeb3UsageSummaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetWeb3UsageSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetWeb3UsageSummary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetWeb3UsageSummary(ctx, req.(*v1.GetWeb3UsageSummaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetWeb3RuntimeStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.GetWeb3RuntimeStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetWeb3RuntimeStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetWeb3RuntimeStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetWeb3RuntimeStatus(ctx, req.(*v1.GetWeb3RuntimeStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetFeedbackList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.GetFeedbackListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetFeedbackList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetFeedbackList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetFeedbackList(ctx, req.(*v1.GetFeedbackListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -633,6 +873,18 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "user.v1.UserService",
 	HandlerType: (*UserServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetPublicWeb3Config",
+			Handler:    _UserService_GetPublicWeb3Config_Handler,
+		},
+		{
+			MethodName: "RecordClientEvent",
+			Handler:    _UserService_RecordClientEvent_Handler,
+		},
+		{
+			MethodName: "SubmitFeedback",
+			Handler:    _UserService_SubmitFeedback_Handler,
+		},
 		{
 			MethodName: "InitializeUser",
 			Handler:    _UserService_InitializeUser_Handler,
@@ -692,6 +944,22 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckTronUSDTApprovals",
 			Handler:    _UserService_CheckTronUSDTApprovals_Handler,
+		},
+		{
+			MethodName: "CheckEvmAirdrops",
+			Handler:    _UserService_CheckEvmAirdrops_Handler,
+		},
+		{
+			MethodName: "GetWeb3UsageSummary",
+			Handler:    _UserService_GetWeb3UsageSummary_Handler,
+		},
+		{
+			MethodName: "GetWeb3RuntimeStatus",
+			Handler:    _UserService_GetWeb3RuntimeStatus_Handler,
+		},
+		{
+			MethodName: "GetFeedbackList",
+			Handler:    _UserService_GetFeedbackList_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

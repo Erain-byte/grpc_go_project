@@ -4,12 +4,34 @@ package web3.v1;
 
 import "common/v1/security.proto";
 import "google/protobuf/timestamp.proto";
+import "web3/v1/product.proto";
 
 option go_package = "github.com/Erain-byte/grpc_go_project/proto/web3/v1;web3v1";
 
 // Web3Service 提供用户钱包绑定与只读链上查询。
 // 当前用户身份来自经过验证的 gRPC metadata，不由请求体传入。
 service Web3Service {
+  // GetPublicWeb3Config 返回可以公开给客户端的产品配置。
+  rpc GetPublicWeb3Config(GetPublicWeb3ConfigRequest) returns (GetPublicWeb3ConfigResponse) {
+    option (common.v1.auth) = {
+      public: true
+    };
+  }
+
+  // RecordClientEvent 记录不包含钱包地址和资产信息的匿名漏斗事件。
+  rpc RecordClientEvent(RecordClientEventRequest) returns (RecordClientEventResponse) {
+    option (common.v1.auth) = {
+      public: true
+    };
+  }
+
+  // SubmitFeedback 接收用户主动填写的最小反馈信息。
+  rpc SubmitFeedback(SubmitFeedbackRequest) returns (SubmitFeedbackResponse) {
+    option (common.v1.auth) = {
+      public: true
+    };
+  }
+
   // GetSupportedChains 返回当前服务已启用的链及其确认策略。
   rpc GetSupportedChains(GetSupportedChainsRequest) returns (GetSupportedChainsResponse) {
     option (common.v1.auth) = {
@@ -88,11 +110,47 @@ service Web3Service {
       public: true
     };
   }
+
+  // CheckEvmAirdrops 是 B 包的匿名 EVM 空投查询入口。
+  rpc CheckEvmAirdrops(CheckEvmAirdropsRequest) returns (CheckEvmAirdropsResponse) {
+    option (common.v1.auth) = {
+      public: true
+    };
+  }
+
+  // GetWeb3UsageSummary 返回钱包体检的聚合用量，不返回地址明细。
+  rpc GetWeb3UsageSummary(GetWeb3UsageSummaryRequest) returns (GetWeb3UsageSummaryResponse) {
+    option (common.v1.auth) = {
+      roles: "admin"
+      roles: "super-admin"
+    };
+  }
+
+  // GetWeb3RuntimeStatus 返回功能开关和上游运行状态，不返回密钥。
+  rpc GetWeb3RuntimeStatus(GetWeb3RuntimeStatusRequest) returns (GetWeb3RuntimeStatusResponse) {
+    option (common.v1.auth) = {
+      roles: "admin"
+      roles: "super-admin"
+    };
+  }
+
+  // GetFeedbackList 返回用户反馈的分页列表。
+  rpc GetFeedbackList(GetFeedbackListRequest) returns (GetFeedbackListResponse) {
+    option (common.v1.auth) = {
+      roles: "admin"
+      roles: "super-admin"
+    };
+  }
 }
 
 message CheckTronUSDTApprovalsRequest {
   // address 必须是通过 Base58Check 校验的 TRON 主网地址。
   string address = 1;
+
+  // installation_id 是随机安装标识，仅用于匿名限流和统计，不能作为身份凭证。
+  string installation_id = 2;
+  string app_version = 3;
+  ClientPlatform platform = 4;
 }
 
 message CheckTronUSDTApprovalsResponse {
@@ -114,6 +172,7 @@ message CheckTronUSDTApprovalsResponse {
   google.protobuf.Timestamp queried_at = 12;
   repeated TronUSDTApproval approvals = 13;
   repeated TronApprovalPartialError partial_errors = 14;
+  QueryFailure failure = 15;
 }
 
 enum TronApprovalCheckStatus {

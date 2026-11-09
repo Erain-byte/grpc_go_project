@@ -1,0 +1,246 @@
+syntax = "proto3";
+
+package web3.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/Erain-byte/grpc_go_project/proto/web3/v1;web3v1";
+
+// ClientPlatform 表示调用钱包体检产品的客户端平台。
+enum ClientPlatform {
+  CLIENT_PLATFORM_UNSPECIFIED = 0;
+  CLIENT_PLATFORM_IOS = 1;
+  CLIENT_PLATFORM_ANDROID = 2;
+  CLIENT_PLATFORM_WEB = 3;
+}
+
+// QueryFailure 描述能够安全返回给客户端的完整查询失败原因。
+message QueryFailure {
+  string code = 1;
+  string message = 2;
+  bool retryable = 3;
+  uint32 retry_after_seconds = 4;
+}
+
+enum QueryStatus {
+  QUERY_STATUS_UNSPECIFIED = 0;
+  QUERY_STATUS_SUCCESS = 1;
+  QUERY_STATUS_PARTIAL = 2;
+  QUERY_STATUS_FAILED = 3;
+}
+
+// PublicChainConfig 是允许公开给客户端的链与代币配置。
+message PublicChainConfig {
+  string network = 1;
+  string display_name = 2;
+  string address_format = 3;
+  string token_symbol = 4;
+  string token_contract = 5;
+  uint32 token_decimals = 6;
+  bool enabled = 7;
+}
+
+message GetPublicWeb3ConfigRequest {}
+
+message GetPublicWeb3ConfigResponse {
+  bool tron_approval_enabled = 1;
+  bool airdrop_enabled = 2;
+  repeated PublicChainConfig chains = 3;
+  uint32 favorite_limit = 4;
+  uint32 minimum_refresh_interval_seconds = 5;
+  string support_email = 6;
+  string feedback_url = 7;
+  string testflight_url = 8;
+  string privacy_policy_version = 9;
+  string maintenance_message = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+enum ClientEventType {
+  CLIENT_EVENT_TYPE_UNSPECIFIED = 0;
+  CLIENT_EVENT_TYPE_FIRST_OPEN = 1;
+  CLIENT_EVENT_TYPE_QUERY_SUBMITTED = 2;
+  CLIENT_EVENT_TYPE_QUERY_SUCCEEDED = 3;
+  CLIENT_EVENT_TYPE_QUERY_PARTIAL = 4;
+  CLIENT_EVENT_TYPE_QUERY_FAILED = 5;
+  CLIENT_EVENT_TYPE_ADDRESS_FAVORITED = 6;
+  CLIENT_EVENT_TYPE_ADDRESS_RECHECKED = 7;
+  CLIENT_EVENT_TYPE_SHARE_OPENED = 8;
+  CLIENT_EVENT_TYPE_OFFICIAL_LINK_OPENED = 9;
+  CLIENT_EVENT_TYPE_FEEDBACK_OPENED = 10;
+  CLIENT_EVENT_TYPE_AIRDROP_REMINDER_CREATED = 11;
+}
+
+// DurationBucket 只记录耗时区间，避免采集不必要的高精度行为数据。
+enum DurationBucket {
+  DURATION_BUCKET_UNSPECIFIED = 0;
+  DURATION_BUCKET_UNDER_ONE_SECOND = 1;
+  DURATION_BUCKET_ONE_TO_FIVE_SECONDS = 2;
+  DURATION_BUCKET_FIVE_TO_FIFTEEN_SECONDS = 3;
+  DURATION_BUCKET_FIFTEEN_TO_THIRTY_SECONDS = 4;
+  DURATION_BUCKET_OVER_THIRTY_SECONDS = 5;
+}
+
+message RecordClientEventRequest {
+  string installation_id = 1;
+  ClientEventType event_type = 2;
+  string app_version = 3;
+  ClientPlatform platform = 4;
+  string network = 5;
+  string result_type = 6;
+  DurationBucket duration_bucket = 7;
+  google.protobuf.Timestamp occurred_at = 8;
+}
+
+message RecordClientEventResponse {}
+
+message SubmitFeedbackRequest {
+  string installation_id = 1;
+  string issue_id = 2;
+  string app_version = 3;
+  ClientPlatform platform = 4;
+  string description = 5;
+}
+
+message SubmitFeedbackResponse {
+  string feedback_id = 1;
+  google.protobuf.Timestamp created_at = 2;
+}
+
+enum FeedbackStatus {
+  FEEDBACK_STATUS_UNSPECIFIED = 0;
+  FEEDBACK_STATUS_PENDING = 1;
+  FEEDBACK_STATUS_PROCESSING = 2;
+  FEEDBACK_STATUS_RESOLVED = 3;
+  FEEDBACK_STATUS_CLOSED = 4;
+}
+
+message FeedbackItem {
+  string feedback_id = 1;
+  string issue_id = 2;
+  string app_version = 3;
+  ClientPlatform platform = 4;
+  string description = 5;
+  FeedbackStatus status = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message GetFeedbackListRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  FeedbackStatus status = 3;
+}
+
+message GetFeedbackListResponse {
+  repeated FeedbackItem feedback_items = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetWeb3UsageSummaryRequest {
+  google.protobuf.Timestamp started_at = 1;
+  google.protobuf.Timestamp ended_at = 2;
+}
+
+message GetWeb3UsageSummaryResponse {
+  google.protobuf.Timestamp started_at = 1;
+  google.protobuf.Timestamp ended_at = 2;
+  int64 query_count = 3;
+  int64 distinct_address_count = 4;
+  int64 upstream_call_count = 5;
+  int64 success_count = 6;
+  int64 partial_count = 7;
+  int64 failed_count = 8;
+  int64 cache_hit_count = 9;
+  double cache_hit_rate = 10;
+  bool query_budget_exhausted = 11;
+  bool address_budget_exhausted = 12;
+  bool upstream_budget_exhausted = 13;
+  google.protobuf.Timestamp generated_at = 14;
+}
+
+enum UpstreamRuntimeState {
+  UPSTREAM_RUNTIME_STATE_UNSPECIFIED = 0;
+  UPSTREAM_RUNTIME_STATE_NOT_CONFIGURED = 1;
+  UPSTREAM_RUNTIME_STATE_DISABLED = 2;
+  UPSTREAM_RUNTIME_STATE_AVAILABLE = 3;
+  UPSTREAM_RUNTIME_STATE_DEGRADED = 4;
+  UPSTREAM_RUNTIME_STATE_UNAVAILABLE = 5;
+}
+
+message UpstreamRuntimeStatus {
+  string name = 1;
+  UpstreamRuntimeState state = 2;
+  google.protobuf.Timestamp last_success_at = 3;
+  string last_error_code = 4;
+  google.protobuf.Timestamp last_error_at = 5;
+}
+
+message GetWeb3RuntimeStatusRequest {}
+
+message GetWeb3RuntimeStatusResponse {
+  bool tron_approval_enabled = 1;
+  bool airdrop_enabled = 2;
+  bool database_available = 3;
+  bool cache_available = 4;
+  repeated UpstreamRuntimeStatus upstreams = 5;
+  google.protobuf.Timestamp checked_at = 6;
+}
+
+enum AirdropClaimStatus {
+  AIRDROP_CLAIM_STATUS_UNSPECIFIED = 0;
+  AIRDROP_CLAIM_STATUS_CLAIMABLE = 1;
+  AIRDROP_CLAIM_STATUS_CLAIMED = 2;
+  AIRDROP_CLAIM_STATUS_UPCOMING = 3;
+  AIRDROP_CLAIM_STATUS_EXPIRED = 4;
+  AIRDROP_CLAIM_STATUS_UNKNOWN = 5;
+  AIRDROP_CLAIM_STATUS_DIRECT_DISTRIBUTION = 6;
+}
+
+message AirdropProject {
+  string project_id = 1;
+  string display_name = 2;
+  string token_symbol = 3;
+  string raw_amount = 4;
+  uint32 token_decimals = 5;
+  string display_amount = 6;
+  bool valuation_available = 7;
+  string display_estimated_value = 8;
+  AirdropClaimStatus claim_status = 9;
+  google.protobuf.Timestamp starts_at = 10;
+  google.protobuf.Timestamp ends_at = 11;
+  string official_claim_url = 12;
+  string source = 13;
+  google.protobuf.Timestamp verified_at = 14;
+}
+
+message QueryPartialError {
+  string code = 1;
+  string message = 2;
+  bool retryable = 3;
+  string subject = 4;
+}
+
+message CheckEvmAirdropsRequest {
+  string network = 1;
+  string address = 2;
+  string installation_id = 3;
+  string app_version = 4;
+  ClientPlatform platform = 5;
+}
+
+message CheckEvmAirdropsResponse {
+  string request_id = 1;
+  string network = 2;
+  string address = 3;
+  QueryStatus status = 4;
+  bool complete = 5;
+  string reason = 6;
+  bool is_cached = 7;
+  google.protobuf.Timestamp queried_at = 8;
+  repeated AirdropProject projects = 9;
+  repeated QueryPartialError partial_errors = 10;
+  QueryFailure failure = 11;
+}

@@ -10,6 +10,7 @@ import (
 	_ "github.com/Erain-byte/grpc_go_project/proto/common/v1"
 	v11 "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
 	v1 "github.com/Erain-byte/grpc_go_project/proto/user/v1"
+	v12 "github.com/Erain-byte/grpc_go_project/proto/web3/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -847,7 +848,7 @@ var File_admin_v1_admin_proto protoreflect.FileDescriptor
 
 const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
-	"\x14admin/v1/admin.proto\x12\badmin.v1\x1a\x18common/v1/security.proto\x1a\x10llm/v1/llm.proto\x1a\x12user/v1/user.proto\"J\n" +
+	"\x14admin/v1/admin.proto\x12\badmin.v1\x1a\x18common/v1/security.proto\x1a\x10llm/v1/llm.proto\x1a\x12user/v1/user.proto\x1a\x15web3/v1/product.proto\"J\n" +
 	"\fLoginRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword:\x02\x18\x01\"\x9a\x02\n" +
@@ -905,7 +906,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\tAdminRole\x12\x1a\n" +
 	"\x16ADMIN_ROLE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16ADMIN_ROLE_SUPER_ADMIN\x10\x01\x12\x14\n" +
-	"\x10ADMIN_ROLE_ADMIN\x10\x022\xb5\x05\n" +
+	"\x10ADMIN_ROLE_ADMIN\x10\x022\xa0\b\n" +
 	"\fAdminService\x12g\n" +
 	"\fGetAdminInfo\x12\x1d.admin.v1.GetAdminInfoRequest\x1a\x1e.admin.v1.GetAdminInfoResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin\x12]\n" +
 	"\vCreateAdmin\x12\x1c.admin.v1.CreateAdminRequest\x1a\x1d.admin.v1.CreateAdminResponse\"\x11\x82\xb5\x18\r\x12\vsuper-admin\x12g\n" +
@@ -914,7 +915,10 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\vGetUserList\x12\x1b.user.v1.GetUserListRequest\x1a\x1c.user.v1.GetUserListResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin\x12K\n" +
 	"\x04Chat\x12\x13.llm.v1.ChatRequest\x1a\x14.llm.v1.ChatResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin\x12_\n" +
 	"\n" +
-	"StreamChat\x12\x19.llm.v1.StreamChatRequest\x1a\x1a.llm.v1.StreamChatResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin0\x01B>Z<github.com/Erain-byte/grpc_go_project/proto/admin/v1;adminv1b\x06proto3"
+	"StreamChat\x12\x19.llm.v1.StreamChatRequest\x1a\x1a.llm.v1.StreamChatResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin0\x01\x12z\n" +
+	"\x13GetWeb3UsageSummary\x12#.web3.v1.GetWeb3UsageSummaryRequest\x1a$.web3.v1.GetWeb3UsageSummaryResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin\x12}\n" +
+	"\x14GetWeb3RuntimeStatus\x12$.web3.v1.GetWeb3RuntimeStatusRequest\x1a%.web3.v1.GetWeb3RuntimeStatusResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin\x12n\n" +
+	"\x0fGetFeedbackList\x12\x1f.web3.v1.GetFeedbackListRequest\x1a .web3.v1.GetFeedbackListResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-adminB>Z<github.com/Erain-byte/grpc_go_project/proto/admin/v1;adminv1b\x06proto3"
 
 var (
 	file_admin_v1_admin_proto_rawDescOnce sync.Once
@@ -931,28 +935,34 @@ func file_admin_v1_admin_proto_rawDescGZIP() []byte {
 var file_admin_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_admin_v1_admin_proto_goTypes = []any{
-	(AdminRole)(0),                 // 0: admin.v1.AdminRole
-	(*LoginRequest)(nil),           // 1: admin.v1.LoginRequest
-	(*LoginResponse)(nil),          // 2: admin.v1.LoginResponse
-	(*LogoutRequest)(nil),          // 3: admin.v1.LogoutRequest
-	(*LogoutResponse)(nil),         // 4: admin.v1.LogoutResponse
-	(*GetAdminInfoRequest)(nil),    // 5: admin.v1.GetAdminInfoRequest
-	(*GetAdminInfoResponse)(nil),   // 6: admin.v1.GetAdminInfoResponse
-	(*CreateAdminRequest)(nil),     // 7: admin.v1.CreateAdminRequest
-	(*CreateAdminResponse)(nil),    // 8: admin.v1.CreateAdminResponse
-	(*GetAdminListRequest)(nil),    // 9: admin.v1.GetAdminListRequest
-	(*GetAdminListResponse)(nil),   // 10: admin.v1.GetAdminListResponse
-	(*Admin)(nil),                  // 11: admin.v1.Admin
-	(*RefreshTokenRequest)(nil),    // 12: admin.v1.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil),   // 13: admin.v1.RefreshTokenResponse
-	(*v1.GetUserInfoRequest)(nil),  // 14: user.v1.GetUserInfoRequest
-	(*v1.GetUserListRequest)(nil),  // 15: user.v1.GetUserListRequest
-	(*v11.ChatRequest)(nil),        // 16: llm.v1.ChatRequest
-	(*v11.StreamChatRequest)(nil),  // 17: llm.v1.StreamChatRequest
-	(*v1.GetUserInfoResponse)(nil), // 18: user.v1.GetUserInfoResponse
-	(*v1.GetUserListResponse)(nil), // 19: user.v1.GetUserListResponse
-	(*v11.ChatResponse)(nil),       // 20: llm.v1.ChatResponse
-	(*v11.StreamChatResponse)(nil), // 21: llm.v1.StreamChatResponse
+	(AdminRole)(0),                           // 0: admin.v1.AdminRole
+	(*LoginRequest)(nil),                     // 1: admin.v1.LoginRequest
+	(*LoginResponse)(nil),                    // 2: admin.v1.LoginResponse
+	(*LogoutRequest)(nil),                    // 3: admin.v1.LogoutRequest
+	(*LogoutResponse)(nil),                   // 4: admin.v1.LogoutResponse
+	(*GetAdminInfoRequest)(nil),              // 5: admin.v1.GetAdminInfoRequest
+	(*GetAdminInfoResponse)(nil),             // 6: admin.v1.GetAdminInfoResponse
+	(*CreateAdminRequest)(nil),               // 7: admin.v1.CreateAdminRequest
+	(*CreateAdminResponse)(nil),              // 8: admin.v1.CreateAdminResponse
+	(*GetAdminListRequest)(nil),              // 9: admin.v1.GetAdminListRequest
+	(*GetAdminListResponse)(nil),             // 10: admin.v1.GetAdminListResponse
+	(*Admin)(nil),                            // 11: admin.v1.Admin
+	(*RefreshTokenRequest)(nil),              // 12: admin.v1.RefreshTokenRequest
+	(*RefreshTokenResponse)(nil),             // 13: admin.v1.RefreshTokenResponse
+	(*v1.GetUserInfoRequest)(nil),            // 14: user.v1.GetUserInfoRequest
+	(*v1.GetUserListRequest)(nil),            // 15: user.v1.GetUserListRequest
+	(*v11.ChatRequest)(nil),                  // 16: llm.v1.ChatRequest
+	(*v11.StreamChatRequest)(nil),            // 17: llm.v1.StreamChatRequest
+	(*v12.GetWeb3UsageSummaryRequest)(nil),   // 18: web3.v1.GetWeb3UsageSummaryRequest
+	(*v12.GetWeb3RuntimeStatusRequest)(nil),  // 19: web3.v1.GetWeb3RuntimeStatusRequest
+	(*v12.GetFeedbackListRequest)(nil),       // 20: web3.v1.GetFeedbackListRequest
+	(*v1.GetUserInfoResponse)(nil),           // 21: user.v1.GetUserInfoResponse
+	(*v1.GetUserListResponse)(nil),           // 22: user.v1.GetUserListResponse
+	(*v11.ChatResponse)(nil),                 // 23: llm.v1.ChatResponse
+	(*v11.StreamChatResponse)(nil),           // 24: llm.v1.StreamChatResponse
+	(*v12.GetWeb3UsageSummaryResponse)(nil),  // 25: web3.v1.GetWeb3UsageSummaryResponse
+	(*v12.GetWeb3RuntimeStatusResponse)(nil), // 26: web3.v1.GetWeb3RuntimeStatusResponse
+	(*v12.GetFeedbackListResponse)(nil),      // 27: web3.v1.GetFeedbackListResponse
 }
 var file_admin_v1_admin_proto_depIdxs = []int32{
 	11, // 0: admin.v1.LoginResponse.admin:type_name -> admin.v1.Admin
@@ -968,15 +978,21 @@ var file_admin_v1_admin_proto_depIdxs = []int32{
 	15, // 10: admin.v1.AdminService.GetUserList:input_type -> user.v1.GetUserListRequest
 	16, // 11: admin.v1.AdminService.Chat:input_type -> llm.v1.ChatRequest
 	17, // 12: admin.v1.AdminService.StreamChat:input_type -> llm.v1.StreamChatRequest
-	6,  // 13: admin.v1.AdminService.GetAdminInfo:output_type -> admin.v1.GetAdminInfoResponse
-	8,  // 14: admin.v1.AdminService.CreateAdmin:output_type -> admin.v1.CreateAdminResponse
-	10, // 15: admin.v1.AdminService.GetAdminList:output_type -> admin.v1.GetAdminListResponse
-	18, // 16: admin.v1.AdminService.GetUserInfo:output_type -> user.v1.GetUserInfoResponse
-	19, // 17: admin.v1.AdminService.GetUserList:output_type -> user.v1.GetUserListResponse
-	20, // 18: admin.v1.AdminService.Chat:output_type -> llm.v1.ChatResponse
-	21, // 19: admin.v1.AdminService.StreamChat:output_type -> llm.v1.StreamChatResponse
-	13, // [13:20] is the sub-list for method output_type
-	6,  // [6:13] is the sub-list for method input_type
+	18, // 13: admin.v1.AdminService.GetWeb3UsageSummary:input_type -> web3.v1.GetWeb3UsageSummaryRequest
+	19, // 14: admin.v1.AdminService.GetWeb3RuntimeStatus:input_type -> web3.v1.GetWeb3RuntimeStatusRequest
+	20, // 15: admin.v1.AdminService.GetFeedbackList:input_type -> web3.v1.GetFeedbackListRequest
+	6,  // 16: admin.v1.AdminService.GetAdminInfo:output_type -> admin.v1.GetAdminInfoResponse
+	8,  // 17: admin.v1.AdminService.CreateAdmin:output_type -> admin.v1.CreateAdminResponse
+	10, // 18: admin.v1.AdminService.GetAdminList:output_type -> admin.v1.GetAdminListResponse
+	21, // 19: admin.v1.AdminService.GetUserInfo:output_type -> user.v1.GetUserInfoResponse
+	22, // 20: admin.v1.AdminService.GetUserList:output_type -> user.v1.GetUserListResponse
+	23, // 21: admin.v1.AdminService.Chat:output_type -> llm.v1.ChatResponse
+	24, // 22: admin.v1.AdminService.StreamChat:output_type -> llm.v1.StreamChatResponse
+	25, // 23: admin.v1.AdminService.GetWeb3UsageSummary:output_type -> web3.v1.GetWeb3UsageSummaryResponse
+	26, // 24: admin.v1.AdminService.GetWeb3RuntimeStatus:output_type -> web3.v1.GetWeb3RuntimeStatusResponse
+	27, // 25: admin.v1.AdminService.GetFeedbackList:output_type -> web3.v1.GetFeedbackListResponse
+	16, // [16:26] is the sub-list for method output_type
+	6,  // [6:16] is the sub-list for method input_type
 	6,  // [6:6] is the sub-list for extension type_name
 	6,  // [6:6] is the sub-list for extension extendee
 	0,  // [0:6] is the sub-list for field type_name

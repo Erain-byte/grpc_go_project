@@ -19,6 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	Web3Service_GetPublicWeb3Config_FullMethodName    = "/web3.v1.Web3Service/GetPublicWeb3Config"
+	Web3Service_RecordClientEvent_FullMethodName      = "/web3.v1.Web3Service/RecordClientEvent"
+	Web3Service_SubmitFeedback_FullMethodName         = "/web3.v1.Web3Service/SubmitFeedback"
 	Web3Service_GetSupportedChains_FullMethodName     = "/web3.v1.Web3Service/GetSupportedChains"
 	Web3Service_CreateBindingNonce_FullMethodName     = "/web3.v1.Web3Service/CreateBindingNonce"
 	Web3Service_BindWallet_FullMethodName             = "/web3.v1.Web3Service/BindWallet"
@@ -29,6 +32,10 @@ const (
 	Web3Service_GetTransaction_FullMethodName         = "/web3.v1.Web3Service/GetTransaction"
 	Web3Service_GetTransactions_FullMethodName        = "/web3.v1.Web3Service/GetTransactions"
 	Web3Service_CheckTronUSDTApprovals_FullMethodName = "/web3.v1.Web3Service/CheckTronUSDTApprovals"
+	Web3Service_CheckEvmAirdrops_FullMethodName       = "/web3.v1.Web3Service/CheckEvmAirdrops"
+	Web3Service_GetWeb3UsageSummary_FullMethodName    = "/web3.v1.Web3Service/GetWeb3UsageSummary"
+	Web3Service_GetWeb3RuntimeStatus_FullMethodName   = "/web3.v1.Web3Service/GetWeb3RuntimeStatus"
+	Web3Service_GetFeedbackList_FullMethodName        = "/web3.v1.Web3Service/GetFeedbackList"
 )
 
 // Web3ServiceClient is the client API for Web3Service service.
@@ -38,6 +45,12 @@ const (
 // Web3Service 提供用户钱包绑定与只读链上查询。
 // 当前用户身份来自经过验证的 gRPC metadata，不由请求体传入。
 type Web3ServiceClient interface {
+	// GetPublicWeb3Config 返回可以公开给客户端的产品配置。
+	GetPublicWeb3Config(ctx context.Context, in *GetPublicWeb3ConfigRequest, opts ...grpc.CallOption) (*GetPublicWeb3ConfigResponse, error)
+	// RecordClientEvent 记录不包含钱包地址和资产信息的匿名漏斗事件。
+	RecordClientEvent(ctx context.Context, in *RecordClientEventRequest, opts ...grpc.CallOption) (*RecordClientEventResponse, error)
+	// SubmitFeedback 接收用户主动填写的最小反馈信息。
+	SubmitFeedback(ctx context.Context, in *SubmitFeedbackRequest, opts ...grpc.CallOption) (*SubmitFeedbackResponse, error)
 	// GetSupportedChains 返回当前服务已启用的链及其确认策略。
 	GetSupportedChains(ctx context.Context, in *GetSupportedChainsRequest, opts ...grpc.CallOption) (*GetSupportedChainsResponse, error)
 	// CreateBindingNonce 创建一次性签名消息。
@@ -59,6 +72,14 @@ type Web3ServiceClient interface {
 	// CheckTronUSDTApprovals 查询公开 TRON 主网地址的 USDT 授权情况。
 	// 查询不要求证明地址归属，也不会创建签名或广播链上交易。
 	CheckTronUSDTApprovals(ctx context.Context, in *CheckTronUSDTApprovalsRequest, opts ...grpc.CallOption) (*CheckTronUSDTApprovalsResponse, error)
+	// CheckEvmAirdrops 是 B 包的匿名 EVM 空投查询入口。
+	CheckEvmAirdrops(ctx context.Context, in *CheckEvmAirdropsRequest, opts ...grpc.CallOption) (*CheckEvmAirdropsResponse, error)
+	// GetWeb3UsageSummary 返回钱包体检的聚合用量，不返回地址明细。
+	GetWeb3UsageSummary(ctx context.Context, in *GetWeb3UsageSummaryRequest, opts ...grpc.CallOption) (*GetWeb3UsageSummaryResponse, error)
+	// GetWeb3RuntimeStatus 返回功能开关和上游运行状态，不返回密钥。
+	GetWeb3RuntimeStatus(ctx context.Context, in *GetWeb3RuntimeStatusRequest, opts ...grpc.CallOption) (*GetWeb3RuntimeStatusResponse, error)
+	// GetFeedbackList 返回用户反馈的分页列表。
+	GetFeedbackList(ctx context.Context, in *GetFeedbackListRequest, opts ...grpc.CallOption) (*GetFeedbackListResponse, error)
 }
 
 type web3ServiceClient struct {
@@ -67,6 +88,36 @@ type web3ServiceClient struct {
 
 func NewWeb3ServiceClient(cc grpc.ClientConnInterface) Web3ServiceClient {
 	return &web3ServiceClient{cc}
+}
+
+func (c *web3ServiceClient) GetPublicWeb3Config(ctx context.Context, in *GetPublicWeb3ConfigRequest, opts ...grpc.CallOption) (*GetPublicWeb3ConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPublicWeb3ConfigResponse)
+	err := c.cc.Invoke(ctx, Web3Service_GetPublicWeb3Config_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *web3ServiceClient) RecordClientEvent(ctx context.Context, in *RecordClientEventRequest, opts ...grpc.CallOption) (*RecordClientEventResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecordClientEventResponse)
+	err := c.cc.Invoke(ctx, Web3Service_RecordClientEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *web3ServiceClient) SubmitFeedback(ctx context.Context, in *SubmitFeedbackRequest, opts ...grpc.CallOption) (*SubmitFeedbackResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SubmitFeedbackResponse)
+	err := c.cc.Invoke(ctx, Web3Service_SubmitFeedback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *web3ServiceClient) GetSupportedChains(ctx context.Context, in *GetSupportedChainsRequest, opts ...grpc.CallOption) (*GetSupportedChainsResponse, error) {
@@ -169,6 +220,46 @@ func (c *web3ServiceClient) CheckTronUSDTApprovals(ctx context.Context, in *Chec
 	return out, nil
 }
 
+func (c *web3ServiceClient) CheckEvmAirdrops(ctx context.Context, in *CheckEvmAirdropsRequest, opts ...grpc.CallOption) (*CheckEvmAirdropsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckEvmAirdropsResponse)
+	err := c.cc.Invoke(ctx, Web3Service_CheckEvmAirdrops_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *web3ServiceClient) GetWeb3UsageSummary(ctx context.Context, in *GetWeb3UsageSummaryRequest, opts ...grpc.CallOption) (*GetWeb3UsageSummaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetWeb3UsageSummaryResponse)
+	err := c.cc.Invoke(ctx, Web3Service_GetWeb3UsageSummary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *web3ServiceClient) GetWeb3RuntimeStatus(ctx context.Context, in *GetWeb3RuntimeStatusRequest, opts ...grpc.CallOption) (*GetWeb3RuntimeStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetWeb3RuntimeStatusResponse)
+	err := c.cc.Invoke(ctx, Web3Service_GetWeb3RuntimeStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *web3ServiceClient) GetFeedbackList(ctx context.Context, in *GetFeedbackListRequest, opts ...grpc.CallOption) (*GetFeedbackListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFeedbackListResponse)
+	err := c.cc.Invoke(ctx, Web3Service_GetFeedbackList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Web3ServiceServer is the server API for Web3Service service.
 // All implementations must embed UnimplementedWeb3ServiceServer
 // for forward compatibility.
@@ -176,6 +267,12 @@ func (c *web3ServiceClient) CheckTronUSDTApprovals(ctx context.Context, in *Chec
 // Web3Service 提供用户钱包绑定与只读链上查询。
 // 当前用户身份来自经过验证的 gRPC metadata，不由请求体传入。
 type Web3ServiceServer interface {
+	// GetPublicWeb3Config 返回可以公开给客户端的产品配置。
+	GetPublicWeb3Config(context.Context, *GetPublicWeb3ConfigRequest) (*GetPublicWeb3ConfigResponse, error)
+	// RecordClientEvent 记录不包含钱包地址和资产信息的匿名漏斗事件。
+	RecordClientEvent(context.Context, *RecordClientEventRequest) (*RecordClientEventResponse, error)
+	// SubmitFeedback 接收用户主动填写的最小反馈信息。
+	SubmitFeedback(context.Context, *SubmitFeedbackRequest) (*SubmitFeedbackResponse, error)
 	// GetSupportedChains 返回当前服务已启用的链及其确认策略。
 	GetSupportedChains(context.Context, *GetSupportedChainsRequest) (*GetSupportedChainsResponse, error)
 	// CreateBindingNonce 创建一次性签名消息。
@@ -197,6 +294,14 @@ type Web3ServiceServer interface {
 	// CheckTronUSDTApprovals 查询公开 TRON 主网地址的 USDT 授权情况。
 	// 查询不要求证明地址归属，也不会创建签名或广播链上交易。
 	CheckTronUSDTApprovals(context.Context, *CheckTronUSDTApprovalsRequest) (*CheckTronUSDTApprovalsResponse, error)
+	// CheckEvmAirdrops 是 B 包的匿名 EVM 空投查询入口。
+	CheckEvmAirdrops(context.Context, *CheckEvmAirdropsRequest) (*CheckEvmAirdropsResponse, error)
+	// GetWeb3UsageSummary 返回钱包体检的聚合用量，不返回地址明细。
+	GetWeb3UsageSummary(context.Context, *GetWeb3UsageSummaryRequest) (*GetWeb3UsageSummaryResponse, error)
+	// GetWeb3RuntimeStatus 返回功能开关和上游运行状态，不返回密钥。
+	GetWeb3RuntimeStatus(context.Context, *GetWeb3RuntimeStatusRequest) (*GetWeb3RuntimeStatusResponse, error)
+	// GetFeedbackList 返回用户反馈的分页列表。
+	GetFeedbackList(context.Context, *GetFeedbackListRequest) (*GetFeedbackListResponse, error)
 	mustEmbedUnimplementedWeb3ServiceServer()
 }
 
@@ -207,6 +312,15 @@ type Web3ServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedWeb3ServiceServer struct{}
 
+func (UnimplementedWeb3ServiceServer) GetPublicWeb3Config(context.Context, *GetPublicWeb3ConfigRequest) (*GetPublicWeb3ConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPublicWeb3Config not implemented")
+}
+func (UnimplementedWeb3ServiceServer) RecordClientEvent(context.Context, *RecordClientEventRequest) (*RecordClientEventResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RecordClientEvent not implemented")
+}
+func (UnimplementedWeb3ServiceServer) SubmitFeedback(context.Context, *SubmitFeedbackRequest) (*SubmitFeedbackResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SubmitFeedback not implemented")
+}
 func (UnimplementedWeb3ServiceServer) GetSupportedChains(context.Context, *GetSupportedChainsRequest) (*GetSupportedChainsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSupportedChains not implemented")
 }
@@ -237,6 +351,18 @@ func (UnimplementedWeb3ServiceServer) GetTransactions(context.Context, *GetTrans
 func (UnimplementedWeb3ServiceServer) CheckTronUSDTApprovals(context.Context, *CheckTronUSDTApprovalsRequest) (*CheckTronUSDTApprovalsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CheckTronUSDTApprovals not implemented")
 }
+func (UnimplementedWeb3ServiceServer) CheckEvmAirdrops(context.Context, *CheckEvmAirdropsRequest) (*CheckEvmAirdropsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckEvmAirdrops not implemented")
+}
+func (UnimplementedWeb3ServiceServer) GetWeb3UsageSummary(context.Context, *GetWeb3UsageSummaryRequest) (*GetWeb3UsageSummaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetWeb3UsageSummary not implemented")
+}
+func (UnimplementedWeb3ServiceServer) GetWeb3RuntimeStatus(context.Context, *GetWeb3RuntimeStatusRequest) (*GetWeb3RuntimeStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetWeb3RuntimeStatus not implemented")
+}
+func (UnimplementedWeb3ServiceServer) GetFeedbackList(context.Context, *GetFeedbackListRequest) (*GetFeedbackListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFeedbackList not implemented")
+}
 func (UnimplementedWeb3ServiceServer) mustEmbedUnimplementedWeb3ServiceServer() {}
 func (UnimplementedWeb3ServiceServer) testEmbeddedByValue()                     {}
 
@@ -256,6 +382,60 @@ func RegisterWeb3ServiceServer(s grpc.ServiceRegistrar, srv Web3ServiceServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&Web3Service_ServiceDesc, srv)
+}
+
+func _Web3Service_GetPublicWeb3Config_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPublicWeb3ConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Web3ServiceServer).GetPublicWeb3Config(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Web3Service_GetPublicWeb3Config_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Web3ServiceServer).GetPublicWeb3Config(ctx, req.(*GetPublicWeb3ConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Web3Service_RecordClientEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecordClientEventRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Web3ServiceServer).RecordClientEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Web3Service_RecordClientEvent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Web3ServiceServer).RecordClientEvent(ctx, req.(*RecordClientEventRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Web3Service_SubmitFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubmitFeedbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Web3ServiceServer).SubmitFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Web3Service_SubmitFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Web3ServiceServer).SubmitFeedback(ctx, req.(*SubmitFeedbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Web3Service_GetSupportedChains_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -438,6 +618,78 @@ func _Web3Service_CheckTronUSDTApprovals_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Web3Service_CheckEvmAirdrops_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckEvmAirdropsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Web3ServiceServer).CheckEvmAirdrops(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Web3Service_CheckEvmAirdrops_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Web3ServiceServer).CheckEvmAirdrops(ctx, req.(*CheckEvmAirdropsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Web3Service_GetWeb3UsageSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWeb3UsageSummaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Web3ServiceServer).GetWeb3UsageSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Web3Service_GetWeb3UsageSummary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Web3ServiceServer).GetWeb3UsageSummary(ctx, req.(*GetWeb3UsageSummaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Web3Service_GetWeb3RuntimeStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWeb3RuntimeStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Web3ServiceServer).GetWeb3RuntimeStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Web3Service_GetWeb3RuntimeStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Web3ServiceServer).GetWeb3RuntimeStatus(ctx, req.(*GetWeb3RuntimeStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Web3Service_GetFeedbackList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFeedbackListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Web3ServiceServer).GetFeedbackList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Web3Service_GetFeedbackList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Web3ServiceServer).GetFeedbackList(ctx, req.(*GetFeedbackListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Web3Service_ServiceDesc is the grpc.ServiceDesc for Web3Service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -445,6 +697,18 @@ var Web3Service_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "web3.v1.Web3Service",
 	HandlerType: (*Web3ServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetPublicWeb3Config",
+			Handler:    _Web3Service_GetPublicWeb3Config_Handler,
+		},
+		{
+			MethodName: "RecordClientEvent",
+			Handler:    _Web3Service_RecordClientEvent_Handler,
+		},
+		{
+			MethodName: "SubmitFeedback",
+			Handler:    _Web3Service_SubmitFeedback_Handler,
+		},
 		{
 			MethodName: "GetSupportedChains",
 			Handler:    _Web3Service_GetSupportedChains_Handler,
@@ -484,6 +748,22 @@ var Web3Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckTronUSDTApprovals",
 			Handler:    _Web3Service_CheckTronUSDTApprovals_Handler,
+		},
+		{
+			MethodName: "CheckEvmAirdrops",
+			Handler:    _Web3Service_CheckEvmAirdrops_Handler,
+		},
+		{
+			MethodName: "GetWeb3UsageSummary",
+			Handler:    _Web3Service_GetWeb3UsageSummary_Handler,
+		},
+		{
+			MethodName: "GetWeb3RuntimeStatus",
+			Handler:    _Web3Service_GetWeb3RuntimeStatus_Handler,
+		},
+		{
+			MethodName: "GetFeedbackList",
+			Handler:    _Web3Service_GetFeedbackList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

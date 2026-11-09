@@ -10,6 +10,7 @@ import (
 	context "context"
 	v11 "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
 	v1 "github.com/Erain-byte/grpc_go_project/proto/user/v1"
+	v12 "github.com/Erain-byte/grpc_go_project/proto/web3/v1"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -21,13 +22,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AdminService_GetAdminInfo_FullMethodName = "/admin.v1.AdminService/GetAdminInfo"
-	AdminService_CreateAdmin_FullMethodName  = "/admin.v1.AdminService/CreateAdmin"
-	AdminService_GetAdminList_FullMethodName = "/admin.v1.AdminService/GetAdminList"
-	AdminService_GetUserInfo_FullMethodName  = "/admin.v1.AdminService/GetUserInfo"
-	AdminService_GetUserList_FullMethodName  = "/admin.v1.AdminService/GetUserList"
-	AdminService_Chat_FullMethodName         = "/admin.v1.AdminService/Chat"
-	AdminService_StreamChat_FullMethodName   = "/admin.v1.AdminService/StreamChat"
+	AdminService_GetAdminInfo_FullMethodName         = "/admin.v1.AdminService/GetAdminInfo"
+	AdminService_CreateAdmin_FullMethodName          = "/admin.v1.AdminService/CreateAdmin"
+	AdminService_GetAdminList_FullMethodName         = "/admin.v1.AdminService/GetAdminList"
+	AdminService_GetUserInfo_FullMethodName          = "/admin.v1.AdminService/GetUserInfo"
+	AdminService_GetUserList_FullMethodName          = "/admin.v1.AdminService/GetUserList"
+	AdminService_Chat_FullMethodName                 = "/admin.v1.AdminService/Chat"
+	AdminService_StreamChat_FullMethodName           = "/admin.v1.AdminService/StreamChat"
+	AdminService_GetWeb3UsageSummary_FullMethodName  = "/admin.v1.AdminService/GetWeb3UsageSummary"
+	AdminService_GetWeb3RuntimeStatus_FullMethodName = "/admin.v1.AdminService/GetWeb3RuntimeStatus"
+	AdminService_GetFeedbackList_FullMethodName      = "/admin.v1.AdminService/GetFeedbackList"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -43,6 +47,10 @@ type AdminServiceClient interface {
 	// Model operations forwarded by Admin to LlmService.
 	Chat(ctx context.Context, in *v11.ChatRequest, opts ...grpc.CallOption) (*v11.ChatResponse, error)
 	StreamChat(ctx context.Context, in *v11.StreamChatRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[v11.StreamChatResponse], error)
+	// Web3 管理接口通过 Admin → User → Web3 转发，不直接连接 Web3Service。
+	GetWeb3UsageSummary(ctx context.Context, in *v12.GetWeb3UsageSummaryRequest, opts ...grpc.CallOption) (*v12.GetWeb3UsageSummaryResponse, error)
+	GetWeb3RuntimeStatus(ctx context.Context, in *v12.GetWeb3RuntimeStatusRequest, opts ...grpc.CallOption) (*v12.GetWeb3RuntimeStatusResponse, error)
+	GetFeedbackList(ctx context.Context, in *v12.GetFeedbackListRequest, opts ...grpc.CallOption) (*v12.GetFeedbackListResponse, error)
 }
 
 type adminServiceClient struct {
@@ -132,6 +140,36 @@ func (c *adminServiceClient) StreamChat(ctx context.Context, in *v11.StreamChatR
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AdminService_StreamChatClient = grpc.ServerStreamingClient[v11.StreamChatResponse]
 
+func (c *adminServiceClient) GetWeb3UsageSummary(ctx context.Context, in *v12.GetWeb3UsageSummaryRequest, opts ...grpc.CallOption) (*v12.GetWeb3UsageSummaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v12.GetWeb3UsageSummaryResponse)
+	err := c.cc.Invoke(ctx, AdminService_GetWeb3UsageSummary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) GetWeb3RuntimeStatus(ctx context.Context, in *v12.GetWeb3RuntimeStatusRequest, opts ...grpc.CallOption) (*v12.GetWeb3RuntimeStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v12.GetWeb3RuntimeStatusResponse)
+	err := c.cc.Invoke(ctx, AdminService_GetWeb3RuntimeStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) GetFeedbackList(ctx context.Context, in *v12.GetFeedbackListRequest, opts ...grpc.CallOption) (*v12.GetFeedbackListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(v12.GetFeedbackListResponse)
+	err := c.cc.Invoke(ctx, AdminService_GetFeedbackList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility.
@@ -145,6 +183,10 @@ type AdminServiceServer interface {
 	// Model operations forwarded by Admin to LlmService.
 	Chat(context.Context, *v11.ChatRequest) (*v11.ChatResponse, error)
 	StreamChat(*v11.StreamChatRequest, grpc.ServerStreamingServer[v11.StreamChatResponse]) error
+	// Web3 管理接口通过 Admin → User → Web3 转发，不直接连接 Web3Service。
+	GetWeb3UsageSummary(context.Context, *v12.GetWeb3UsageSummaryRequest) (*v12.GetWeb3UsageSummaryResponse, error)
+	GetWeb3RuntimeStatus(context.Context, *v12.GetWeb3RuntimeStatusRequest) (*v12.GetWeb3RuntimeStatusResponse, error)
+	GetFeedbackList(context.Context, *v12.GetFeedbackListRequest) (*v12.GetFeedbackListResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -175,6 +217,15 @@ func (UnimplementedAdminServiceServer) Chat(context.Context, *v11.ChatRequest) (
 }
 func (UnimplementedAdminServiceServer) StreamChat(*v11.StreamChatRequest, grpc.ServerStreamingServer[v11.StreamChatResponse]) error {
 	return status.Error(codes.Unimplemented, "method StreamChat not implemented")
+}
+func (UnimplementedAdminServiceServer) GetWeb3UsageSummary(context.Context, *v12.GetWeb3UsageSummaryRequest) (*v12.GetWeb3UsageSummaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetWeb3UsageSummary not implemented")
+}
+func (UnimplementedAdminServiceServer) GetWeb3RuntimeStatus(context.Context, *v12.GetWeb3RuntimeStatusRequest) (*v12.GetWeb3RuntimeStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetWeb3RuntimeStatus not implemented")
+}
+func (UnimplementedAdminServiceServer) GetFeedbackList(context.Context, *v12.GetFeedbackListRequest) (*v12.GetFeedbackListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFeedbackList not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 func (UnimplementedAdminServiceServer) testEmbeddedByValue()                      {}
@@ -316,6 +367,60 @@ func _AdminService_StreamChat_Handler(srv interface{}, stream grpc.ServerStream)
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AdminService_StreamChatServer = grpc.ServerStreamingServer[v11.StreamChatResponse]
 
+func _AdminService_GetWeb3UsageSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v12.GetWeb3UsageSummaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetWeb3UsageSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_GetWeb3UsageSummary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetWeb3UsageSummary(ctx, req.(*v12.GetWeb3UsageSummaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_GetWeb3RuntimeStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v12.GetWeb3RuntimeStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetWeb3RuntimeStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_GetWeb3RuntimeStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetWeb3RuntimeStatus(ctx, req.(*v12.GetWeb3RuntimeStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_GetFeedbackList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v12.GetFeedbackListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetFeedbackList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_GetFeedbackList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetFeedbackList(ctx, req.(*v12.GetFeedbackListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -346,6 +451,18 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Chat",
 			Handler:    _AdminService_Chat_Handler,
+		},
+		{
+			MethodName: "GetWeb3UsageSummary",
+			Handler:    _AdminService_GetWeb3UsageSummary_Handler,
+		},
+		{
+			MethodName: "GetWeb3RuntimeStatus",
+			Handler:    _AdminService_GetWeb3RuntimeStatus_Handler,
+		},
+		{
+			MethodName: "GetFeedbackList",
+			Handler:    _AdminService_GetFeedbackList_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

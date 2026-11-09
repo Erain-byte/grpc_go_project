@@ -289,9 +289,13 @@ func (TransactionStatus) EnumDescriptor() ([]byte, []int) {
 type CheckTronUSDTApprovalsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// address 必须是通过 Base58Check 校验的 TRON 主网地址。
-	Address       string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	// installation_id 是随机安装标识，仅用于匿名限流和统计，不能作为身份凭证。
+	InstallationId string         `protobuf:"bytes,2,opt,name=installation_id,json=installationId,proto3" json:"installation_id,omitempty"`
+	AppVersion     string         `protobuf:"bytes,3,opt,name=app_version,json=appVersion,proto3" json:"app_version,omitempty"`
+	Platform       ClientPlatform `protobuf:"varint,4,opt,name=platform,proto3,enum=web3.v1.ClientPlatform" json:"platform,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *CheckTronUSDTApprovalsRequest) Reset() {
@@ -331,6 +335,27 @@ func (x *CheckTronUSDTApprovalsRequest) GetAddress() string {
 	return ""
 }
 
+func (x *CheckTronUSDTApprovalsRequest) GetInstallationId() string {
+	if x != nil {
+		return x.InstallationId
+	}
+	return ""
+}
+
+func (x *CheckTronUSDTApprovalsRequest) GetAppVersion() string {
+	if x != nil {
+		return x.AppVersion
+	}
+	return ""
+}
+
+func (x *CheckTronUSDTApprovalsRequest) GetPlatform() ClientPlatform {
+	if x != nil {
+		return x.Platform
+	}
+	return ClientPlatform_CLIENT_PLATFORM_UNSPECIFIED
+}
+
 type CheckTronUSDTApprovalsResponse struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
 	RequestId     string                  `protobuf:"bytes,1,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
@@ -349,6 +374,7 @@ type CheckTronUSDTApprovalsResponse struct {
 	QueriedAt                     *timestamppb.Timestamp      `protobuf:"bytes,12,opt,name=queried_at,json=queriedAt,proto3" json:"queried_at,omitempty"`
 	Approvals                     []*TronUSDTApproval         `protobuf:"bytes,13,rep,name=approvals,proto3" json:"approvals,omitempty"`
 	PartialErrors                 []*TronApprovalPartialError `protobuf:"bytes,14,rep,name=partial_errors,json=partialErrors,proto3" json:"partial_errors,omitempty"`
+	Failure                       *QueryFailure               `protobuf:"bytes,15,opt,name=failure,proto3" json:"failure,omitempty"`
 	unknownFields                 protoimpl.UnknownFields
 	sizeCache                     protoimpl.SizeCache
 }
@@ -477,6 +503,13 @@ func (x *CheckTronUSDTApprovalsResponse) GetApprovals() []*TronUSDTApproval {
 func (x *CheckTronUSDTApprovalsResponse) GetPartialErrors() []*TronApprovalPartialError {
 	if x != nil {
 		return x.PartialErrors
+	}
+	return nil
+}
+
+func (x *CheckTronUSDTApprovalsResponse) GetFailure() *QueryFailure {
+	if x != nil {
+		return x.Failure
 	}
 	return nil
 }
@@ -2016,9 +2049,13 @@ var File_web3_v1_web3_proto protoreflect.FileDescriptor
 
 const file_web3_v1_web3_proto_rawDesc = "" +
 	"\n" +
-	"\x12web3/v1/web3.proto\x12\aweb3.v1\x1a\x18common/v1/security.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"9\n" +
+	"\x12web3/v1/web3.proto\x12\aweb3.v1\x1a\x18common/v1/security.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x15web3/v1/product.proto\"\xb8\x01\n" +
 	"\x1dCheckTronUSDTApprovalsRequest\x12\x18\n" +
-	"\aaddress\x18\x01 \x01(\tR\aaddress\"\x90\x05\n" +
+	"\aaddress\x18\x01 \x01(\tR\aaddress\x12'\n" +
+	"\x0finstallation_id\x18\x02 \x01(\tR\x0einstallationId\x12\x1f\n" +
+	"\vapp_version\x18\x03 \x01(\tR\n" +
+	"appVersion\x123\n" +
+	"\bplatform\x18\x04 \x01(\x0e2\x17.web3.v1.ClientPlatformR\bplatform\"\xc1\x05\n" +
 	"\x1eCheckTronUSDTApprovalsResponse\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\tR\trequestId\x12\x18\n" +
@@ -2036,7 +2073,8 @@ const file_web3_v1_web3_proto_rawDesc = "" +
 	"\n" +
 	"queried_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tqueriedAt\x127\n" +
 	"\tapprovals\x18\r \x03(\v2\x19.web3.v1.TronUSDTApprovalR\tapprovals\x12H\n" +
-	"\x0epartial_errors\x18\x0e \x03(\v2!.web3.v1.TronApprovalPartialErrorR\rpartialErrors\"\x90\x05\n" +
+	"\x0epartial_errors\x18\x0e \x03(\v2!.web3.v1.TronApprovalPartialErrorR\rpartialErrors\x12/\n" +
+	"\afailure\x18\x0f \x01(\v2\x15.web3.v1.QueryFailureR\afailure\"\x90\x05\n" +
 	"\x10TronUSDTApproval\x12\x18\n" +
 	"\aspender\x18\x01 \x01(\tR\aspender\x12;\n" +
 	"\fspender_type\x18\x02 \x01(\x0e2\x18.web3.v1.TronSpenderTypeR\vspenderType\x12!\n" +
@@ -2191,8 +2229,11 @@ const file_web3_v1_web3_proto_rawDesc = "" +
 	"\x1aTRANSACTION_STATUS_PENDING\x10\x01\x12 \n" +
 	"\x1cTRANSACTION_STATUS_CONFIRMED\x10\x02\x12\x1d\n" +
 	"\x19TRANSACTION_STATUS_FAILED\x10\x03\x12\x1e\n" +
-	"\x1aTRANSACTION_STATUS_REORGED\x10\x042\x92\b\n" +
-	"\vWeb3Service\x12}\n" +
+	"\x1aTRANSACTION_STATUS_REORGED\x10\x042\x87\x0e\n" +
+	"\vWeb3Service\x12h\n" +
+	"\x13GetPublicWeb3Config\x12#.web3.v1.GetPublicWeb3ConfigRequest\x1a$.web3.v1.GetPublicWeb3ConfigResponse\"\x06\x82\xb5\x18\x02\b\x01\x12b\n" +
+	"\x11RecordClientEvent\x12!.web3.v1.RecordClientEventRequest\x1a\".web3.v1.RecordClientEventResponse\"\x06\x82\xb5\x18\x02\b\x01\x12Y\n" +
+	"\x0eSubmitFeedback\x12\x1e.web3.v1.SubmitFeedbackRequest\x1a\x1f.web3.v1.SubmitFeedbackResponse\"\x06\x82\xb5\x18\x02\b\x01\x12}\n" +
 	"\x12GetSupportedChains\x12\".web3.v1.GetSupportedChainsRequest\x1a#.web3.v1.GetSupportedChainsResponse\"\x1e\x82\xb5\x18\x1a\x12\x04user\x12\x05admin\x12\vsuper-admin\x12i\n" +
 	"\x12CreateBindingNonce\x12\".web3.v1.CreateBindingNonceRequest\x1a#.web3.v1.CreateBindingNonceResponse\"\n" +
 	"\x82\xb5\x18\x06\x12\x04user\x12Q\n" +
@@ -2210,7 +2251,11 @@ const file_web3_v1_web3_proto_rawDesc = "" +
 	"GetBalance\x12\x1a.web3.v1.GetBalanceRequest\x1a\x1b.web3.v1.GetBalanceResponse\"\x1e\x82\xb5\x18\x1a\x12\x04user\x12\x05admin\x12\vsuper-admin\x12q\n" +
 	"\x0eGetTransaction\x12\x1e.web3.v1.GetTransactionRequest\x1a\x1f.web3.v1.GetTransactionResponse\"\x1e\x82\xb5\x18\x1a\x12\x04user\x12\x05admin\x12\vsuper-admin\x12t\n" +
 	"\x0fGetTransactions\x12\x1f.web3.v1.GetTransactionsRequest\x1a .web3.v1.GetTransactionsResponse\"\x1e\x82\xb5\x18\x1a\x12\x04user\x12\x05admin\x12\vsuper-admin\x12q\n" +
-	"\x16CheckTronUSDTApprovals\x12&.web3.v1.CheckTronUSDTApprovalsRequest\x1a'.web3.v1.CheckTronUSDTApprovalsResponse\"\x06\x82\xb5\x18\x02\b\x01B<Z:github.com/Erain-byte/grpc_go_project/proto/web3/v1;web3v1b\x06proto3"
+	"\x16CheckTronUSDTApprovals\x12&.web3.v1.CheckTronUSDTApprovalsRequest\x1a'.web3.v1.CheckTronUSDTApprovalsResponse\"\x06\x82\xb5\x18\x02\b\x01\x12_\n" +
+	"\x10CheckEvmAirdrops\x12 .web3.v1.CheckEvmAirdropsRequest\x1a!.web3.v1.CheckEvmAirdropsResponse\"\x06\x82\xb5\x18\x02\b\x01\x12z\n" +
+	"\x13GetWeb3UsageSummary\x12#.web3.v1.GetWeb3UsageSummaryRequest\x1a$.web3.v1.GetWeb3UsageSummaryResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin\x12}\n" +
+	"\x14GetWeb3RuntimeStatus\x12$.web3.v1.GetWeb3RuntimeStatusRequest\x1a%.web3.v1.GetWeb3RuntimeStatusResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-admin\x12n\n" +
+	"\x0fGetFeedbackList\x12\x1f.web3.v1.GetFeedbackListRequest\x1a .web3.v1.GetFeedbackListResponse\"\x18\x82\xb5\x18\x14\x12\x05admin\x12\vsuper-adminB<Z:github.com/Erain-byte/grpc_go_project/proto/web3/v1;web3v1b\x06proto3"
 
 var (
 	file_web3_v1_web3_proto_rawDescOnce sync.Once
@@ -2257,57 +2302,89 @@ var file_web3_v1_web3_proto_goTypes = []any{
 	(*GetTransactionsRequest)(nil),         // 27: web3.v1.GetTransactionsRequest
 	(*GetTransactionsResponse)(nil),        // 28: web3.v1.GetTransactionsResponse
 	(*TransactionInfo)(nil),                // 29: web3.v1.TransactionInfo
-	(*timestamppb.Timestamp)(nil),          // 30: google.protobuf.Timestamp
+	(ClientPlatform)(0),                    // 30: web3.v1.ClientPlatform
+	(*timestamppb.Timestamp)(nil),          // 31: google.protobuf.Timestamp
+	(*QueryFailure)(nil),                   // 32: web3.v1.QueryFailure
+	(*GetPublicWeb3ConfigRequest)(nil),     // 33: web3.v1.GetPublicWeb3ConfigRequest
+	(*RecordClientEventRequest)(nil),       // 34: web3.v1.RecordClientEventRequest
+	(*SubmitFeedbackRequest)(nil),          // 35: web3.v1.SubmitFeedbackRequest
+	(*CheckEvmAirdropsRequest)(nil),        // 36: web3.v1.CheckEvmAirdropsRequest
+	(*GetWeb3UsageSummaryRequest)(nil),     // 37: web3.v1.GetWeb3UsageSummaryRequest
+	(*GetWeb3RuntimeStatusRequest)(nil),    // 38: web3.v1.GetWeb3RuntimeStatusRequest
+	(*GetFeedbackListRequest)(nil),         // 39: web3.v1.GetFeedbackListRequest
+	(*GetPublicWeb3ConfigResponse)(nil),    // 40: web3.v1.GetPublicWeb3ConfigResponse
+	(*RecordClientEventResponse)(nil),      // 41: web3.v1.RecordClientEventResponse
+	(*SubmitFeedbackResponse)(nil),         // 42: web3.v1.SubmitFeedbackResponse
+	(*CheckEvmAirdropsResponse)(nil),       // 43: web3.v1.CheckEvmAirdropsResponse
+	(*GetWeb3UsageSummaryResponse)(nil),    // 44: web3.v1.GetWeb3UsageSummaryResponse
+	(*GetWeb3RuntimeStatusResponse)(nil),   // 45: web3.v1.GetWeb3RuntimeStatusResponse
+	(*GetFeedbackListResponse)(nil),        // 46: web3.v1.GetFeedbackListResponse
 }
 var file_web3_v1_web3_proto_depIdxs = []int32{
-	0,  // 0: web3.v1.CheckTronUSDTApprovalsResponse.status:type_name -> web3.v1.TronApprovalCheckStatus
-	30, // 1: web3.v1.CheckTronUSDTApprovalsResponse.queried_at:type_name -> google.protobuf.Timestamp
-	7,  // 2: web3.v1.CheckTronUSDTApprovalsResponse.approvals:type_name -> web3.v1.TronUSDTApproval
-	8,  // 3: web3.v1.CheckTronUSDTApprovalsResponse.partial_errors:type_name -> web3.v1.TronApprovalPartialError
-	1,  // 4: web3.v1.TronUSDTApproval.spender_type:type_name -> web3.v1.TronSpenderType
-	2,  // 5: web3.v1.TronUSDTApproval.unlimited_status:type_name -> web3.v1.TronUnlimitedStatus
-	30, // 6: web3.v1.TronUSDTApproval.allowance_verified_at:type_name -> google.protobuf.Timestamp
-	30, // 7: web3.v1.TronUSDTApproval.risk_checked_at:type_name -> google.protobuf.Timestamp
-	11, // 8: web3.v1.GetSupportedChainsResponse.chains:type_name -> web3.v1.ChainInfo
-	30, // 9: web3.v1.CreateBindingNonceResponse.expires_at:type_name -> google.protobuf.Timestamp
-	20, // 10: web3.v1.BindWalletResponse.wallet:type_name -> web3.v1.WalletInfo
-	20, // 11: web3.v1.GetWalletsResponse.wallets:type_name -> web3.v1.WalletInfo
-	3,  // 12: web3.v1.WalletInfo.status:type_name -> web3.v1.WalletStatus
-	30, // 13: web3.v1.WalletInfo.verified_at:type_name -> google.protobuf.Timestamp
-	30, // 14: web3.v1.WalletInfo.created_at:type_name -> google.protobuf.Timestamp
-	30, // 15: web3.v1.WalletInfo.updated_at:type_name -> google.protobuf.Timestamp
-	20, // 16: web3.v1.UpdateWalletResponse.wallet:type_name -> web3.v1.WalletInfo
-	30, // 17: web3.v1.GetBalanceResponse.observed_at:type_name -> google.protobuf.Timestamp
-	29, // 18: web3.v1.GetTransactionResponse.transaction:type_name -> web3.v1.TransactionInfo
-	4,  // 19: web3.v1.GetTransactionsRequest.status:type_name -> web3.v1.TransactionStatus
-	29, // 20: web3.v1.GetTransactionsResponse.transactions:type_name -> web3.v1.TransactionInfo
-	4,  // 21: web3.v1.TransactionInfo.status:type_name -> web3.v1.TransactionStatus
-	30, // 22: web3.v1.TransactionInfo.block_time:type_name -> google.protobuf.Timestamp
-	9,  // 23: web3.v1.Web3Service.GetSupportedChains:input_type -> web3.v1.GetSupportedChainsRequest
-	12, // 24: web3.v1.Web3Service.CreateBindingNonce:input_type -> web3.v1.CreateBindingNonceRequest
-	14, // 25: web3.v1.Web3Service.BindWallet:input_type -> web3.v1.BindWalletRequest
-	16, // 26: web3.v1.Web3Service.UnbindWallet:input_type -> web3.v1.UnbindWalletRequest
-	18, // 27: web3.v1.Web3Service.GetWallets:input_type -> web3.v1.GetWalletsRequest
-	21, // 28: web3.v1.Web3Service.UpdateWallet:input_type -> web3.v1.UpdateWalletRequest
-	23, // 29: web3.v1.Web3Service.GetBalance:input_type -> web3.v1.GetBalanceRequest
-	25, // 30: web3.v1.Web3Service.GetTransaction:input_type -> web3.v1.GetTransactionRequest
-	27, // 31: web3.v1.Web3Service.GetTransactions:input_type -> web3.v1.GetTransactionsRequest
-	5,  // 32: web3.v1.Web3Service.CheckTronUSDTApprovals:input_type -> web3.v1.CheckTronUSDTApprovalsRequest
-	10, // 33: web3.v1.Web3Service.GetSupportedChains:output_type -> web3.v1.GetSupportedChainsResponse
-	13, // 34: web3.v1.Web3Service.CreateBindingNonce:output_type -> web3.v1.CreateBindingNonceResponse
-	15, // 35: web3.v1.Web3Service.BindWallet:output_type -> web3.v1.BindWalletResponse
-	17, // 36: web3.v1.Web3Service.UnbindWallet:output_type -> web3.v1.UnbindWalletResponse
-	19, // 37: web3.v1.Web3Service.GetWallets:output_type -> web3.v1.GetWalletsResponse
-	22, // 38: web3.v1.Web3Service.UpdateWallet:output_type -> web3.v1.UpdateWalletResponse
-	24, // 39: web3.v1.Web3Service.GetBalance:output_type -> web3.v1.GetBalanceResponse
-	26, // 40: web3.v1.Web3Service.GetTransaction:output_type -> web3.v1.GetTransactionResponse
-	28, // 41: web3.v1.Web3Service.GetTransactions:output_type -> web3.v1.GetTransactionsResponse
-	6,  // 42: web3.v1.Web3Service.CheckTronUSDTApprovals:output_type -> web3.v1.CheckTronUSDTApprovalsResponse
-	33, // [33:43] is the sub-list for method output_type
-	23, // [23:33] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	30, // 0: web3.v1.CheckTronUSDTApprovalsRequest.platform:type_name -> web3.v1.ClientPlatform
+	0,  // 1: web3.v1.CheckTronUSDTApprovalsResponse.status:type_name -> web3.v1.TronApprovalCheckStatus
+	31, // 2: web3.v1.CheckTronUSDTApprovalsResponse.queried_at:type_name -> google.protobuf.Timestamp
+	7,  // 3: web3.v1.CheckTronUSDTApprovalsResponse.approvals:type_name -> web3.v1.TronUSDTApproval
+	8,  // 4: web3.v1.CheckTronUSDTApprovalsResponse.partial_errors:type_name -> web3.v1.TronApprovalPartialError
+	32, // 5: web3.v1.CheckTronUSDTApprovalsResponse.failure:type_name -> web3.v1.QueryFailure
+	1,  // 6: web3.v1.TronUSDTApproval.spender_type:type_name -> web3.v1.TronSpenderType
+	2,  // 7: web3.v1.TronUSDTApproval.unlimited_status:type_name -> web3.v1.TronUnlimitedStatus
+	31, // 8: web3.v1.TronUSDTApproval.allowance_verified_at:type_name -> google.protobuf.Timestamp
+	31, // 9: web3.v1.TronUSDTApproval.risk_checked_at:type_name -> google.protobuf.Timestamp
+	11, // 10: web3.v1.GetSupportedChainsResponse.chains:type_name -> web3.v1.ChainInfo
+	31, // 11: web3.v1.CreateBindingNonceResponse.expires_at:type_name -> google.protobuf.Timestamp
+	20, // 12: web3.v1.BindWalletResponse.wallet:type_name -> web3.v1.WalletInfo
+	20, // 13: web3.v1.GetWalletsResponse.wallets:type_name -> web3.v1.WalletInfo
+	3,  // 14: web3.v1.WalletInfo.status:type_name -> web3.v1.WalletStatus
+	31, // 15: web3.v1.WalletInfo.verified_at:type_name -> google.protobuf.Timestamp
+	31, // 16: web3.v1.WalletInfo.created_at:type_name -> google.protobuf.Timestamp
+	31, // 17: web3.v1.WalletInfo.updated_at:type_name -> google.protobuf.Timestamp
+	20, // 18: web3.v1.UpdateWalletResponse.wallet:type_name -> web3.v1.WalletInfo
+	31, // 19: web3.v1.GetBalanceResponse.observed_at:type_name -> google.protobuf.Timestamp
+	29, // 20: web3.v1.GetTransactionResponse.transaction:type_name -> web3.v1.TransactionInfo
+	4,  // 21: web3.v1.GetTransactionsRequest.status:type_name -> web3.v1.TransactionStatus
+	29, // 22: web3.v1.GetTransactionsResponse.transactions:type_name -> web3.v1.TransactionInfo
+	4,  // 23: web3.v1.TransactionInfo.status:type_name -> web3.v1.TransactionStatus
+	31, // 24: web3.v1.TransactionInfo.block_time:type_name -> google.protobuf.Timestamp
+	33, // 25: web3.v1.Web3Service.GetPublicWeb3Config:input_type -> web3.v1.GetPublicWeb3ConfigRequest
+	34, // 26: web3.v1.Web3Service.RecordClientEvent:input_type -> web3.v1.RecordClientEventRequest
+	35, // 27: web3.v1.Web3Service.SubmitFeedback:input_type -> web3.v1.SubmitFeedbackRequest
+	9,  // 28: web3.v1.Web3Service.GetSupportedChains:input_type -> web3.v1.GetSupportedChainsRequest
+	12, // 29: web3.v1.Web3Service.CreateBindingNonce:input_type -> web3.v1.CreateBindingNonceRequest
+	14, // 30: web3.v1.Web3Service.BindWallet:input_type -> web3.v1.BindWalletRequest
+	16, // 31: web3.v1.Web3Service.UnbindWallet:input_type -> web3.v1.UnbindWalletRequest
+	18, // 32: web3.v1.Web3Service.GetWallets:input_type -> web3.v1.GetWalletsRequest
+	21, // 33: web3.v1.Web3Service.UpdateWallet:input_type -> web3.v1.UpdateWalletRequest
+	23, // 34: web3.v1.Web3Service.GetBalance:input_type -> web3.v1.GetBalanceRequest
+	25, // 35: web3.v1.Web3Service.GetTransaction:input_type -> web3.v1.GetTransactionRequest
+	27, // 36: web3.v1.Web3Service.GetTransactions:input_type -> web3.v1.GetTransactionsRequest
+	5,  // 37: web3.v1.Web3Service.CheckTronUSDTApprovals:input_type -> web3.v1.CheckTronUSDTApprovalsRequest
+	36, // 38: web3.v1.Web3Service.CheckEvmAirdrops:input_type -> web3.v1.CheckEvmAirdropsRequest
+	37, // 39: web3.v1.Web3Service.GetWeb3UsageSummary:input_type -> web3.v1.GetWeb3UsageSummaryRequest
+	38, // 40: web3.v1.Web3Service.GetWeb3RuntimeStatus:input_type -> web3.v1.GetWeb3RuntimeStatusRequest
+	39, // 41: web3.v1.Web3Service.GetFeedbackList:input_type -> web3.v1.GetFeedbackListRequest
+	40, // 42: web3.v1.Web3Service.GetPublicWeb3Config:output_type -> web3.v1.GetPublicWeb3ConfigResponse
+	41, // 43: web3.v1.Web3Service.RecordClientEvent:output_type -> web3.v1.RecordClientEventResponse
+	42, // 44: web3.v1.Web3Service.SubmitFeedback:output_type -> web3.v1.SubmitFeedbackResponse
+	10, // 45: web3.v1.Web3Service.GetSupportedChains:output_type -> web3.v1.GetSupportedChainsResponse
+	13, // 46: web3.v1.Web3Service.CreateBindingNonce:output_type -> web3.v1.CreateBindingNonceResponse
+	15, // 47: web3.v1.Web3Service.BindWallet:output_type -> web3.v1.BindWalletResponse
+	17, // 48: web3.v1.Web3Service.UnbindWallet:output_type -> web3.v1.UnbindWalletResponse
+	19, // 49: web3.v1.Web3Service.GetWallets:output_type -> web3.v1.GetWalletsResponse
+	22, // 50: web3.v1.Web3Service.UpdateWallet:output_type -> web3.v1.UpdateWalletResponse
+	24, // 51: web3.v1.Web3Service.GetBalance:output_type -> web3.v1.GetBalanceResponse
+	26, // 52: web3.v1.Web3Service.GetTransaction:output_type -> web3.v1.GetTransactionResponse
+	28, // 53: web3.v1.Web3Service.GetTransactions:output_type -> web3.v1.GetTransactionsResponse
+	6,  // 54: web3.v1.Web3Service.CheckTronUSDTApprovals:output_type -> web3.v1.CheckTronUSDTApprovalsResponse
+	43, // 55: web3.v1.Web3Service.CheckEvmAirdrops:output_type -> web3.v1.CheckEvmAirdropsResponse
+	44, // 56: web3.v1.Web3Service.GetWeb3UsageSummary:output_type -> web3.v1.GetWeb3UsageSummaryResponse
+	45, // 57: web3.v1.Web3Service.GetWeb3RuntimeStatus:output_type -> web3.v1.GetWeb3RuntimeStatusResponse
+	46, // 58: web3.v1.Web3Service.GetFeedbackList:output_type -> web3.v1.GetFeedbackListResponse
+	42, // [42:59] is the sub-list for method output_type
+	25, // [25:42] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_web3_v1_web3_proto_init() }
@@ -2315,6 +2392,7 @@ func file_web3_v1_web3_proto_init() {
 	if File_web3_v1_web3_proto != nil {
 		return
 	}
+	file_web3_v1_product_proto_init()
 	file_web3_v1_web3_proto_msgTypes[16].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

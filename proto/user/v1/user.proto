@@ -5,11 +5,31 @@ package user.v1;
 import "common/v1/security.proto";
 import "google/protobuf/timestamp.proto";
 import "llm/v1/llm.proto";
+import "web3/v1/product.proto";
 import "web3/v1/web3.proto";
 
 option go_package = "github.com/Erain-byte/grpc_go_project/proto/user/v1;userv1";
 
 service UserService {
+  // 钱包体检公共产品配置，由 UserService 转发给 Web3Service。
+  rpc GetPublicWeb3Config(web3.v1.GetPublicWeb3ConfigRequest) returns (web3.v1.GetPublicWeb3ConfigResponse) {
+    option (common.v1.auth) = {
+      public: true
+    };
+  }
+
+  rpc RecordClientEvent(web3.v1.RecordClientEventRequest) returns (web3.v1.RecordClientEventResponse) {
+    option (common.v1.auth) = {
+      public: true
+    };
+  }
+
+  rpc SubmitFeedback(web3.v1.SubmitFeedbackRequest) returns (web3.v1.SubmitFeedbackResponse) {
+    option (common.v1.auth) = {
+      public: true
+    };
+  }
+
   // InitializeUser creates the local business user after Keycloak login.
   // Repeated calls for the same authenticated subject are idempotent.
   rpc InitializeUser(InitializeUserRequest) returns (InitializeUserResponse) {
@@ -115,6 +135,33 @@ service UserService {
   rpc CheckTronUSDTApprovals(web3.v1.CheckTronUSDTApprovalsRequest) returns (web3.v1.CheckTronUSDTApprovalsResponse) {
     option (common.v1.auth) = {
       public: true
+    };
+  }
+
+  rpc CheckEvmAirdrops(web3.v1.CheckEvmAirdropsRequest) returns (web3.v1.CheckEvmAirdropsResponse) {
+    option (common.v1.auth) = {
+      public: true
+    };
+  }
+
+  rpc GetWeb3UsageSummary(web3.v1.GetWeb3UsageSummaryRequest) returns (web3.v1.GetWeb3UsageSummaryResponse) {
+    option (common.v1.auth) = {
+      roles: "admin"
+      roles: "super-admin"
+    };
+  }
+
+  rpc GetWeb3RuntimeStatus(web3.v1.GetWeb3RuntimeStatusRequest) returns (web3.v1.GetWeb3RuntimeStatusResponse) {
+    option (common.v1.auth) = {
+      roles: "admin"
+      roles: "super-admin"
+    };
+  }
+
+  rpc GetFeedbackList(web3.v1.GetFeedbackListRequest) returns (web3.v1.GetFeedbackListResponse) {
+    option (common.v1.auth) = {
+      roles: "admin"
+      roles: "super-admin"
     };
   }
 }
