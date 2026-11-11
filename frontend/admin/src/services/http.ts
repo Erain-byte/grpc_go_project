@@ -1,4 +1,5 @@
 const baseURL = (import.meta.env.VITE_ADMIN_BFF_URL ?? 'http://localhost:4181').replace(/\/+$/, '')
+let loginInProgress = false
 
 export class APIError extends Error {
   readonly status: number
@@ -15,6 +16,10 @@ function loginURL(): string {
 }
 
 export function beginLogin(): void {
+  // 首页可能并发加载个人信息、用户和管理员列表。会话失效时只能启动一次
+  // Authorization Code + PKCE 流程，否则多个回调会相互覆盖 code_verifier。
+  if (loginInProgress) return
+  loginInProgress = true
   window.location.assign(loginURL())
 }
 
