@@ -15,6 +15,32 @@ func (s *HTTPServer) registerUserRoutes() {
 	streamHandler := handler.NewLlmHTTPHandler(userForwarder.OpenStreamChat)
 	user := s.engine.Group("/user")
 
+	// 钱包体检公共配置不需要登录，用于客户端决定显示哪些真实可用功能。
+	s.engine.GET(
+		"/v1/web3/config",
+		s.rateLimitMiddleware.Handle,
+		handler.NewGrpcHandler[
+			pbWeb3.GetPublicWeb3ConfigRequest,
+			pbWeb3.GetPublicWeb3ConfigResponse,
+		](userForwarder.GetPublicWeb3Config).Handle,
+	)
+	s.engine.POST(
+		"/v1/web3/events",
+		s.rateLimitMiddleware.Handle,
+		handler.NewGrpcHandler[
+			pbWeb3.RecordClientEventRequest,
+			pbWeb3.RecordClientEventResponse,
+		](userForwarder.RecordClientEvent).Handle,
+	)
+	s.engine.POST(
+		"/v1/web3/feedback",
+		s.rateLimitMiddleware.Handle,
+		handler.NewGrpcHandler[
+			pbWeb3.SubmitFeedbackRequest,
+			pbWeb3.SubmitFeedbackResponse,
+		](userForwarder.SubmitFeedback).Handle,
+	)
+
 	// TRON USDT 授权查询是产品的匿名公开入口，不要求 Keycloak access token。
 	// 仍然启用基于客户端 IP 的限流，避免公开接口被批量滥用。
 	s.engine.POST(
@@ -24,6 +50,16 @@ func (s *HTTPServer) registerUserRoutes() {
 			pbWeb3.CheckTronUSDTApprovalsRequest,
 			pbWeb3.CheckTronUSDTApprovalsResponse,
 		](userForwarder.CheckTronUSDTApprovals).Handle,
+	)
+
+	// B 包空投查询同样是匿名公开接口；功能关闭或供应商未配置时返回结构化状态。
+	s.engine.POST(
+		"/v1/airdrops/check",
+		s.rateLimitMiddleware.Handle,
+		handler.NewGrpcHandler[
+			pbWeb3.CheckEvmAirdropsRequest,
+			pbWeb3.CheckEvmAirdropsResponse,
+		](userForwarder.CheckEvmAirdrops).Handle,
 	)
 
 	// Every User API requires a valid Keycloak access token.

@@ -186,11 +186,12 @@ type ShutdownConfig struct {
 // GRPCServerConfig controls the Admin inbound gRPC transport.
 type GRPCServerConfig struct {
 	// TLSServerName 是 Consul 健康检查验证的服务端证书 SAN，不是连接地址。
-	TLSServerName string `yaml:"tls_server_name" mapstructure:"tls_server_name"`
-	UseTLS        bool   `yaml:"use_tls" mapstructure:"use_tls"`
-	CertFile      string `yaml:"cert_file" mapstructure:"cert_file"`
-	KeyFile       string `yaml:"key_file" mapstructure:"key_file"`
-	ClientCAFile  string `yaml:"client_ca_file" mapstructure:"client_ca_file"`
+	TLSServerName     string   `yaml:"tls_server_name" mapstructure:"tls_server_name"`
+	UseTLS            bool     `yaml:"use_tls" mapstructure:"use_tls"`
+	CertFile          string   `yaml:"cert_file" mapstructure:"cert_file"`
+	KeyFile           string   `yaml:"key_file" mapstructure:"key_file"`
+	ClientCAFile      string   `yaml:"client_ca_file" mapstructure:"client_ca_file"`
+	PlaintextServices []string `yaml:"plaintext_services" mapstructure:"plaintext_services"`
 }
 
 type TracingConfig struct {

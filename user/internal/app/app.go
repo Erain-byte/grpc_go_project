@@ -138,11 +138,11 @@ func Run() error {
 	grpcClientManager := grpcclient.NewClientManager(
 		consulClenit,
 		&grpcclient.GrpcConfig{
-			UseTLS:     cfg.GRPC.UseTLS,
-			CertFile:   cfg.GRPC.CertFile,
-			KeyFile:    cfg.GRPC.KeyFile,
-			CaFile:     cfg.GRPC.ClientCAFile,
-			ServerName: cfg.GRPC.TLSServerName,
+			UseTLS:            cfg.GRPC.UseTLS,
+			CertFile:          cfg.GRPC.CertFile,
+			KeyFile:           cfg.GRPC.KeyFile,
+			CaFile:            cfg.GRPC.ClientCAFile,
+			PlaintextServices: cfg.GRPC.PlaintextServices,
 		},
 	)
 	defer grpcClientManager.Close()
@@ -221,7 +221,7 @@ func Run() error {
 	//grpc注册consul
 	if err := consulClenit.RegisterService(
 		cfg.Name,
-		cfg.Host,
+		cfg.AdvertiseHost,
 		cfg.GRPCPort,
 		cfg.GRPC.UseTLS,
 		cfg.GRPC.TLSServerName,
@@ -269,7 +269,7 @@ func Run() error {
 	//手动关闭动态注册
 	stopRegistration()
 	//移除consul注册
-	deregisterErr := consulClenit.DeregisterGRPC(cfg.Name, cfg.Host, cfg.GRPCPort)
+	deregisterErr := consulClenit.DeregisterGRPC(cfg.Name, cfg.AdvertiseHost, cfg.GRPCPort)
 	if deregisterErr != nil {
 		logger.SugaredLogger.Errorf("Failed to deregister service from consul: %v", deregisterErr)
 		runErr = errors.Join(runErr, deregisterErr)

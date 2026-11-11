@@ -146,6 +146,36 @@ func (u *UserForwarder) InitializeUser(ctx context.Context, req *pbUser.Initiali
 	return client.InitializeUser(ctx, req)
 }
 
+func (u *UserForwarder) GetPublicWeb3Config(ctx context.Context, req *pbWeb3.GetPublicWeb3ConfigRequest) (*pbWeb3.GetPublicWeb3ConfigResponse, error) {
+	client, err := u.base.GetClient(ctx)
+	if err != nil {
+		return nil, apperror.ToGRPC(err)
+	}
+	return client.GetPublicWeb3Config(ctx, req)
+}
+
+func (u *UserForwarder) RecordClientEvent(ctx context.Context, req *pbWeb3.RecordClientEventRequest) (*pbWeb3.RecordClientEventResponse, error) {
+	if req == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
+	}
+	client, err := u.base.GetClient(ctx)
+	if err != nil {
+		return nil, apperror.ToGRPC(err)
+	}
+	return client.RecordClientEvent(ctx, req)
+}
+
+func (u *UserForwarder) SubmitFeedback(ctx context.Context, req *pbWeb3.SubmitFeedbackRequest) (*pbWeb3.SubmitFeedbackResponse, error) {
+	if req == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
+	}
+	client, err := u.base.GetClient(ctx)
+	if err != nil {
+		return nil, apperror.ToGRPC(err)
+	}
+	return client.SubmitFeedback(ctx, req)
+}
+
 func (u *UserForwarder) GetSupportedChains(ctx context.Context, req *pbWeb3.GetSupportedChainsRequest) (*pbWeb3.GetSupportedChainsResponse, error) {
 	// client 的类型是 UserServiceClient，而不是 Web3ServiceClient。
 	client, err := u.base.GetClient(ctx)
@@ -238,4 +268,22 @@ func (u *UserForwarder) CheckTronUSDTApprovals(
 		return nil, apperror.ToGRPC(err)
 	}
 	return client.CheckTronUSDTApprovals(ctx, req)
+}
+
+// CheckEvmAirdrops 将公开的 EVM 空投查询转发给 UserService。
+func (u *UserForwarder) CheckEvmAirdrops(
+	ctx context.Context,
+	req *pbWeb3.CheckEvmAirdropsRequest,
+) (*pbWeb3.CheckEvmAirdropsResponse, error) {
+	if ctx == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("ctx is nil"))
+	}
+	if req == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
+	}
+	client, err := u.base.GetClient(ctx)
+	if err != nil {
+		return nil, apperror.ToGRPC(err)
+	}
+	return client.CheckEvmAirdrops(ctx, req)
 }

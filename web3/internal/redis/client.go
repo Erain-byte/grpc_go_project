@@ -96,6 +96,11 @@ func (c *client) keys(keys []string) []string {
 }
 
 func redisError(err error, message string) error {
+	// apperror.Wrap 返回 *apperror.Error。若直接把 nil 指针返回为 error 接口，
+	// 接口会因为携带具体类型而不等于 nil，导致成功操作被误判为失败。
+	if err == nil {
+		return nil
+	}
 	return apperror.Wrap(err, apperror.CodeUnavailable, message, http.StatusServiceUnavailable)
 }
 

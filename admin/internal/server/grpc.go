@@ -126,6 +126,10 @@ func createServerCredentials(cfg config.GRPCServerConfig) (credentials.Transport
 	if err != nil {
 		return nil, remaining, err
 	}
+	// Consul 服务名必须与证书公共 SAN 一致；不一致时在启动阶段直接失败。
+	if err := verifyCertificateServerName(certificate, cfg.TLSServerName); err != nil {
+		return nil, remaining, err
+	}
 
 	tlsConfig := &tls.Config{
 		MinVersion:   tls.VersionTLS12,
@@ -145,6 +149,24 @@ func createServerCredentials(cfg config.GRPCServerConfig) (credentials.Transport
 	}
 
 	return credentials.NewTLS(tlsConfig), remaining, nil
+}
+
+func verifyCertificateServerName(certificate tls.Certificate, serverName string) error {
+	serverName = strings.TrimSpace(serverName)
+	if serverName == "" {
+		return errors.New("gRPC TLS server name is empty")
+	}
+	if len(certificate.Certificate) == 0 {
+		return errors.New("server TLS certificate chain is empty")
+	}
+	leaf, err := x509.ParseCertificate(certificate.Certificate[0])
+	if err != nil {
+		return fmt.Errorf("parse server TLS certificate: %w", err)
+	}
+	if err := leaf.VerifyHostname(serverName); err != nil {
+		return fmt.Errorf("server TLS certificate SAN does not match service name %q: %w", serverName, err)
+	}
+	return nil
 }
 
 func certificateRemainingValidity(certificate tls.Certificate) (time.Duration, error) {

@@ -2,8 +2,17 @@
 environment: "development" # development, staging, production
 name: "gateway-service"
 host: "0.0.0.0" # Allow Docker OAuth2 Proxy to reach Gateway through host.docker.internal.
+# 注册到 Consul 的实例地址；监听地址 0.0.0.0 不能用于服务发现。
+advertise_host: "127.0.0.1"
 port: 9080
 grpc_port: 9081
+grpc_server:
+  # Gateway 入站 gRPC 服务使用独立配置，避免与出站客户端 TLS 混淆。
+  use_tls: true
+  tls_server_name: "gateway-service"
+  cert_file: "D:/grpc_go_project/certs/mtls/gateway/service.crt"
+  key_file: "D:/grpc_go_project/certs/mtls/gateway/service.key"
+  client_ca_file: "D:/grpc_go_project/certs/mtls/ca/ca.crt"
 # 外部浏览器/客户端连接 Gateway 的 HTTPS 配置；证书准备好后开启。
 http:
   tls:
@@ -113,11 +122,13 @@ grpc:
   # 证书生成后，与 Admin 的 grpc.use_tls 同时改为 true。
   use_tls: true
   insecure_skip_verify: false
-  cert_file: "D:/grpc_go_project/gateway/etc/certs/client.crt"
-  key_file: "D:/grpc_go_project/gateway/etc/certs/client.key"
-  ca_file: "D:/grpc_go_project/gateway/etc/certs/ca.crt"
-  # Admin 服务端证书的 DNS SAN 必须包含 admin-service。
-  server_name: "admin-service"
+  cert_file: "D:/grpc_go_project/certs/mtls/gateway/service.crt"
+  key_file: "D:/grpc_go_project/certs/mtls/gateway/service.key"
+  ca_file: "D:/grpc_go_project/certs/mtls/ca/ca.crt"
+  # 客户端直接使用 Consul 服务名校验证书 SAN，例如 admin-service、user-service。
+  # LLM 尚未接入本轮 mTLS，仅作为迁移期例外。
+  plaintext_services:
+    - "llm-service"
   # 本地测试约定：客户端证书有效期90天，CA有效期5年；实际日期在签发时确定。
 
 # Rate Limit Configuration (限流配置)

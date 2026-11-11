@@ -20,23 +20,30 @@ import (
 )
 
 type ServiceContext struct {
-	Config       *config.Config
-	Consul       *consul.ConsulRegistry
-	Redis        redisstore.Client
-	Database     *databases.GormClient
-	Router       *sharding.TransactionRouter
-	WalletRepo   *repository.WalletRepository
-	TxRepo       *repository.TransactionRepository
-	ScannerRepo  *repository.ScannerRepository
-	UsageRepo    *repository.UsageRepository
-	Wallets      *service.WalletService
-	Balances     *service.BalanceService
-	Transactions *service.TransactionService
-	Approvals    *service.TronApprovalService
-	Scanner      *service.ScannerService
-	Blockchain   *blockchain.ClientManager
-	Tron         *tron.Client
-	Logger       *zap.Logger
+	Config        *config.Config
+	Consul        *consul.ConsulRegistry
+	Redis         redisstore.Client
+	Database      *databases.GormClient
+	Router        *sharding.TransactionRouter
+	WalletRepo    *repository.WalletRepository
+	TxRepo        *repository.TransactionRepository
+	ScannerRepo   *repository.ScannerRepository
+	UsageRepo     *repository.UsageRepository
+	ProductRepo   *repository.ProductRepository
+	Wallets       *service.WalletService
+	Balances      *service.BalanceService
+	Transactions  *service.TransactionService
+	Approvals     *service.TronApprovalService
+	Product       *service.ProductService
+	ClientEvents  *service.ClientEventService
+	Feedbacks     *service.FeedbackService
+	UsageSummary  *service.UsageSummaryService
+	RuntimeStatus *service.RuntimeStatusService
+	Airdrops      *service.AirdropService
+	Scanner       *service.ScannerService
+	Blockchain    *blockchain.ClientManager
+	Tron          *tron.Client
+	Logger        *zap.Logger
 }
 
 func NewServiceContext(
@@ -101,6 +108,45 @@ func NewServiceContext(
 		blockchainClients.Close()
 		return nil, err
 	}
+	productService, err := service.NewProductService(cfg.Product, cfg.TronApprovals)
+	if err != nil {
+		blockchainClients.Close()
+		return nil, err
+	}
+	productRepo := repository.NewProductRepository(db)
+	eventLimiter, err := service.NewRedisClientEventLimiter(redisClient, cfg.Product)
+	if err != nil {
+		blockchainClients.Close()
+		return nil, err
+	}
+	clientEventService, err := service.NewClientEventService(productRepo, eventLimiter)
+	if err != nil {
+		blockchainClients.Close()
+		return nil, err
+	}
+	feedbackLimiter, err := service.NewRedisFeedbackLimiter(redisClient, cfg.Product)
+	if err != nil {
+		blockchainClients.Close()
+		return nil, err
+	}
+	feedbackService, err := service.NewFeedbackService(productRepo, feedbackLimiter)
+	if err != nil {
+		blockchainClients.Close()
+		return nil, err
+	}
+	usageSummaryService, err := service.NewUsageSummaryService(usageRepo, cfg.TronApprovals)
+	if err != nil {
+		blockchainClients.Close()
+		return nil, err
+	}
+	runtimeStatusService := service.NewRuntimeStatusService(
+		database,
+		redisClient,
+		tronClient,
+		cfg.TronApprovals,
+		cfg.Product,
+	)
+	airdropService := service.NewAirdropService(cfg.Product)
 	scannerRepo := repository.NewScannerRepository(db)
 	scannerService, err := service.NewScannerService(walletRepo, transactionRepo, scannerRepo, blockchainClients, cfg.Blockchain.Scanner)
 	if err != nil {
@@ -109,22 +155,29 @@ func NewServiceContext(
 	}
 
 	return &ServiceContext{
-		Config:       cfg,
-		Consul:       consulRegistry,
-		Redis:        redisClient,
-		Database:     database,
-		Router:       router,
-		WalletRepo:   walletRepo,
-		TxRepo:       transactionRepo,
-		ScannerRepo:  scannerRepo,
-		UsageRepo:    usageRepo,
-		Wallets:      walletService,
-		Balances:     balanceService,
-		Transactions: transactionService,
-		Approvals:    approvalService,
-		Scanner:      scannerService,
-		Blockchain:   blockchainClients,
-		Tron:         tronClient,
-		Logger:       logger,
+		Config:        cfg,
+		Consul:        consulRegistry,
+		Redis:         redisClient,
+		Database:      database,
+		Router:        router,
+		WalletRepo:    walletRepo,
+		TxRepo:        transactionRepo,
+		ScannerRepo:   scannerRepo,
+		UsageRepo:     usageRepo,
+		ProductRepo:   productRepo,
+		Wallets:       walletService,
+		Balances:      balanceService,
+		Transactions:  transactionService,
+		Approvals:     approvalService,
+		Product:       productService,
+		ClientEvents:  clientEventService,
+		Feedbacks:     feedbackService,
+		UsageSummary:  usageSummaryService,
+		RuntimeStatus: runtimeStatusService,
+		Airdrops:      airdropService,
+		Scanner:       scannerService,
+		Blockchain:    blockchainClients,
+		Tron:          tronClient,
+		Logger:        logger,
 	}, nil
 }

@@ -19,7 +19,46 @@ var (
 
 type UsageRepository struct{ db *gorm.DB }
 
+// UsageSummary 是后台统计使用的聚合结果，最大值用于判断范围内是否有某一天耗尽预算。
+type UsageSummary struct {
+	QueryCount               int64
+	DistinctAddressCount     int64
+	UpstreamCallCount        int64
+	CacheHitCount            int64
+	SuccessCount             int64
+	PartialCount             int64
+	FailedCount              int64
+	MaximumDailyQueryCount   int64
+	MaximumDailyAddressCount int64
+	MaximumDailyUpstreamCall int64
+}
+
 func NewUsageRepository(db *gorm.DB) *UsageRepository { return &UsageRepository{db: db} }
+
+// Summarize 按包含首尾日期的 UTC 日范围聚合用量。
+func (r *UsageRepository) Summarize(ctx context.Context, startedDay, endedDay time.Time) (*UsageSummary, error) {
+	var summary UsageSummary
+	err := r.db.WithContext(ctx).
+		Model(&model.TronUsageDaily{}).
+		Select(`
+			COALESCE(SUM(query_count), 0) AS query_count,
+			COALESCE(SUM(distinct_address_count), 0) AS distinct_address_count,
+			COALESCE(SUM(upstream_call_count), 0) AS upstream_call_count,
+			COALESCE(SUM(cache_hit_count), 0) AS cache_hit_count,
+			COALESCE(SUM(success_count), 0) AS success_count,
+			COALESCE(SUM(partial_count), 0) AS partial_count,
+			COALESCE(SUM(failed_count), 0) AS failed_count,
+			COALESCE(MAX(query_count), 0) AS maximum_daily_query_count,
+			COALESCE(MAX(distinct_address_count), 0) AS maximum_daily_address_count,
+			COALESCE(MAX(upstream_call_count), 0) AS maximum_daily_upstream_call
+		`).
+		Where("usage_date >= ? AND usage_date <= ?", utcDay(startedDay), utcDay(endedDay)).
+		Scan(&summary).Error
+	if err != nil {
+		return nil, err
+	}
+	return &summary, nil
+}
 
 // ReserveQuery atomically increments the daily request count and, when this
 // HMAC has not appeared today, the distinct-address count.

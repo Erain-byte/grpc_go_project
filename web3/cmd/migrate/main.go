@@ -58,6 +58,8 @@ func migrateSharedTables(db *gorm.DB) error {
 		&model.ChainEventReceipt{},
 		&model.TronUsageDaily{},
 		&model.TronUsageAddressDaily{},
+		&model.ClientEvent{},
+		&model.FeedbackItem{},
 	); err != nil {
 		return err
 	}

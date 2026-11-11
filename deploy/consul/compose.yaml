@@ -18,9 +18,9 @@ services:
     volumes:
       - consul-data:/consul/data
       - ./health-tls.hcl:/consul/config/health-tls.hcl:ro
-      - D:/local-pki/ca.crt:/consul/certs/ca.crt:ro
-      - D:/local-pki/consul/client.crt:/consul/certs/client.crt:ro
-      - D:/local-pki/consul/client.key:/consul/certs/client.key:ro
+      - ../../certs/mtls/ca/ca.crt:/consul/certs/ca.crt:ro
+      - ../../certs/mtls/consul/client.crt:/consul/certs/client.crt:ro
+      - ../../certs/mtls/consul/client.key:/consul/certs/client.key:ro
     healthcheck:
       test: ["CMD", "consul", "members", "-http-addr=http://127.0.0.1:8500"]
       interval: 10s

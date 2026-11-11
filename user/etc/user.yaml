@@ -105,13 +105,15 @@ auth:
 
 # User 入站 gRPC 配置。
 grpc:
-  # 第一阶段保持与现有服务部署方式兼容；接入 Consul Service Mesh 后，
-  # 服务间 mTLS 将由 Envoy 负责，应用侧可关闭 TLS。
-  use_tls: false
+  use_tls: true
   tls_server_name: "user-service"
-  cert_file: ""
-  key_file: ""
-  client_ca_file: ""
+  # 同一服务身份用于 User 入站以及 User 调用 Web3。
+  cert_file: "D:/grpc_go_project/certs/mtls/user/service.crt"
+  key_file: "D:/grpc_go_project/certs/mtls/user/service.key"
+  client_ca_file: "D:/grpc_go_project/certs/mtls/ca/ca.crt"
+  # 出站客户端直接使用目标 Consul 服务名校验证书 SAN。
+  plaintext_services:
+    - "llm-service"
 
   # 标准 grpc.health.v1.Health 服务配置。
   health:

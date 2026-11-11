@@ -125,8 +125,10 @@ func (r *ConsulRegistry) RegisterGRPC(name string, host string, port int, cfg *c
 		Tags:    BuildServiceTags(cfg, ProtocolGRPC),
 		Meta:    metadata,
 		Check: &api.AgentServiceCheck{
-			GRPC:     fmt.Sprintf("%s:%d", checkHost, port),
-			Interval: r.config.CheckInterval,
+			GRPC:          fmt.Sprintf("%s:%d", checkHost, port),
+			GRPCUseTLS:    cfg.GRPCServer.UseTLS,
+			TLSServerName: strings.TrimSpace(cfg.GRPCServer.TLSServerName),
+			Interval:      r.config.CheckInterval,
 			//服务检查间隔
 			Timeout:                        r.config.CheckTimeout,
 			DeregisterCriticalServiceAfter: r.config.DeregisterCriticalAfter,

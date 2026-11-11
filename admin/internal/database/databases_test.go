@@ -31,7 +31,7 @@ func TestGetDSNBuildsPostgresURL(t *testing.T) {
 	if got := parsed.Query().Get("connect_timeout"); got != "2" {
 		t.Fatalf("connect_timeout = %q, want 2", got)
 	}
-	if got := parsed.Query().Get("TimeZone"); got != cfg.TimeZone {
-		t.Fatalf("TimeZone = %q, want %q", got, cfg.TimeZone)
+	if got := parsed.Query().Get("timezone"); got != cfg.TimeZone {
+		t.Fatalf("timezone = %q, want %q", got, cfg.TimeZone)
 	}
 }

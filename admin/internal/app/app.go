@@ -111,10 +111,11 @@ func Run() error {
 		)
 	}
 	grpcClientManager := grpcclient.NewClientManager(consulClenit, &grpcclient.GrpcConfig{
-		UseTLS:   cfg.GRPC.UseTLS,
-		CertFile: cfg.GRPC.CertFile,
-		KeyFile:  cfg.GRPC.KeyFile,
-		CaFile:   cfg.GRPC.ClientCAFile,
+		UseTLS:            cfg.GRPC.UseTLS,
+		CertFile:          cfg.GRPC.CertFile,
+		KeyFile:           cfg.GRPC.KeyFile,
+		CaFile:            cfg.GRPC.ClientCAFile,
+		PlaintextServices: cfg.GRPC.PlaintextServices,
 	})
 	// RabbitMQ 是可选依赖。启用后共用一条 Connection，Publisher 和 Consumer
 	// 分别持有自己的 Channel，避免在并发发布和消费之间共享 Channel 状态。

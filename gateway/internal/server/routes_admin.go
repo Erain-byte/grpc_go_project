@@ -8,6 +8,7 @@ import (
 	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
 	pbLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
 	pbUser "github.com/Erain-byte/grpc_go_project/proto/user/v1"
+	pbWeb3 "github.com/Erain-byte/grpc_go_project/proto/web3/v1"
 )
 
 func (s *HTTPServer) registerAdminRoutes() {
@@ -57,6 +58,27 @@ func (s *HTTPServer) registerAdminRoutes() {
 			pbUser.GetUserListRequest,
 			pbUser.GetUserListResponse,
 		](adminForwarder.GetUserList).Handle,
+	)
+	protected.POST(
+		"/web3/usage",
+		handler.NewGrpcHandler[
+			pbWeb3.GetWeb3UsageSummaryRequest,
+			pbWeb3.GetWeb3UsageSummaryResponse,
+		](adminForwarder.GetWeb3UsageSummary).Handle,
+	)
+	protected.POST(
+		"/web3/runtime-status",
+		handler.NewGrpcHandler[
+			pbWeb3.GetWeb3RuntimeStatusRequest,
+			pbWeb3.GetWeb3RuntimeStatusResponse,
+		](adminForwarder.GetWeb3RuntimeStatus).Handle,
+	)
+	protected.POST(
+		"/web3/feedback/list",
+		handler.NewGrpcHandler[
+			pbWeb3.GetFeedbackListRequest,
+			pbWeb3.GetFeedbackListResponse,
+		](adminForwarder.GetFeedbackList).Handle,
 	)
 	protected.POST(
 		"/chat",

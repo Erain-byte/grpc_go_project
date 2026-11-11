@@ -14,8 +14,10 @@ type Config struct {
 	Environment    string               `yaml:"environment" default:"development"`
 	Name           string               `yaml:"name" default:"gateway-service"`
 	Host           string               `yaml:"host" default:"localhost"`
+	AdvertiseHost  string               `yaml:"advertise_host" default:"127.0.0.1"`
 	Port           int                  `yaml:"port" default:"8080"`
 	GRPCPort       int                  `yaml:"grpc_port" default:"9080"`
+	GRPCServer     GRPCServerConfig     `yaml:"grpc_server"`
 	HTTP           HTTPConfig           `yaml:"http"`
 	Redis          RedisConfig          `yaml:"redis"`
 	Auth           AuthConfig           `yaml:"auth"`
@@ -30,6 +32,15 @@ type Config struct {
 	AntiReplay     AntiReplayConfig     `yaml:"anti_replay"`
 	Cors           CORSConfig           `yaml:"cors"`
 	Pprof          PprofConfig          `yaml:"pprof"`
+}
+
+// GRPCServerConfig 是 Gateway 入站 gRPC 服务的 mTLS 配置，与出站 Grpc 客户端配置分开。
+type GRPCServerConfig struct {
+	UseTLS        bool   `yaml:"use_tls"`
+	TLSServerName string `yaml:"tls_server_name"`
+	CertFile      string `yaml:"cert_file"`
+	KeyFile       string `yaml:"key_file"`
+	ClientCAFile  string `yaml:"client_ca_file"`
 }
 
 // HTTPConfig 是外部 HTTP/HTTPS 入口配置，与内部 gRPC 客户端 TLS 独立。
@@ -181,12 +192,12 @@ type ShutdownConfig struct {
 
 // GrpcConfig gRPC 客户端配置
 type GrpcConfig struct {
-	UseTLS             bool   `yaml:"use_tls" default:"false"`
-	InsecureSkipVerify bool   `yaml:"insecure_skip_verify" default:"false"`
-	CertFile           string `yaml:"cert_file" default:""`
-	KeyFile            string `yaml:"key_file" default:""`
-	CaFile             string `yaml:"ca_file" default:""`
-	ServerName         string `yaml:"server_name" default:""`
+	UseTLS             bool     `yaml:"use_tls" default:"false"`
+	InsecureSkipVerify bool     `yaml:"insecure_skip_verify" default:"false"`
+	CertFile           string   `yaml:"cert_file" default:""`
+	KeyFile            string   `yaml:"key_file" default:""`
+	CaFile             string   `yaml:"ca_file" default:""`
+	PlaintextServices  []string `yaml:"plaintext_services"`
 }
 
 // RateLimitConfig 限流配置

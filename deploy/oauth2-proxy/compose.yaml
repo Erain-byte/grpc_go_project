@@ -74,6 +74,12 @@ services:
       OAUTH2_PROXY_ALLOWED_ROLES: admin,super-admin
       OAUTH2_PROXY_CODE_CHALLENGE_METHOD: S256
       OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
+      # Admin 前端运行在 3000 端口，登录完成后允许 OAuth2 Proxy 回跳到该地址。
+      OAUTH2_PROXY_WHITELIST_DOMAINS: localhost:3000,127.0.0.1:3000
+      # 跨域预检不携带可用的登录信息，交给 Gateway 的 CORS 中间件响应。
+      OAUTH2_PROXY_SKIP_AUTH_PREFLIGHT: "true"
+      # /oauth2/sign_out 除了删除 Proxy Cookie，还使用当前 ID Token 注销 Keycloak SSO 会话。
+      OAUTH2_PROXY_BACKEND_LOGOUT_URL: http://keycloak:8080/realms/grpc-project/protocol/openid-connect/logout?id_token_hint={id_token}
       OAUTH2_PROXY_PASS_ACCESS_TOKEN: "true"
       OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
       OAUTH2_PROXY_SET_AUTHORIZATION_HEADER: "true"

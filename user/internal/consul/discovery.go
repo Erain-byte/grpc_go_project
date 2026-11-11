@@ -158,7 +158,7 @@ func grpcResolverAddresses(entries []*api.ServiceEntry) []resolver.Address {
 		}
 		// 优先使用服务注册地址；为空时回退到 Consul 节点地址。
 		host := strings.TrimSpace(entry.Service.Address)
-		if host == "" || entry.Node != nil {
+		if host == "" && entry.Node != nil {
 			host = strings.TrimSpace(entry.Node.Address)
 		}
 		if host == "" {

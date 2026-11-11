@@ -33,6 +33,30 @@ func NewUserHandler(svcCtx *svc.ServiceContext) *UserHandler {
 	}
 }
 
+func (h *UserHandler) GetPublicWeb3Config(ctx context.Context, req *web3v1.GetPublicWeb3ConfigRequest) (*web3v1.GetPublicWeb3ConfigResponse, error) {
+	return h.web3.GetPublicWeb3Config(ctx, req)
+}
+
+func (h *UserHandler) RecordClientEvent(ctx context.Context, req *web3v1.RecordClientEventRequest) (*web3v1.RecordClientEventResponse, error) {
+	return h.web3.RecordClientEvent(ctx, req)
+}
+
+func (h *UserHandler) SubmitFeedback(ctx context.Context, req *web3v1.SubmitFeedbackRequest) (*web3v1.SubmitFeedbackResponse, error) {
+	return h.web3.SubmitFeedback(ctx, req)
+}
+
+func (h *UserHandler) GetWeb3UsageSummary(ctx context.Context, req *web3v1.GetWeb3UsageSummaryRequest) (*web3v1.GetWeb3UsageSummaryResponse, error) {
+	return h.web3.GetWeb3UsageSummary(ctx, req)
+}
+
+func (h *UserHandler) GetWeb3RuntimeStatus(ctx context.Context, req *web3v1.GetWeb3RuntimeStatusRequest) (*web3v1.GetWeb3RuntimeStatusResponse, error) {
+	return h.web3.GetWeb3RuntimeStatus(ctx, req)
+}
+
+func (h *UserHandler) GetFeedbackList(ctx context.Context, req *web3v1.GetFeedbackListRequest) (*web3v1.GetFeedbackListResponse, error) {
+	return h.web3.GetFeedbackList(ctx, req)
+}
+
 // -------------------- Web3 钱包与链上查询接口 --------------------
 
 // GetSupportedChains 获取 Web3 服务当前支持的区块链网络。
@@ -87,6 +111,14 @@ func (h *UserHandler) CheckTronUSDTApprovals(
 	req *web3v1.CheckTronUSDTApprovalsRequest,
 ) (*web3v1.CheckTronUSDTApprovalsResponse, error) {
 	return h.web3.CheckTronUSDTApprovals(ctx, req)
+}
+
+// CheckEvmAirdrops 接收 Gateway 的匿名 B 包查询并转发给 Web3Service。
+func (h *UserHandler) CheckEvmAirdrops(
+	ctx context.Context,
+	req *web3v1.CheckEvmAirdropsRequest,
+) (*web3v1.CheckEvmAirdropsResponse, error) {
+	return h.web3.CheckEvmAirdrops(ctx, req)
 }
 
 // -------------------- UserService 自身业务接口 --------------------

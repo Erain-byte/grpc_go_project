@@ -41,7 +41,8 @@ type GrpcConfig struct {
 	CertFile           string
 	KeyFile            string
 	CaFile             string
-	ServerName         string
+	// PlaintextServices 是尚未启用 TLS 的过渡服务名单，目前主要用于 LLM。
+	PlaintextServices []string
 }
 
 // 管理gRPC客户端连接状态通知管理器
@@ -137,7 +138,7 @@ func (cm *ClientManager) GetClient(ctx context.Context, servicerName string) (*g
 // newClient方法实现查询
 func (cm *ClientManager) newClient(serviceName string) (*grpc.ClientConn, error) {
 	//获取证书
-	creds, err := cm.createTransportCredentials()
+	creds, err := cm.createTransportCredentials(serviceName)
 	if err != nil {
 		return nil, err
 	}
@@ -194,8 +195,9 @@ func (cm *ClientManager) Close() {
 }
 
 // createTransportCredentials 创建传输凭证
-func (cm *ClientManager) createTransportCredentials() (credentials.TransportCredentials, error) {
-	if cm.config == nil || !cm.config.UseTLS {
+func (cm *ClientManager) createTransportCredentials(serviceName string) (credentials.TransportCredentials, error) {
+	// User 同时调用 Web3 和 LLM：Web3 使用 mTLS，迁移名单中的服务暂时使用明文连接。
+	if cm.config == nil || !cm.config.UseTLS || containsService(cm.config.PlaintextServices, serviceName) {
 		return insecure.NewCredentials(), nil
 	}
 	hasCert := strings.TrimSpace(cm.config.CertFile) != ""
@@ -204,9 +206,10 @@ func (cm *ClientManager) createTransportCredentials() (credentials.TransportCred
 		return nil, apperror.InvalidArgument("client certificate and private key must be configured together")
 	}
 	//读取证书和私钥
+	// 项目约定 Consul 服务名与服务端证书 DNS SAN 一致，例如 web3-service。
 	tlsConfig := &tls.Config{
 		MinVersion:         tls.VersionTLS12,
-		ServerName:         strings.TrimSpace(cm.config.ServerName),
+		ServerName:         strings.TrimSpace(serviceName),
 		InsecureSkipVerify: cm.config.InsecureSkipVerify,
 	}
 	if cm.config.InsecureSkipVerify {
@@ -230,6 +233,15 @@ func (cm *ClientManager) createTransportCredentials() (credentials.TransportCred
 		tlsConfig.RootCAs = rootCAs
 	}
 	return credentials.NewTLS(tlsConfig), nil
+}
+
+func containsService(services []string, serviceName string) bool {
+	for _, candidate := range services {
+		if strings.EqualFold(strings.TrimSpace(candidate), strings.TrimSpace(serviceName)) {
+			return true
+		}
+	}
+	return false
 }
 func loadCertPool(path string) (*x509.CertPool, error) {
 	pem, err := os.ReadFile(path)

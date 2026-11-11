@@ -9,6 +9,7 @@ import (
 	adminv1 "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
 	llmv1 "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
 	userv1 "github.com/Erain-byte/grpc_go_project/proto/user/v1"
+	web3v1 "github.com/Erain-byte/grpc_go_project/proto/web3/v1"
 )
 
 type AdminHandler struct {
@@ -56,6 +57,18 @@ func (h *AdminHandler) GetUserInfo(ctx context.Context, req *userv1.GetUserInfoR
 
 func (h *AdminHandler) GetUserList(ctx context.Context, req *userv1.GetUserListRequest) (*userv1.GetUserListResponse, error) {
 	return h.user.GetUserList(ctx, req)
+}
+
+func (h *AdminHandler) GetWeb3UsageSummary(ctx context.Context, req *web3v1.GetWeb3UsageSummaryRequest) (*web3v1.GetWeb3UsageSummaryResponse, error) {
+	return h.user.GetWeb3UsageSummary(ctx, req)
+}
+
+func (h *AdminHandler) GetWeb3RuntimeStatus(ctx context.Context, req *web3v1.GetWeb3RuntimeStatusRequest) (*web3v1.GetWeb3RuntimeStatusResponse, error) {
+	return h.user.GetWeb3RuntimeStatus(ctx, req)
+}
+
+func (h *AdminHandler) GetFeedbackList(ctx context.Context, req *web3v1.GetFeedbackListRequest) (*web3v1.GetFeedbackListResponse, error) {
+	return h.user.GetFeedbackList(ctx, req)
 }
 
 func (h *AdminHandler) Chat(ctx context.Context, req *llmv1.ChatRequest) (*llmv1.ChatResponse, error) {

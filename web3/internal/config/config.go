@@ -4,6 +4,7 @@ package config
 import (
 	"fmt"
 	"net"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -28,11 +29,30 @@ type Config struct {
 	WalletSignature WalletSignatureConfig `mapstructure:"wallet_signature"`
 	Blockchain      BlockchainConfig      `mapstructure:"blockchain"`
 	TronApprovals   TronApprovalConfig    `mapstructure:"tron_approvals"`
+	Product         ProductConfig         `mapstructure:"product"`
 	Logger          LoggerConfig          `mapstructure:"logger"`
 	Tracing         TracingConfig         `mapstructure:"tracing"`
 	RateLimit       RateLimitConfig       `mapstructure:"rate_limit"`
 	Pprof           PprofConfig           `mapstructure:"pprof"`
 	Shutdown        ShutdownConfig        `mapstructure:"shutdown"`
+}
+
+// ProductConfig 只保存允许公开给客户端的产品配置。
+// API Key、预算阈值和内部服务地址不得放入该结构。
+type ProductConfig struct {
+	AirdropEnabled         bool   `mapstructure:"airdrop_enabled"`
+	FavoriteLimit          uint32 `mapstructure:"favorite_limit"`
+	MinimumRefreshInterval string `mapstructure:"minimum_refresh_interval"`
+	ClientEventRateLimit   int64  `mapstructure:"client_event_rate_limit"`
+	ClientEventRateWindow  string `mapstructure:"client_event_rate_window"`
+	FeedbackRateLimit      int64  `mapstructure:"feedback_rate_limit"`
+	FeedbackRateWindow     string `mapstructure:"feedback_rate_window"`
+	SupportEmail           string `mapstructure:"support_email"`
+	FeedbackURL            string `mapstructure:"feedback_url"`
+	TestFlightURL          string `mapstructure:"testflight_url"`
+	PrivacyPolicyVersion   string `mapstructure:"privacy_policy_version"`
+	MaintenanceMessage     string `mapstructure:"maintenance_message"`
+	UpdatedAt              string `mapstructure:"updated_at"`
 }
 
 type DatabaseConfig struct {
@@ -334,6 +354,18 @@ func validPort(name string, port int) error {
 	return nil
 }
 
+func validOptionalHTTPSURL(name, value string) error {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	parsed, err := url.ParseRequestURI(value)
+	if err != nil || parsed.Scheme != "https" || parsed.Host == "" {
+		return fmt.Errorf("%s must be an absolute HTTPS URL", name)
+	}
+	return nil
+}
+
 // Validate 在创建数据库、Redis、消息队列等长期依赖前检查配置。
 func (c Config) Validate() error {
 	if strings.TrimSpace(c.Name) == "" {
@@ -500,6 +532,36 @@ func (c Config) Validate() error {
 			c.TronApprovals.DailyUpstreamCallLimit <= 0 {
 			return fmt.Errorf("TRON approval daily budget limits are invalid")
 		}
+	}
+	if c.Product.FavoriteLimit == 0 {
+		return fmt.Errorf("product favorite limit must be positive")
+	}
+	if err := positiveDuration("product minimum refresh interval", c.Product.MinimumRefreshInterval); err != nil {
+		return err
+	}
+	if c.Product.ClientEventRateLimit <= 0 {
+		return fmt.Errorf("product client-event rate limit must be positive")
+	}
+	if err := positiveDuration("product client-event rate window", c.Product.ClientEventRateWindow); err != nil {
+		return err
+	}
+	if c.Product.FeedbackRateLimit <= 0 {
+		return fmt.Errorf("product feedback rate limit must be positive")
+	}
+	if err := positiveDuration("product feedback rate window", c.Product.FeedbackRateWindow); err != nil {
+		return err
+	}
+	if err := validOptionalHTTPSURL("product feedback URL", c.Product.FeedbackURL); err != nil {
+		return err
+	}
+	if err := validOptionalHTTPSURL("product TestFlight URL", c.Product.TestFlightURL); err != nil {
+		return err
+	}
+	if strings.TrimSpace(c.Product.PrivacyPolicyVersion) == "" {
+		return fmt.Errorf("product privacy policy version is empty")
+	}
+	if _, err := time.Parse(time.RFC3339, c.Product.UpdatedAt); err != nil {
+		return fmt.Errorf("product updated_at must use RFC3339: %w", err)
 	}
 	seenChains := make(map[uint64]struct{}, len(c.Blockchain.Chains))
 	for _, chain := range c.Blockchain.Chains {

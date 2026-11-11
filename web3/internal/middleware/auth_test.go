@@ -18,6 +18,42 @@ func TestResolveWeb3AuthRule(t *testing.T) {
 	}
 }
 
+func TestResolveFeedbackListAuthRule(t *testing.T) {
+	rule, err := resolveAuthRule(web3v1.Web3Service_GetFeedbackList_FullMethodName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rule.GetPublic() {
+		t.Fatal("GetFeedbackList must not be public")
+	}
+	if len(rule.GetRoles()) != 2 || rule.GetRoles()[0] != "admin" || rule.GetRoles()[1] != "super-admin" {
+		t.Fatalf("unexpected GetFeedbackList roles: %v", rule.GetRoles())
+	}
+}
+
+func TestResolveRuntimeStatusAuthRule(t *testing.T) {
+	rule, err := resolveAuthRule(web3v1.Web3Service_GetWeb3RuntimeStatus_FullMethodName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rule.GetPublic() {
+		t.Fatal("GetWeb3RuntimeStatus must not be public")
+	}
+	if len(rule.GetRoles()) != 2 || rule.GetRoles()[0] != "admin" || rule.GetRoles()[1] != "super-admin" {
+		t.Fatalf("unexpected GetWeb3RuntimeStatus roles: %v", rule.GetRoles())
+	}
+}
+
+func TestResolveAirdropAuthRule(t *testing.T) {
+	rule, err := resolveAuthRule(web3v1.Web3Service_CheckEvmAirdrops_FullMethodName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !rule.GetPublic() || len(rule.GetRoles()) != 0 {
+		t.Fatalf("CheckEvmAirdrops must be public: %+v", rule)
+	}
+}
+
 func TestBearerTokenFromMetadata(t *testing.T) {
 	ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs("authorization", "Bearer token-value"))
 	token, err := bearerTokenFromMetadata(ctx)

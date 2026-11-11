@@ -19,7 +19,9 @@ go.work.sum
 /deploy/identity/realm/*.json
 !/deploy/identity/realm/*.template.json
 
-# Local TLS certificates and private keys; never commit signing material.
+# Local TLS/mTLS certificates and private keys; never commit signing material.
+/certs/
+# Legacy locations remain ignored so old local copies cannot be committed accidentally.
 /gateway/etc/certs/
 /admin/etc/certs/
 

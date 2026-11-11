@@ -144,7 +144,7 @@ func Run() error {
 			CertFile:           cfg.Grpc.CertFile,
 			KeyFile:            cfg.Grpc.KeyFile,
 			CaFile:             cfg.Grpc.CaFile,
-			ServerName:         cfg.Grpc.ServerName,
+			PlaintextServices:  cfg.Grpc.PlaintextServices,
 		},
 	)
 	defer grpcClientManager.Close()
@@ -178,26 +178,26 @@ func Run() error {
 	// 将 HTTP 实例和 /health 检查地址注册到 Consul。
 	// 注册成功后不是 Gateway 主动循环检查，而是 Consul Agent 按
 	// check_interval 定期请求 http://host:port/health。
-	if err := consulRegistry.RegisterHTTP(cfg.Name, cfg.Host, cfg.Port, cfg); err != nil {
+	if err := consulRegistry.RegisterHTTP(cfg.Name, cfg.AdvertiseHost, cfg.Port, cfg); err != nil {
 		return err
 	}
 
 	// 将 gRPC 实例注册到 Consul。Consul Agent 会定期调用该端口上的
 	// grpc.health.v1.Health 服务，因此 grpcServer 必须注册标准健康服务。
-	if err := consulRegistry.RegisterGRPC(cfg.Name, cfg.Host, cfg.GRPCPort, cfg); err != nil {
+	if err := consulRegistry.RegisterGRPC(cfg.Name, cfg.AdvertiseHost, cfg.GRPCPort, cfg); err != nil {
 		// HTTP 已经注册成功而 gRPC 注册失败时，立即撤销 HTTP 注册，
 		// 避免 Consul 中留下一个实际上没有完整启动的 Gateway 实例。
-		if deregisterErr := consulRegistry.DeregisterHTTPService(cfg.Name, cfg.Host, cfg.Port); deregisterErr != nil {
+		if deregisterErr := consulRegistry.DeregisterHTTPService(cfg.Name, cfg.AdvertiseHost, cfg.Port); deregisterErr != nil {
 			return errors.Join(err, deregisterErr)
 		}
 		return err
 	}
 	// Run 退出时注销两个 Gateway 入站实例。
 	defer func() {
-		if err := consulRegistry.DeregisterGRPCService(cfg.Name, cfg.Host, cfg.GRPCPort); err != nil {
+		if err := consulRegistry.DeregisterGRPCService(cfg.Name, cfg.AdvertiseHost, cfg.GRPCPort); err != nil {
 			logger.SugaredLogger.Errorf("failed to deregister Gateway gRPC service: %v", err)
 		}
-		if err := consulRegistry.DeregisterHTTPService(cfg.Name, cfg.Host, cfg.Port); err != nil {
+		if err := consulRegistry.DeregisterHTTPService(cfg.Name, cfg.AdvertiseHost, cfg.Port); err != nil {
 			logger.SugaredLogger.Errorf("failed to deregister Gateway HTTP service: %v", err)
 		}
 	}()

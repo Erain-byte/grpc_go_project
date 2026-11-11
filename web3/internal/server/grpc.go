@@ -144,6 +144,10 @@ func serverTransportCredentials(cfg config.GRPCConfig) (credentials.TransportCre
 	if err != nil {
 		return nil, fmt.Errorf("load Web3 gRPC TLS certificate: %w", err)
 	}
+	// Consul 服务名必须与证书公共 SAN 一致；不一致时在启动阶段直接失败。
+	if err := verifyCertificateServerName(certificate, cfg.TLSServerName); err != nil {
+		return nil, err
+	}
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{certificate},
 		MinVersion:   tls.VersionTLS12,
@@ -161,4 +165,22 @@ func serverTransportCredentials(cfg config.GRPCConfig) (credentials.TransportCre
 		tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
 	}
 	return credentials.NewTLS(tlsConfig), nil
+}
+
+func verifyCertificateServerName(certificate tls.Certificate, serverName string) error {
+	serverName = strings.TrimSpace(serverName)
+	if serverName == "" {
+		return errors.New("Web3 gRPC TLS server name is empty")
+	}
+	if len(certificate.Certificate) == 0 {
+		return errors.New("Web3 gRPC TLS certificate chain is empty")
+	}
+	leaf, err := x509.ParseCertificate(certificate.Certificate[0])
+	if err != nil {
+		return fmt.Errorf("parse Web3 gRPC TLS certificate: %w", err)
+	}
+	if err := leaf.VerifyHostname(serverName); err != nil {
+		return fmt.Errorf("Web3 gRPC TLS certificate SAN does not match service name %q: %w", serverName, err)
+	}
+	return nil
 }

@@ -2,10 +2,17 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
+	"os"
+	"strings"
+	"time"
 
+	"gateway/internal/config"
 	"gateway/internal/forwarder"
 	grpcclient "gateway/internal/grpc"
 	"gateway/internal/logger"
@@ -14,6 +21,7 @@ import (
 	"gateway/pkg/apperror"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
@@ -42,9 +50,18 @@ func NewGRPCServer(
 		)
 	}
 
-	grpcServer := grpc.NewServer(
+	serverOptions := []grpc.ServerOption{
 		grpc.StatsHandler(middleware.NewServerStatsHandler()),
-	)
+	}
+	if svcCtx.Config.GRPCServer.UseTLS {
+		transportCredentials, credentialErr := createServerCredentials(svcCtx.Config.GRPCServer)
+		if credentialErr != nil {
+			_ = listener.Close()
+			return nil, credentialErr
+		}
+		serverOptions = append(serverOptions, grpc.Creds(transportCredentials))
+	}
+	grpcServer := grpc.NewServer(serverOptions...)
 	// 注册健康检查服务
 	healthServer := health.NewServer()
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
@@ -58,6 +75,50 @@ func NewGRPCServer(
 		listener: listener,
 		address:  address,
 	}, nil
+}
+
+func createServerCredentials(cfg config.GRPCServerConfig) (credentials.TransportCredentials, error) {
+	certificate, err := tls.LoadX509KeyPair(strings.TrimSpace(cfg.CertFile), strings.TrimSpace(cfg.KeyFile))
+	if err != nil {
+		return nil, fmt.Errorf("load Gateway gRPC TLS certificate: %w", err)
+	}
+	if len(certificate.Certificate) == 0 {
+		return nil, errors.New("Gateway gRPC TLS certificate chain is empty")
+	}
+	leaf, err := x509.ParseCertificate(certificate.Certificate[0])
+	if err != nil {
+		return nil, fmt.Errorf("parse Gateway gRPC TLS certificate: %w", err)
+	}
+	now := time.Now()
+	if now.Before(leaf.NotBefore) || !now.Before(leaf.NotAfter) {
+		return nil, fmt.Errorf("Gateway gRPC TLS certificate is outside its validity period: %s - %s", leaf.NotBefore, leaf.NotAfter)
+	}
+	serverName := strings.TrimSpace(cfg.TLSServerName)
+	if serverName == "" {
+		return nil, errors.New("Gateway gRPC TLS server name is empty")
+	}
+	// 启动时保证 Consul 服务名与本地服务端证书公共 SAN 一致。
+	if err := leaf.VerifyHostname(serverName); err != nil {
+		return nil, fmt.Errorf("Gateway gRPC TLS certificate SAN does not match service name %q: %w", serverName, err)
+	}
+
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{certificate},
+		MinVersion:   tls.VersionTLS12,
+	}
+	if clientCAFile := strings.TrimSpace(cfg.ClientCAFile); clientCAFile != "" {
+		pemData, err := os.ReadFile(clientCAFile)
+		if err != nil {
+			return nil, fmt.Errorf("read Gateway gRPC client CA: %w", err)
+		}
+		clientCAs := x509.NewCertPool()
+		if !clientCAs.AppendCertsFromPEM(pemData) {
+			return nil, errors.New("Gateway gRPC client CA contains no valid certificate")
+		}
+		tlsConfig.ClientCAs = clientCAs
+		tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
+	}
+	return credentials.NewTLS(tlsConfig), nil
 }
 
 // 启动gRPC服务器

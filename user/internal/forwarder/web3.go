@@ -20,6 +20,63 @@ func NewWeb3Forwarder(clientManager *grpcclient.ClientManager) *Web3Forwarder {
 	}
 }
 
+func (f *Web3Forwarder) GetPublicWeb3Config(ctx context.Context, req *web3v1.GetPublicWeb3ConfigRequest) (*web3v1.GetPublicWeb3ConfigResponse, error) {
+	client, err := f.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return client.GetPublicWeb3Config(OutgoingContext(ctx), req)
+}
+
+func (f *Web3Forwarder) RecordClientEvent(ctx context.Context, req *web3v1.RecordClientEventRequest) (*web3v1.RecordClientEventResponse, error) {
+	if req == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
+	}
+	client, err := f.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return client.RecordClientEvent(OutgoingContext(ctx), req)
+}
+
+func (f *Web3Forwarder) SubmitFeedback(ctx context.Context, req *web3v1.SubmitFeedbackRequest) (*web3v1.SubmitFeedbackResponse, error) {
+	if req == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
+	}
+	client, err := f.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return client.SubmitFeedback(OutgoingContext(ctx), req)
+}
+
+func (f *Web3Forwarder) GetWeb3UsageSummary(ctx context.Context, req *web3v1.GetWeb3UsageSummaryRequest) (*web3v1.GetWeb3UsageSummaryResponse, error) {
+	client, err := f.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return client.GetWeb3UsageSummary(OutgoingContext(ctx), req)
+}
+
+func (f *Web3Forwarder) GetWeb3RuntimeStatus(ctx context.Context, req *web3v1.GetWeb3RuntimeStatusRequest) (*web3v1.GetWeb3RuntimeStatusResponse, error) {
+	client, err := f.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return client.GetWeb3RuntimeStatus(OutgoingContext(ctx), req)
+}
+
+func (f *Web3Forwarder) GetFeedbackList(ctx context.Context, req *web3v1.GetFeedbackListRequest) (*web3v1.GetFeedbackListResponse, error) {
+	if req == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
+	}
+	client, err := f.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return client.GetFeedbackList(OutgoingContext(ctx), req)
+}
+
 func (f *Web3Forwarder) GetSupportedChains(ctx context.Context, req *web3v1.GetSupportedChainsRequest) (*web3v1.GetSupportedChainsResponse, error) {
 	client, err := f.client(ctx)
 	if err != nil {
@@ -106,6 +163,21 @@ func (f *Web3Forwarder) CheckTronUSDTApprovals(
 		return nil, err
 	}
 	return client.CheckTronUSDTApprovals(OutgoingContext(ctx), req)
+}
+
+// CheckEvmAirdrops 将匿名 EVM 空投查询转发到 Web3Service。
+func (f *Web3Forwarder) CheckEvmAirdrops(
+	ctx context.Context,
+	req *web3v1.CheckEvmAirdropsRequest,
+) (*web3v1.CheckEvmAirdropsResponse, error) {
+	if req == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
+	}
+	client, err := f.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return client.CheckEvmAirdrops(OutgoingContext(ctx), req)
 }
 
 // client 集中检查转发调用的公共参数，避免每个方法重复访问空的 BaseForwarder。

@@ -37,7 +37,8 @@ type GrpcConfig struct {
 	CertFile           string
 	KeyFile            string
 	CaFile             string
-	ServerName         string
+	// PlaintextServices 是尚未启用 TLS 的过渡服务名单，目前主要用于 LLM。
+	PlaintextServices []string
 }
 
 // 管理gRPC客户端连接状态通知管理器
@@ -132,7 +133,7 @@ func (cm *ClientManager) GetClient(ctx context.Context, servicerName string) (*g
 // newClient 创建客户端
 func (cm *ClientManager) newClient(serviceName string) (*grpc.ClientConn, error) {
 	//获取证书
-	cred, err := cm.createTransportCredentials()
+	cred, err := cm.createTransportCredentials(serviceName)
 	if err != nil {
 		return nil, err
 	}
@@ -162,8 +163,9 @@ func (cm *ClientManager) newClient(serviceName string) (*grpc.ClientConn, error)
 }
 
 // createTransportCredentials 创建传输凭证
-func (cm *ClientManager) createTransportCredentials() (credentials.TransportCredentials, error) {
-	if cm.config == nil || !cm.config.UseTLS {
+func (cm *ClientManager) createTransportCredentials(serviceName string) (credentials.TransportCredentials, error) {
+	// Admin 调用 User 时启用 mTLS；调用迁移名单内的服务时暂时使用明文连接。
+	if cm.config == nil || !cm.config.UseTLS || containsService(cm.config.PlaintextServices, serviceName) {
 		return insecure.NewCredentials(), nil
 	}
 	hasCert := strings.TrimSpace(cm.config.CertFile) != ""
@@ -172,9 +174,10 @@ func (cm *ClientManager) createTransportCredentials() (credentials.TransportCred
 		return nil, apperror.InvalidArgument("client certificate and private key must be configured together")
 	}
 	//读取证书和私钥
+	// 项目约定 Consul 服务名与服务端证书 DNS SAN 一致，例如 user-service。
 	tlsConfig := &tls.Config{
 		MinVersion:         tls.VersionTLS12,
-		ServerName:         strings.TrimSpace(cm.config.ServerName),
+		ServerName:         strings.TrimSpace(serviceName),
 		InsecureSkipVerify: cm.config.InsecureSkipVerify,
 	}
 	if cm.config.InsecureSkipVerify {
@@ -198,6 +201,15 @@ func (cm *ClientManager) createTransportCredentials() (credentials.TransportCred
 		tlsConfig.RootCAs = rootCAs
 	}
 	return credentials.NewTLS(tlsConfig), nil
+}
+
+func containsService(services []string, serviceName string) bool {
+	for _, candidate := range services {
+		if strings.EqualFold(strings.TrimSpace(candidate), strings.TrimSpace(serviceName)) {
+			return true
+		}
+	}
+	return false
 }
 
 // Close 阻止后续新建客户端连接，并关闭当前已存在的 ClientConn（

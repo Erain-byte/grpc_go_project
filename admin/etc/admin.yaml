@@ -121,10 +121,14 @@ grpc:
   tls_server_name: "admin-service"
   # 证书生成后，与 Gateway 的 grpc.use_tls 同时改为 true，启用内部 mTLS。
   use_tls: true
-  cert_file: "D:/grpc_go_project/admin/etc/certs/server.crt"
-  key_file: "D:/grpc_go_project/admin/etc/certs/server.key"
+  # 同一服务身份用于 Admin 入站以及 Admin 调用 User。
+  cert_file: "D:/grpc_go_project/certs/mtls/admin/service.crt"
+  key_file: "D:/grpc_go_project/certs/mtls/admin/service.key"
   # 与 Gateway 信任同一个 CA；配置此字段后 Admin 要求客户端提供有效证书。
-  client_ca_file: "D:/grpc_go_project/admin/etc/certs/ca.crt"
+  client_ca_file: "D:/grpc_go_project/certs/mtls/ca/ca.crt"
+  # 出站客户端直接使用目标 Consul 服务名校验证书 SAN。
+  plaintext_services:
+    - "llm-service"
   # 本地测试约定：服务证书有效期90天，CA有效期5年；实际日期在签发时确定。
 
 tracing:

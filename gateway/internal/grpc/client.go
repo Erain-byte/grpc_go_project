@@ -36,7 +36,8 @@ type GrpcConfig struct {
 	CertFile           string
 	KeyFile            string
 	CaFile             string
-	ServerName         string
+	// PlaintextServices 是尚未接入 TLS 的过渡服务名单；名单中的服务使用明文 gRPC 连接。
+	PlaintextServices []string
 }
 
 // 管理gRPC客户端连接状态通知管理器
@@ -142,7 +143,7 @@ func (cm *ClientManager) GetClient(ctx context.Context, serviceName string) (*gr
 }
 
 func (cm *ClientManager) newClient(serviceName string) (*grpc.ClientConn, error) {
-	creds, err := cm.createTransportCredentials()
+	creds, err := cm.createTransportCredentials(serviceName)
 	if err != nil {
 		return nil, err
 	}
@@ -170,8 +171,9 @@ func (cm *ClientManager) newClient(serviceName string) (*grpc.ClientConn, error)
 	return conn, nil
 }
 
-func (cm *ClientManager) createTransportCredentials() (credentials.TransportCredentials, error) {
-	if cm.config == nil || !cm.config.UseTLS {
+func (cm *ClientManager) createTransportCredentials(serviceName string) (credentials.TransportCredentials, error) {
+	// 全局未开启 TLS，或者目标服务仍处于明文迁移期时，不加载证书。
+	if cm.config == nil || !cm.config.UseTLS || containsService(cm.config.PlaintextServices, serviceName) {
 		return insecure.NewCredentials(), nil
 	}
 
@@ -181,9 +183,10 @@ func (cm *ClientManager) createTransportCredentials() (credentials.TransportCred
 		return nil, apperror.InvalidArgument("client certificate and private key must be configured together")
 	}
 
+	// 项目约定 Consul 服务名与服务端证书 DNS SAN 一致，因此直接使用目标服务名校验证书身份。
 	tlsConfig := &tls.Config{
 		MinVersion:         tls.VersionTLS12,
-		ServerName:         strings.TrimSpace(cm.config.ServerName),
+		ServerName:         strings.TrimSpace(serviceName),
 		InsecureSkipVerify: cm.config.InsecureSkipVerify,
 	}
 	if cm.config.InsecureSkipVerify {
@@ -209,6 +212,15 @@ func (cm *ClientManager) createTransportCredentials() (credentials.TransportCred
 	}
 
 	return credentials.NewTLS(tlsConfig), nil
+}
+
+func containsService(services []string, serviceName string) bool {
+	for _, candidate := range services {
+		if strings.EqualFold(strings.TrimSpace(candidate), strings.TrimSpace(serviceName)) {
+			return true
+		}
+	}
+	return false
 }
 
 func loadCertPool(path string) (*x509.CertPool, error) {

@@ -165,6 +165,10 @@ func serverTLS(cfg *config.GRPCConfig) (credentials.TransportCredentials, time.D
 	if err != nil {
 		return nil, remaining, err
 	}
+	// Consul 服务名必须与证书公共 SAN 一致；不一致时在启动阶段直接失败。
+	if err := verifyCertificateServerName(certificate, cfg.TLSServerName); err != nil {
+		return nil, remaining, err
+	}
 	//配置TLS
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{certificate},
@@ -192,6 +196,24 @@ func serverTLS(cfg *config.GRPCConfig) (credentials.TransportCredentials, time.D
 }
 
 // 判断证书过期时间
+func verifyCertificateServerName(certificate tls.Certificate, serverName string) error {
+	serverName = strings.TrimSpace(serverName)
+	if serverName == "" {
+		return errors.New("gRPC TLS server name is empty")
+	}
+	if len(certificate.Certificate) == 0 {
+		return errors.New("server TLS certificate chain is empty")
+	}
+	leaf, err := x509.ParseCertificate(certificate.Certificate[0])
+	if err != nil {
+		return fmt.Errorf("parse server TLS certificate: %w", err)
+	}
+	if err := leaf.VerifyHostname(serverName); err != nil {
+		return fmt.Errorf("server TLS certificate SAN does not match service name %q: %w", serverName, err)
+	}
+	return nil
+}
+
 func checkCertificateExpiration(cer tls.Certificate) (time.Duration, error) {
 	if len(cer.Certificate) == 0 {
 		return 0, errors.New("no certificate provided")

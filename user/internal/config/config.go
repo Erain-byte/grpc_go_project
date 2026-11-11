@@ -154,6 +154,7 @@ type GRPCConfig struct {
 	Health             GRPCHealthConfig `yaml:"health" mapstructure:"health"`
 	MaxRecvMessageSize int              `yaml:"max_recv_message_size" mapstructure:"max_recv_message_size"`
 	MaxSendMessageSize int              `yaml:"max_send_message_size" mapstructure:"max_send_message_size"`
+	PlaintextServices  []string         `yaml:"plaintext_services" mapstructure:"plaintext_services"`
 }
 
 type GRPCHealthConfig struct {

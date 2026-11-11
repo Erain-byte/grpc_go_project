@@ -9,6 +9,7 @@ import (
 	pbAdmin "github.com/Erain-byte/grpc_go_project/proto/admin/v1"
 	pbLlm "github.com/Erain-byte/grpc_go_project/proto/llm/v1"
 	pbUser "github.com/Erain-byte/grpc_go_project/proto/user/v1"
+	pbWeb3 "github.com/Erain-byte/grpc_go_project/proto/web3/v1"
 )
 
 // AdminForwarder 管理服务转发器
@@ -97,6 +98,47 @@ func (a *AdminForwarder) GetUserList(ctx context.Context, req *pbUser.GetUserLis
 		return nil, apperror.ToGRPC(err)
 	}
 	return client.GetUserList(ctx, req)
+}
+
+func (a *AdminForwarder) GetWeb3UsageSummary(ctx context.Context, req *pbWeb3.GetWeb3UsageSummaryRequest) (*pbWeb3.GetWeb3UsageSummaryResponse, error) {
+	client, err := a.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return client.GetWeb3UsageSummary(ctx, req)
+}
+
+func (a *AdminForwarder) GetWeb3RuntimeStatus(ctx context.Context, req *pbWeb3.GetWeb3RuntimeStatusRequest) (*pbWeb3.GetWeb3RuntimeStatusResponse, error) {
+	client, err := a.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return client.GetWeb3RuntimeStatus(ctx, req)
+}
+
+func (a *AdminForwarder) GetFeedbackList(ctx context.Context, req *pbWeb3.GetFeedbackListRequest) (*pbWeb3.GetFeedbackListResponse, error) {
+	if req == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("request is nil"))
+	}
+	client, err := a.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return client.GetFeedbackList(ctx, req)
+}
+
+func (a *AdminForwarder) client(ctx context.Context) (pbAdmin.AdminServiceClient, error) {
+	if ctx == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("context is nil"))
+	}
+	if a == nil || a.base == nil {
+		return nil, apperror.ToGRPC(apperror.InvalidArgument("admin forwarder is nil"))
+	}
+	client, err := a.base.GetClient(ctx)
+	if err != nil {
+		return nil, apperror.ToGRPC(err)
+	}
+	return client, nil
 }
 
 func (a *AdminForwarder) Chat(ctx context.Context, req *pbLlm.ChatRequest) (*pbLlm.ChatResponse, error) {

@@ -91,9 +91,13 @@ func getDSN(cfg config.DatabaseConfig, address string) string {
 	}
 	query := dsn.Query()
 	query.Set("sslmode", cfg.SSLMode)
-	query.Set("TimeZone", cfg.TimeZone)
+	// 使用小写 timezone，让 pgx 按 URL 查询参数完成解码，避免 GORM 将
+	// Asia%2FShanghai 原样作为 PostgreSQL 时区名称。
+	query.Set("timezone", cfg.TimeZone)
 	query.Set("connect_timeout", strconv.Itoa(int(math.Ceil(connectTimeout.Seconds()))))
-	dsn.RawQuery = query.Encode()
+	// GORM PostgreSQL 驱动会在把 DSN 交给 pgx 前读取 timezone；保留时区名中的
+	// 斜杠，避免它把 URL 编码后的 Asia%2FShanghai 当成真实时区名称。
+	dsn.RawQuery = strings.ReplaceAll(query.Encode(), "%2F", "/")
 	return dsn.String()
 }
 

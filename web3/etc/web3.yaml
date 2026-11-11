@@ -93,11 +93,11 @@ auth:
 
 # 入站 gRPC 与调用其他内部服务时使用的传输配置。
 grpc:
-  use_tls: false
+  use_tls: true
   tls_server_name: "web3-service"
-  cert_file: ""
-  key_file: ""
-  client_ca_file: ""
+  cert_file: "D:/grpc_go_project/certs/mtls/web3/server.crt"
+  key_file: "D:/grpc_go_project/certs/mtls/web3/server.key"
+  client_ca_file: "D:/grpc_go_project/certs/mtls/ca/ca.crt"
 
   health:
     enabled: true
@@ -173,6 +173,22 @@ tron_approvals:
   daily_query_limit: 10000
   daily_distinct_address_limit: 5000
   daily_upstream_call_limit: 250000
+
+# 仅包含允许通过 GetPublicWeb3Config 返回给匿名客户端的字段。
+product:
+  airdrop_enabled: false
+  favorite_limit: 3
+  minimum_refresh_interval: "60s"
+  client_event_rate_limit: 60
+  client_event_rate_window: "1m"
+  feedback_rate_limit: 5
+  feedback_rate_window: "1h"
+  support_email: ""
+  feedback_url: ""
+  testflight_url: ""
+  privacy_policy_version: "2026-11-09"
+  maintenance_message: ""
+  updated_at: "2026-11-09T00:00:00+08:00"
 
 logger:
   level: "info"
