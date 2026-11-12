@@ -23,7 +23,7 @@ database:
   enabled: true
   driver: "postgres"
   host: "127.0.0.1"
-  port: 5434
+  port: 5432
   username: "user_service"
   dbname: "user_service"
   ssl_mode: "disable"

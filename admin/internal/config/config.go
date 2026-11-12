@@ -14,22 +14,23 @@ import (
 
 // Config contains the long-lived configuration used by the Admin service.
 type Config struct {
-	Environment string           `yaml:"environment" mapstructure:"environment"`
-	Name        string           `yaml:"name" mapstructure:"name"`
-	Version     string           `yaml:"version" mapstructure:"version"`
-	Host        string           `yaml:"host" mapstructure:"host"`
-	GRPCPort    int              `yaml:"grpc_port" mapstructure:"grpc_port"`
-	Database    DatabaseConfig   `yaml:"database" mapstructure:"database"`
-	Redis       RedisConfig      `yaml:"redis" mapstructure:"redis"`
-	RabbitMQ    RabbitMQConfig   `yaml:"rabbitmq" mapstructure:"rabbitmq"`
-	Auth        AuthConfig       `yaml:"auth" mapstructure:"auth"`
-	Consul      ConsulConfig     `yaml:"consul" mapstructure:"consul"`
-	Logger      LoggerConfig     `yaml:"logger" mapstructure:"logger"`
-	Shutdown    ShutdownConfig   `yaml:"shutdown" mapstructure:"shutdown"`
-	GRPC        GRPCServerConfig `yaml:"grpc" mapstructure:"grpc"`
-	Tracing     TracingConfig    `yaml:"tracing" mapstructure:"tracing"`
-	RateLimit   RateLimitConfig  `yaml:"rate_limit" mapstructure:"rate_limit"`
-	Pprof       PprofConfig      `yaml:"pprof" mapstructure:"pprof"`
+	Environment   string           `yaml:"environment" mapstructure:"environment"`
+	Name          string           `yaml:"name" mapstructure:"name"`
+	Version       string           `yaml:"version" mapstructure:"version"`
+	Host          string           `yaml:"host" mapstructure:"host"`
+	AdvertiseHost string           `yaml:"advertise_host" mapstructure:"advertise_host"`
+	GRPCPort      int              `yaml:"grpc_port" mapstructure:"grpc_port"`
+	Database      DatabaseConfig   `yaml:"database" mapstructure:"database"`
+	Redis         RedisConfig      `yaml:"redis" mapstructure:"redis"`
+	RabbitMQ      RabbitMQConfig   `yaml:"rabbitmq" mapstructure:"rabbitmq"`
+	Auth          AuthConfig       `yaml:"auth" mapstructure:"auth"`
+	Consul        ConsulConfig     `yaml:"consul" mapstructure:"consul"`
+	Logger        LoggerConfig     `yaml:"logger" mapstructure:"logger"`
+	Shutdown      ShutdownConfig   `yaml:"shutdown" mapstructure:"shutdown"`
+	GRPC          GRPCServerConfig `yaml:"grpc" mapstructure:"grpc"`
+	Tracing       TracingConfig    `yaml:"tracing" mapstructure:"tracing"`
+	RateLimit     RateLimitConfig  `yaml:"rate_limit" mapstructure:"rate_limit"`
+	Pprof         PprofConfig      `yaml:"pprof" mapstructure:"pprof"`
 }
 
 // RabbitMQConfig 定义 Admin 服务的连接参数、发布确认、消费限速和操作日志拓扑。
@@ -272,6 +273,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("name", "admin-service")
 	v.SetDefault("version", "1.0.0")
 	v.SetDefault("host", "127.0.0.1")
+	v.SetDefault("advertise_host", "127.0.0.1")
 	v.SetDefault("grpc_port", 9081)
 	v.SetDefault("database.driver", "postgres")
 	v.SetDefault("database.ssl_mode", "disable")
@@ -319,17 +321,59 @@ func applyEnvironment(cfg *Config) {
 	if value := os.Getenv("ADMIN_ENVIRONMENT"); value != "" {
 		cfg.Environment = value
 	}
+	if value := os.Getenv("ADMIN_HOST"); value != "" {
+		cfg.Host = value
+	}
+	if value := os.Getenv("ADMIN_ADVERTISE_HOST"); value != "" {
+		cfg.AdvertiseHost = value
+	}
+	if value := os.Getenv("ADMIN_DB_HOST"); value != "" {
+		cfg.Database.Host = value
+	}
 	if value := os.Getenv("ADMIN_DB_PASSWORD"); value != "" {
 		cfg.Database.Password = value
+	}
+	if value := os.Getenv("ADMIN_REDIS_HOST"); value != "" {
+		cfg.Redis.Host = value
 	}
 	if value := os.Getenv("ADMIN_REDIS_PASSWORD"); value != "" {
 		cfg.Redis.Password = value
 	}
+	if value := os.Getenv("ADMIN_RABBITMQ_HOST"); value != "" {
+		cfg.RabbitMQ.Host = value
+	}
 	if value := os.Getenv("ADMIN_RABBITMQ_PASSWORD"); value != "" {
 		cfg.RabbitMQ.Password = value
 	}
+	if value := os.Getenv("ADMIN_AUTH_ISSUER"); value != "" {
+		cfg.Auth.AccessToken.Issuer = value
+	}
+	if value := os.Getenv("ADMIN_AUTH_JWKS_URL"); value != "" {
+		cfg.Auth.AccessToken.JWKSURL = value
+	}
+	if value := os.Getenv("ADMIN_KEYCLOAK_BASE_URL"); value != "" {
+		cfg.Auth.Management.BaseURL = value
+	}
+	if value := os.Getenv("ADMIN_CONSUL_HOST"); value != "" {
+		cfg.Consul.Host = value
+	}
+	if value := os.Getenv("ADMIN_CONSUL_CHECK_HOST"); value != "" {
+		cfg.Consul.CheckHost = value
+	}
 	if value := os.Getenv("ADMIN_CONSUL_TOKEN"); value != "" {
 		cfg.Consul.Token = value
+	}
+	if value := os.Getenv("ADMIN_GRPC_CERT_FILE"); value != "" {
+		cfg.GRPC.CertFile = value
+	}
+	if value := os.Getenv("ADMIN_GRPC_KEY_FILE"); value != "" {
+		cfg.GRPC.KeyFile = value
+	}
+	if value := os.Getenv("ADMIN_GRPC_CA_FILE"); value != "" {
+		cfg.GRPC.ClientCAFile = value
+	}
+	if value := os.Getenv("ADMIN_TRACING_ENDPOINT"); value != "" {
+		cfg.Tracing.Endpoint = value
 	}
 	if value := os.Getenv("ADMIN_KEYCLOAK_CLIENT_SECRET"); value != "" {
 		cfg.Auth.Management.ClientSecret = value

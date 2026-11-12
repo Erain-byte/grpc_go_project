@@ -823,10 +823,10 @@
                         "clientAuthenticatorType":  "client-secret",
                         "secret":  "${ADMIN_WEB_CLIENT_SECRET}",
                         "redirectUris":  [
-                                             "http://localhost:4181/oauth2/callback"
+                                             "${ADMIN_WEB_REDIRECT_URI:http://localhost:4181/oauth2/callback}"
                                          ],
                         "webOrigins":  [
-
+                                             "${ADMIN_WEB_ORIGIN:http://localhost:3000}"
                                        ],
                         "notBefore":  0,
                         "bearerOnly":  false,
@@ -845,7 +845,7 @@
                                            "backchannel.logout.session.required":  "true",
                                            "oauth2.jwt.authorization.grant.enabled":  "false",
                                            "standard.token.exchange.enabled":  "false",
-                                           "post.logout.redirect.uris":  "http://localhost:4181/*",
+                                           "post.logout.redirect.uris":  "${ADMIN_WEB_POST_LOGOUT_URI:http://localhost:4181/*}",
                                            "oauth2.device.authorization.grant.enabled":  "false",
                                            "backchannel.logout.revoke.offline.tokens":  "false",
                                            "dpop.bound.access.tokens":  "false"

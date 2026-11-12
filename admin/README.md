@@ -2,17 +2,18 @@
 
 ## PostgreSQL 配置
 
-Admin 业务数据库已经统一为 PostgreSQL。独立容器、环境变量和生产模板见 `deploy/postgres-admin/README.md`。本地默认连接 `127.0.0.1:5433`，数据库名为 `admin`，用户为 `admin_service`，密码只通过 `ADMIN_DB_PASSWORD` 注入。
+Admin 业务数据库使用项目共享 PostgreSQL 实例中的独立 `admin` 数据库和 `admin_service` 账号。部署说明见 `deploy/postgresql/README.md`。本地默认连接 `127.0.0.1:5432`，密码只通过 `ADMIN_DB_PASSWORD` 注入。
 
 ```powershell
 cd D:\grpc_go_project
-Copy-Item deploy\postgres-admin\.env.example deploy\postgres-admin\.env
+Copy-Item deploy\postgresql\.env.example deploy\postgresql\.env
 docker network create grpc-go-admin-database
 docker volume create grpc-go-admin-postgres-data
-docker compose --env-file deploy\postgres-admin\.env -f deploy\postgres-admin\compose.yaml up -d
+docker compose --env-file deploy\postgresql\.env -f deploy\postgresql\compose.yaml up -d
+docker compose --env-file deploy\postgresql\.env -f deploy\postgresql\compose.yaml exec postgres /opt/grpc-go/create-service-databases.sh
 
 cd admin
-$env:ADMIN_DB_PASSWORD = "与 deploy/postgres-admin/.env 相同的密码"
+$env:ADMIN_DB_PASSWORD = "与 deploy/postgresql/.env 中 ADMIN_DB_PASSWORD 相同"
 go run ./cmd/migrate -f etc/admin.yaml
 go run ./cmd/admin -f etc/admin.yaml
 ```
@@ -29,7 +30,7 @@ gRPC: 127.0.0.1:9082
 
 ### 初始化数据库表结构
 
-数据库由 `deploy/postgres-admin` 创建，当前本地配置使用数据库 `admin` 和用户 `admin_service`。密码只通过环境变量提供，不写入 YAML：
+数据库由 `deploy/postgresql` 中的共享 PostgreSQL 创建，当前配置使用数据库 `admin` 和用户 `admin_service`。密码只通过环境变量提供，不写入 YAML：
 
 ```powershell
 cd D:\grpc_go_project\admin

@@ -289,8 +289,47 @@ func applyEnvOverrides(cfg *Config) {
 	if v := os.Getenv("GATEWAY_ENVIRONMENT"); v != "" {
 		cfg.Environment = v
 	}
+	if v := os.Getenv("GATEWAY_HOST"); v != "" {
+		cfg.Host = v
+	}
+	if v := os.Getenv("GATEWAY_ADVERTISE_HOST"); v != "" {
+		cfg.AdvertiseHost = v
+	}
+	if v := os.Getenv("GATEWAY_REDIS_HOST"); v != "" {
+		cfg.Redis.Host = v
+	}
 	if v := os.Getenv("GATEWAY_REDIS_PASSWORD"); v != "" {
 		cfg.Redis.Password = v
+	}
+	if v := os.Getenv("GATEWAY_AUTH_ISSUER"); v != "" {
+		cfg.Auth.AccessToken.Issuers = []string{v}
+	}
+	if v := os.Getenv("GATEWAY_AUTH_JWKS_URL"); v != "" {
+		cfg.Auth.AccessToken.JWKSURL = v
+	}
+	if v := os.Getenv("GATEWAY_CONSUL_HOST"); v != "" {
+		cfg.Consul.Host = v
+	}
+	if v := os.Getenv("GATEWAY_CONSUL_TOKEN"); v != "" {
+		cfg.Consul.Token = v
+	}
+	if v := os.Getenv("GATEWAY_CONSUL_CHECK_HOST"); v != "" {
+		cfg.Consul.CheckHost = v
+	}
+	if v := os.Getenv("GATEWAY_GRPC_CERT_FILE"); v != "" {
+		cfg.Grpc.CertFile = v
+		cfg.GRPCServer.CertFile = v
+	}
+	if v := os.Getenv("GATEWAY_GRPC_KEY_FILE"); v != "" {
+		cfg.Grpc.KeyFile = v
+		cfg.GRPCServer.KeyFile = v
+	}
+	if v := os.Getenv("GATEWAY_GRPC_CA_FILE"); v != "" {
+		cfg.Grpc.CaFile = v
+		cfg.GRPCServer.ClientCAFile = v
+	}
+	if v := os.Getenv("GATEWAY_TRACING_ENDPOINT"); v != "" {
+		cfg.Tracing.Endpoint = v
 	}
 	if v := os.Getenv("GATEWAY_ANTI_REPLAY_SECRET"); v != "" {
 		cfg.AntiReplay.Secret = v

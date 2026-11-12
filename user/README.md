@@ -4,17 +4,18 @@
 
 User 使用独立 PostgreSQL，固定创建 `users_00` 至 `users_07` 八张用户表，并使用不分片的 `user_identity_index` 将 Keycloak `sub` 路由到具体用户表。User 数据库不保存 Keycloak 登录密码。
 
-先启动 `deploy/postgres-user`，然后给迁移程序设置相同密码：
+先启动 `deploy/postgresql` 中的共享 PostgreSQL，并创建业务数据库，然后给迁移程序设置相同密码：
 
 ```powershell
 cd D:\grpc_go_project
 docker network create grpc-go-user-database
 docker volume create grpc-go-user-postgres-data
-Copy-Item deploy\postgres-user\.env.example deploy\postgres-user\.env
-docker compose --env-file deploy\postgres-user\.env -f deploy\postgres-user\compose.yaml up -d
+Copy-Item deploy\postgresql\.env.example deploy\postgresql\.env
+docker compose --env-file deploy\postgresql\.env -f deploy\postgresql\compose.yaml up -d
+docker compose --env-file deploy\postgresql\.env -f deploy\postgresql\compose.yaml exec postgres /opt/grpc-go/create-service-databases.sh
 
 cd user
-$env:USER_DB_PASSWORD = "与 deploy/postgres-user/.env 相同的密码"
+$env:USER_DB_PASSWORD = "与 deploy/postgresql/.env 中 USER_DB_PASSWORD 相同"
 go run ./cmd/migrate -f etc/user.yaml
 ```
 

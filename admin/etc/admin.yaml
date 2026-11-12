@@ -3,12 +3,13 @@ environment: "development"
 name: "admin-service"
 version: "1.0.0"
 host: "127.0.0.1"
+advertise_host: "127.0.0.1"
 grpc_port: 9082
 
 database:
   driver: "postgres"
   host: "127.0.0.1"
-  port: 5433
+  port: 5432
   username: "admin_service"
  
   dbname: "admin"

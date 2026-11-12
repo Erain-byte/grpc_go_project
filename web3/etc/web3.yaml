@@ -17,7 +17,7 @@ database:
   enabled: true
   driver: "postgres"
   host: "127.0.0.1"
-  port: 5436
+  port: 5432
   username: "web3_service"
   dbname: "web3_service"
   ssl_mode: "disable"

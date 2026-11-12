@@ -1,0 +1,45 @@
+# Standalone production template. It is loaded only when explicitly selected.
+name: grpc-go-postgresql-prod
+
+services:
+  postgres:
+    container_name: grpc-go-postgres
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?set KEYCLOAK_DB_PASSWORD}
+      ADMIN_DB_PASSWORD: ${ADMIN_DB_PASSWORD:-}
+      USER_DB_PASSWORD: ${USER_DB_PASSWORD:-}
+      LLM_DB_PASSWORD: ${LLM_DB_PASSWORD:-}
+      WEB3_DB_PASSWORD: ${WEB3_DB_PASSWORD:-}
+    volumes:
+      # 保留历史 Volume 物理名称；已经存在数据时绝不能直接改名。
+      - postgres-data-prod:/var/lib/postgresql/data
+      - ./scripts/create-service-databases.sh:/opt/grpc-go/create-service-databases.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      identity-prod:
+        aliases:
+          - postgres
+      backend-prod:
+        aliases:
+          - postgres
+
+networks:
+  identity-prod:
+    name: grpc-go-identity-prod
+    external: true
+  backend-prod:
+    name: grpc-go-backend-prod
+    external: true
+
+volumes:
+  postgres-data-prod:
+    name: grpc-go-keycloak-postgres-prod

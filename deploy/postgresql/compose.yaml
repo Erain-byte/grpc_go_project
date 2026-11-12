@@ -1,0 +1,48 @@
+name: grpc-go-postgresql
+
+services:
+  postgres:
+    container_name: grpc-go-postgres
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?set KEYCLOAK_DB_PASSWORD}
+      ADMIN_DB_PASSWORD: ${ADMIN_DB_PASSWORD:-}
+      USER_DB_PASSWORD: ${USER_DB_PASSWORD:-}
+      LLM_DB_PASSWORD: ${LLM_DB_PASSWORD:-}
+      WEB3_DB_PASSWORD: ${WEB3_DB_PASSWORD:-}
+    ports:
+      # 本机 Go 服务统一通过该端口连接同一个 PostgreSQL 实例。
+      - "127.0.0.1:5432:5432"
+    volumes:
+      # 沿用历史 Volume 物理名称，避免现有 Keycloak 数据丢失。
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/create-service-databases.sh:/opt/grpc-go/create-service-databases.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks:
+      identity:
+        aliases:
+          - postgres
+      backend:
+        aliases:
+          - postgres
+
+networks:
+  identity:
+    name: grpc-go-identity
+    external: true
+  backend:
+    name: grpc-go-backend
+    external: true
+
+volumes:
+  postgres-data:
+    name: identity_keycloak-postgres-data
+    external: true

@@ -245,7 +245,7 @@ func Run() error {
 	//grpc注册consul
 	if err := consulClenit.RegisterGRPC(
 		cfg.Name,
-		cfg.Host,
+		cfg.AdvertiseHost,
 		cfg.GRPCPort,
 		cfg.GRPC.UseTLS,
 		cfg.GRPC.TLSServerName,
@@ -315,7 +315,7 @@ func Run() error {
 	}
 	//注销GRPC
 	stopRegistration()
-	deregisterErr := consulClenit.DeregisterGRPC(cfg.Name, cfg.Host, cfg.GRPCPort)
+	deregisterErr := consulClenit.DeregisterGRPC(cfg.Name, cfg.AdvertiseHost, cfg.GRPCPort)
 	if deregisterErr != nil {
 		logger.SugaredLogger.Errorf("Failed to deregister grpc server: %v", deregisterErr)
 		runErr = errors.Join(runErr, deregisterErr)

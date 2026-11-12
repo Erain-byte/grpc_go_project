@@ -318,17 +318,53 @@ func applyEnvironment(cfg *Config) error {
 	if value := os.Getenv("USER_ENVIRONMENT"); value != "" {
 		cfg.Environment = value
 	}
+	if value := os.Getenv("USER_ADVERTISE_HOST"); value != "" {
+		cfg.AdvertiseHost = value
+	}
+	if value := os.Getenv("USER_DB_HOST"); value != "" {
+		cfg.Database.Host = value
+	}
 	if value := os.Getenv("USER_DB_PASSWORD"); value != "" {
 		cfg.Database.Password = value
+	}
+	if value := os.Getenv("USER_REDIS_HOST"); value != "" {
+		cfg.Redis.Host = value
 	}
 	if value := os.Getenv("USER_REDIS_PASSWORD"); value != "" {
 		cfg.Redis.Password = value
 	}
+	if value := os.Getenv("USER_RABBITMQ_HOST"); value != "" {
+		cfg.RabbitMQ.Host = value
+	}
 	if value := os.Getenv("USER_RABBITMQ_PASSWORD"); value != "" {
 		cfg.RabbitMQ.Password = value
 	}
+	if value := os.Getenv("USER_AUTH_ISSUER"); value != "" {
+		cfg.Auth.AccessToken.Issuer = value
+	}
+	if value := os.Getenv("USER_AUTH_JWKS_URL"); value != "" {
+		cfg.Auth.AccessToken.JWKSURL = value
+	}
+	if value := os.Getenv("USER_CONSUL_HOST"); value != "" {
+		cfg.Consul.Host = value
+	}
+	if value := os.Getenv("USER_CONSUL_CHECK_HOST"); value != "" {
+		cfg.Consul.CheckHost = value
+	}
 	if value := os.Getenv("USER_CONSUL_TOKEN"); value != "" {
 		cfg.Consul.Token = value
+	}
+	if value := os.Getenv("USER_GRPC_CERT_FILE"); value != "" {
+		cfg.GRPC.CertFile = value
+	}
+	if value := os.Getenv("USER_GRPC_KEY_FILE"); value != "" {
+		cfg.GRPC.KeyFile = value
+	}
+	if value := os.Getenv("USER_GRPC_CA_FILE"); value != "" {
+		cfg.GRPC.ClientCAFile = value
+	}
+	if value := os.Getenv("USER_TRACING_ENDPOINT"); value != "" {
+		cfg.Tracing.Endpoint = value
 	}
 	if value := os.Getenv("USER_SNOWFLAKE_NODE_ID"); value != "" {
 		nodeID, err := strconv.ParseInt(value, 10, 64)

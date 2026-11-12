@@ -1,0 +1,25 @@
+# Production images only need the four Go modules and their Dockerfiles.
+# Start by excluding everything, then explicitly reopen required directories.
+**
+
+!gateway/
+!gateway/**
+!admin/
+!admin/**
+!user/
+!user/**
+!web3/
+!web3/**
+
+!deploy/
+deploy/**
+!deploy/production/
+deploy/production/**
+!deploy/production/docker/
+!deploy/production/docker/**
+
+# Local runtime artifacts inside the reopened module directories.
+**/logs/
+**/.gocache/
+**/.gotmp/
+

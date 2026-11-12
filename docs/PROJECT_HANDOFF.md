@@ -31,10 +31,7 @@ User 固定 8 表和 LLM PostgreSQL 月份分区方案见
 | 组件 | 目录 | 主要端口 |
 |---|---|---|
 | Keycloak | `deploy/identity` | 8180、9000 |
-| Keycloak PostgreSQL | `deploy/postgres-keycloak` | 仅 Docker 内部 5432 |
-| Admin PostgreSQL | `deploy/postgres-admin` | `127.0.0.1:5433` |
-| User PostgreSQL | `deploy/postgres-user` | `127.0.0.1:5434` |
-| LLM PostgreSQL | `deploy/postgres-llm` | `127.0.0.1:5435` |
+| 共享 PostgreSQL | `deploy/postgresql` | 本机 `127.0.0.1:5432`；容器 `postgres:5432` |
 | Redis | `deploy/redis` | 6379 |
 | Consul | `deploy/consul` | 8500、8600 |
 | RabbitMQ | `deploy/rabbitmq` | 5672、15672 |
@@ -46,7 +43,7 @@ User 固定 8 表和 LLM PostgreSQL 月份分区方案见
 
 ```powershell
 docker compose -f deploy/redis/compose.yaml up -d
-docker compose --env-file deploy/postgres-keycloak/.env -f deploy/postgres-keycloak/compose.yaml up -d
+docker compose --env-file deploy/postgresql/.env -f deploy/postgresql/compose.yaml up -d
 docker compose -f deploy/consul/compose.yaml up -d
 docker compose --env-file deploy/rabbitmq/.env -f deploy/rabbitmq/compose.yaml up -d
 docker compose -f deploy/jaeger/compose.yaml up -d
@@ -55,7 +52,7 @@ docker compose -f deploy/identity/compose.yaml up -d
 
 ## 4. Keycloak 当前配置
 
-- Keycloak 版本：26.7.3；独立数据库：PostgreSQL 17。
+- Keycloak 版本：26.7.3；与业务服务共享 PostgreSQL 17 实例，但使用独立数据库和账号。
 - Realm：`grpc-project`。
 - Realm Roles：`user`、`admin`、`super-admin`。
 - Clients：`grpc-api`、`user-web`、`admin-web`。
@@ -98,9 +95,10 @@ Gateway 必须：
 
 ## 8. 数据所有权
 
-- Keycloak PostgreSQL：只保存 Keycloak 身份数据。
-- Admin MySQL：Admin 自己的业务数据。
-- User MySQL：User 自己的业务资料，以 Keycloak `sub` 作为外部身份唯一键。
+- `keycloak` 数据库：只保存 Keycloak 身份数据。
+- `admin` 数据库：Admin 自己的业务数据。
+- `user_service` 数据库：User 自己的业务资料，以 Keycloak `sub` 作为外部身份唯一键。
+- `llm_service` 与 `web3_service` 数据库分别归对应服务所有。
 - Redis：短期状态与缓存。
 - RabbitMQ：异步消息和操作日志。
 

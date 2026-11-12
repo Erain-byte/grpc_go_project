@@ -1,0 +1,458 @@
+name: grpc-go-production
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: grpc-go-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?set KEYCLOAK_DB_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks: [backend]
+
+  postgres-init:
+    image: postgres:17
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGPASSWORD: ${KEYCLOAK_DB_PASSWORD:?set KEYCLOAK_DB_PASSWORD}
+      POSTGRES_USER: keycloak
+      ADMIN_DB_PASSWORD: ${ADMIN_DB_PASSWORD:?set ADMIN_DB_PASSWORD}
+      USER_DB_PASSWORD: ${USER_DB_PASSWORD:?set USER_DB_PASSWORD}
+      LLM_DB_PASSWORD: ${LLM_DB_PASSWORD:?set LLM_DB_PASSWORD}
+      WEB3_DB_PASSWORD: ${WEB3_DB_PASSWORD:?set WEB3_DB_PASSWORD}
+    volumes:
+      - ../postgresql/scripts/create-service-databases.sh:/opt/grpc-go/create-service-databases.sh:ro
+    entrypoint: ["/bin/bash", "/opt/grpc-go/create-service-databases.sh"]
+    networks: [backend]
+
+  redis:
+    image: redis:8.2.10-alpine
+    container_name: grpc-go-redis
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD}
+    command:
+      - sh
+      - -c
+      - exec redis-server --appendonly yes --appendfsync everysec --requirepass "$${REDIS_PASSWORD}"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$$REDIS_PASSWORD\" ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks: [backend]
+
+  rabbitmq:
+    image: rabbitmq:4.3.5-management
+    container_name: grpc-go-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: grpc_app
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?set RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: /grpc-go
+    ports:
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks: [backend]
+
+  consul:
+    image: hashicorp/consul:1.21
+    container_name: grpc-go-consul
+    restart: unless-stopped
+    command:
+      - agent
+      - -server
+      - -ui
+      - -node=consul-server-1
+      - -bootstrap-expect=1
+      - -client=0.0.0.0
+      - -data-dir=/consul/data
+      - -config-file=/consul/config/health-tls.hcl
+    ports:
+      - "127.0.0.1:8500:8500"
+    volumes:
+      - consul-data:/consul/data
+      - ../consul/health-tls.hcl:/consul/config/health-tls.hcl:ro
+      - ${MTLS_CERTS_DIR:?set MTLS_CERTS_DIR}/ca/ca.crt:/consul/certs/ca.crt:ro
+      - ${MTLS_CERTS_DIR:?set MTLS_CERTS_DIR}/consul/client.crt:/consul/certs/client.crt:ro
+      - ${MTLS_CERTS_DIR:?set MTLS_CERTS_DIR}/consul/client.key:/consul/certs/client.key:ro
+    healthcheck:
+      test: ["CMD", "consul", "members", "-http-addr=http://127.0.0.1:8500"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks: [backend]
+
+  consul-init:
+    image: hashicorp/consul:1.21
+    restart: "no"
+    depends_on:
+      consul:
+        condition: service_healthy
+    environment:
+      USER_WEB_ORIGIN: ${USER_WEB_ORIGIN:?set USER_WEB_ORIGIN}
+      ADMIN_WEB_ORIGIN: ${ADMIN_WEB_ORIGIN:?set ADMIN_WEB_ORIGIN}
+    volumes:
+      - ./consul/gateway-runtime.template.json:/config/gateway-runtime.template.json:ro
+      - ../consul/kv/admin-runtime.json:/config/admin-runtime.json:ro
+    entrypoint: ["/bin/sh", "-ec"]
+    command: |
+      sed \
+        -e "s|__USER_WEB_ORIGIN__|$${USER_WEB_ORIGIN}|g" \
+        -e "s|__ADMIN_WEB_ORIGIN__|$${ADMIN_WEB_ORIGIN}|g" \
+        /config/gateway-runtime.template.json >/tmp/gateway-runtime.json
+      consul kv put -http-addr=http://consul:8500 grpc-go/config/gateway/runtime @/tmp/gateway-runtime.json
+      consul kv put -http-addr=http://consul:8500 grpc-go/config/admin/runtime @/config/admin-runtime.json
+    networks: [backend]
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.76.0
+    container_name: grpc-go-jaeger
+    restart: unless-stopped
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "127.0.0.1:16686:16686"
+    networks: [backend]
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.3
+    container_name: grpc-go-keycloak
+    restart: unless-stopped
+    command: start --import-realm
+    depends_on:
+      postgres-init:
+        condition: service_completed_successfully
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?set KEYCLOAK_DB_PASSWORD}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_BOOTSTRAP_ADMIN_USERNAME:?set KEYCLOAK_BOOTSTRAP_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD:?set KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD}
+      KC_HOSTNAME: ${KEYCLOAK_PUBLIC_URL:?set KEYCLOAK_PUBLIC_URL}
+      KC_HOSTNAME_STRICT: "true"
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      USER_WEB_CLIENT_SECRET: ${USER_WEB_CLIENT_SECRET:?set USER_WEB_CLIENT_SECRET}
+      ADMIN_WEB_CLIENT_SECRET: ${ADMIN_WEB_CLIENT_SECRET:?set ADMIN_WEB_CLIENT_SECRET}
+      ADMIN_WEB_REDIRECT_URI: ${ADMIN_BFF_PUBLIC_URL:?set ADMIN_BFF_PUBLIC_URL}/oauth2/callback
+      ADMIN_WEB_POST_LOGOUT_URI: ${ADMIN_BFF_PUBLIC_URL}/*
+      ADMIN_WEB_ORIGIN: ${ADMIN_WEB_ORIGIN:?set ADMIN_WEB_ORIGIN}
+    ports:
+      - "${PUBLIC_BIND_ADDRESS:-127.0.0.1}:8180:8080"
+      - "127.0.0.1:9000:9000"
+    volumes:
+      - ../identity/realm/grpc-project-realm.template.json:/opt/keycloak/data/import/grpc-project-realm.json:ro
+    networks: [backend]
+
+  gateway:
+    image: ${IMAGE_PREFIX:-grpc-go}/gateway:${IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: deploy/production/docker/gateway.Dockerfile
+      args:
+        GO_VERSION: ${GO_VERSION:-1.26.2}
+    container_name: grpc-go-gateway
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      consul-init:
+        condition: service_completed_successfully
+      jaeger:
+        condition: service_started
+      keycloak:
+        condition: service_started
+    environment:
+      GATEWAY_ENVIRONMENT: production
+      GATEWAY_HOST: 0.0.0.0
+      GATEWAY_ADVERTISE_HOST: gateway
+      GATEWAY_REDIS_HOST: redis
+      GATEWAY_REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD}
+      GATEWAY_AUTH_ISSUER: ${KEYCLOAK_PUBLIC_URL:?set KEYCLOAK_PUBLIC_URL}/realms/grpc-project
+      GATEWAY_AUTH_JWKS_URL: http://keycloak:8080/realms/grpc-project/protocol/openid-connect/certs
+      GATEWAY_CONSUL_HOST: consul
+      GATEWAY_CONSUL_TOKEN: ${GATEWAY_CONSUL_TOKEN:-}
+      GATEWAY_CONSUL_CHECK_HOST: gateway
+      GATEWAY_GRPC_CERT_FILE: /run/certs/gateway/service.crt
+      GATEWAY_GRPC_KEY_FILE: /run/certs/gateway/service.key
+      GATEWAY_GRPC_CA_FILE: /run/certs/ca/ca.crt
+      GATEWAY_TRACING_ENDPOINT: jaeger:4317
+      GATEWAY_ANTI_REPLAY_SECRET: ${GATEWAY_ANTI_REPLAY_SECRET:?set GATEWAY_ANTI_REPLAY_SECRET}
+    ports:
+      - "${PUBLIC_BIND_ADDRESS:-127.0.0.1}:9080:9080"
+    volumes:
+      - ../../gateway/etc/gateway.yaml:/app/etc/gateway.yaml:ro
+      - ${MTLS_CERTS_DIR}/ca:/run/certs/ca:ro
+      - ${MTLS_CERTS_DIR}/gateway:/run/certs/gateway:ro
+      - gateway-logs:/app/logs
+    networks: [backend]
+
+  admin:
+    image: ${IMAGE_PREFIX:-grpc-go}/admin:${IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: deploy/production/docker/admin.Dockerfile
+      args:
+        GO_VERSION: ${GO_VERSION:-1.26.2}
+    container_name: grpc-go-admin
+    restart: unless-stopped
+    depends_on:
+      postgres-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      consul-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    environment:
+      ADMIN_ENVIRONMENT: production
+      ADMIN_HOST: 0.0.0.0
+      ADMIN_ADVERTISE_HOST: admin
+      ADMIN_DB_HOST: postgres
+      ADMIN_DB_PASSWORD: ${ADMIN_DB_PASSWORD:?set ADMIN_DB_PASSWORD}
+      ADMIN_REDIS_HOST: redis
+      ADMIN_REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD}
+      ADMIN_RABBITMQ_HOST: rabbitmq
+      ADMIN_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?set RABBITMQ_PASSWORD}
+      ADMIN_AUTH_ISSUER: ${KEYCLOAK_PUBLIC_URL}/realms/grpc-project
+      ADMIN_AUTH_JWKS_URL: http://keycloak:8080/realms/grpc-project/protocol/openid-connect/certs
+      ADMIN_KEYCLOAK_BASE_URL: http://keycloak:8080
+      ADMIN_KEYCLOAK_CLIENT_SECRET: ${ADMIN_KEYCLOAK_CLIENT_SECRET:-}
+      ADMIN_CONSUL_HOST: consul
+      ADMIN_CONSUL_CHECK_HOST: admin
+      ADMIN_GRPC_CERT_FILE: /run/certs/admin/service.crt
+      ADMIN_GRPC_KEY_FILE: /run/certs/admin/service.key
+      ADMIN_GRPC_CA_FILE: /run/certs/ca/ca.crt
+      ADMIN_TRACING_ENDPOINT: jaeger:4317
+    volumes:
+      - ../../admin/etc/admin.yaml:/app/etc/admin.yaml:ro
+      - ${MTLS_CERTS_DIR}/ca:/run/certs/ca:ro
+      - ${MTLS_CERTS_DIR}/admin:/run/certs/admin:ro
+      - admin-logs:/app/logs
+    networks: [backend]
+
+  user:
+    image: ${IMAGE_PREFIX:-grpc-go}/user:${IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: deploy/production/docker/user.Dockerfile
+      args:
+        GO_VERSION: ${GO_VERSION:-1.26.2}
+    container_name: grpc-go-user
+    restart: unless-stopped
+    depends_on:
+      postgres-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      consul-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    environment:
+      USER_ENVIRONMENT: production
+      USER_ADVERTISE_HOST: user
+      USER_DB_HOST: postgres
+      USER_DB_PASSWORD: ${USER_DB_PASSWORD:?set USER_DB_PASSWORD}
+      USER_REDIS_HOST: redis
+      USER_REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD}
+      USER_RABBITMQ_HOST: rabbitmq
+      USER_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?set RABBITMQ_PASSWORD}
+      USER_AUTH_ISSUER: ${KEYCLOAK_PUBLIC_URL}/realms/grpc-project
+      USER_AUTH_JWKS_URL: http://keycloak:8080/realms/grpc-project/protocol/openid-connect/certs
+      USER_CONSUL_HOST: consul
+      USER_CONSUL_CHECK_HOST: user
+      USER_GRPC_CERT_FILE: /run/certs/user/service.crt
+      USER_GRPC_KEY_FILE: /run/certs/user/service.key
+      USER_GRPC_CA_FILE: /run/certs/ca/ca.crt
+      USER_TRACING_ENDPOINT: jaeger:4317
+      USER_SNOWFLAKE_NODE_ID: ${USER_SNOWFLAKE_NODE_ID:-1}
+    volumes:
+      - ../../user/etc/user.yaml:/app/etc/user.yaml:ro
+      - ${MTLS_CERTS_DIR}/ca:/run/certs/ca:ro
+      - ${MTLS_CERTS_DIR}/user:/run/certs/user:ro
+      - user-logs:/app/logs
+    networks: [backend]
+
+  web3:
+    image: ${IMAGE_PREFIX:-grpc-go}/web3:${IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: deploy/production/docker/web3.Dockerfile
+      args:
+        GO_VERSION: ${GO_VERSION:-1.26.2}
+    container_name: grpc-go-web3
+    restart: unless-stopped
+    depends_on:
+      postgres-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      consul-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    environment:
+      WEB3_ENVIRONMENT: production
+      WEB3_ADVERTISE_HOST: web3
+      WEB3_DB_HOST: postgres
+      WEB3_DB_PASSWORD: ${WEB3_DB_PASSWORD:?set WEB3_DB_PASSWORD}
+      WEB3_REDIS_HOST: redis
+      WEB3_REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD}
+      WEB3_RABBITMQ_HOST: rabbitmq
+      WEB3_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?set RABBITMQ_PASSWORD}
+      WEB3_AUTH_ISSUER: ${KEYCLOAK_PUBLIC_URL}/realms/grpc-project
+      WEB3_AUTH_JWKS_URL: http://keycloak:8080/realms/grpc-project/protocol/openid-connect/certs
+      WEB3_CONSUL_HOST: consul
+      WEB3_CONSUL_CHECK_HOST: web3
+      WEB3_GRPC_CERT_FILE: /run/certs/web3/server.crt
+      WEB3_GRPC_KEY_FILE: /run/certs/web3/server.key
+      WEB3_GRPC_CA_FILE: /run/certs/ca/ca.crt
+      WEB3_TRACING_ENDPOINT: jaeger:4317
+      WEB3_TRON_API_KEY: ${WEB3_TRON_API_KEY:-}
+      WEB3_TRON_USAGE_HMAC_KEY: ${WEB3_TRON_USAGE_HMAC_KEY:?set WEB3_TRON_USAGE_HMAC_KEY}
+    volumes:
+      - ../../web3/etc/web3.yaml:/app/etc/web3.yaml:ro
+      - ${MTLS_CERTS_DIR}/ca:/run/certs/ca:ro
+      - ${MTLS_CERTS_DIR}/web3:/run/certs/web3:ro
+      - web3-logs:/app/logs
+    networks: [backend]
+
+  admin-oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.5
+    container_name: grpc-go-admin-oauth2-proxy
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+      keycloak:
+        condition: service_started
+    environment:
+      OAUTH2_PROXY_PROVIDER: keycloak-oidc
+      OAUTH2_PROXY_CLIENT_ID: admin-web
+      OAUTH2_PROXY_CLIENT_SECRET: ${ADMIN_WEB_CLIENT_SECRET:?set ADMIN_WEB_CLIENT_SECRET}
+      OAUTH2_PROXY_COOKIE_SECRET: ${ADMIN_COOKIE_SECRET:?set ADMIN_COOKIE_SECRET}
+      OAUTH2_PROXY_COOKIE_NAME: _grpc_admin_session
+      OAUTH2_PROXY_COOKIE_SECURE: ${OAUTH2_COOKIE_SECURE:-true}
+      OAUTH2_PROXY_COOKIE_HTTPONLY: "true"
+      OAUTH2_PROXY_COOKIE_SAMESITE: lax
+      OAUTH2_PROXY_COOKIE_REFRESH: 4m
+      OAUTH2_PROXY_COOKIE_EXPIRE: 30m
+      OAUTH2_PROXY_SESSION_STORE_TYPE: redis
+      OAUTH2_PROXY_REDIS_CONNECTION_URL: redis://redis:6379
+      OAUTH2_PROXY_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4181
+      OAUTH2_PROXY_REDIRECT_URL: ${ADMIN_BFF_PUBLIC_URL:?set ADMIN_BFF_PUBLIC_URL}/oauth2/callback
+      OAUTH2_PROXY_OIDC_ISSUER_URL: ${KEYCLOAK_PUBLIC_URL}/realms/grpc-project
+      OAUTH2_PROXY_SKIP_OIDC_DISCOVERY: "true"
+      OAUTH2_PROXY_LOGIN_URL: ${KEYCLOAK_PUBLIC_URL}/realms/grpc-project/protocol/openid-connect/auth
+      OAUTH2_PROXY_REDEEM_URL: http://keycloak:8080/realms/grpc-project/protocol/openid-connect/token
+      OAUTH2_PROXY_OIDC_JWKS_URL: http://keycloak:8080/realms/grpc-project/protocol/openid-connect/certs
+      OAUTH2_PROXY_SKIP_CLAIMS_FROM_PROFILE_URL: "true"
+      OAUTH2_PROXY_SCOPE: openid profile email grpc-api-audience
+      OAUTH2_PROXY_OIDC_EXTRA_AUDIENCES: grpc-api
+      OAUTH2_PROXY_EMAIL_DOMAINS: "*"
+      OAUTH2_PROXY_ALLOWED_ROLES: admin,super-admin
+      OAUTH2_PROXY_CODE_CHALLENGE_METHOD: S256
+      OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
+      OAUTH2_PROXY_SKIP_AUTH_PREFLIGHT: "true"
+      OAUTH2_PROXY_BACKEND_LOGOUT_URL: http://keycloak:8080/realms/grpc-project/protocol/openid-connect/logout?id_token_hint={id_token}
+      OAUTH2_PROXY_PASS_ACCESS_TOKEN: "true"
+      OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
+      OAUTH2_PROXY_SET_AUTHORIZATION_HEADER: "true"
+      OAUTH2_PROXY_UPSTREAMS: http://gateway:9080
+      OAUTH2_PROXY_SILENCE_PING_LOGGING: "true"
+    ports:
+      - "${PUBLIC_BIND_ADDRESS:-127.0.0.1}:4181:4181"
+    networks: [backend]
+
+  admin-migrate:
+    image: ${IMAGE_PREFIX:-grpc-go}/admin:${IMAGE_TAG:-latest}
+    profiles: [tools]
+    entrypoint: ["/app/admin-migrate"]
+    command: ["-f", "/app/etc/admin.yaml"]
+    environment:
+      ADMIN_ENVIRONMENT: production
+      ADMIN_DB_HOST: postgres
+      ADMIN_DB_PASSWORD: ${ADMIN_DB_PASSWORD:?set ADMIN_DB_PASSWORD}
+    volumes:
+      - ../../admin/etc/admin.yaml:/app/etc/admin.yaml:ro
+    networks: [backend]
+
+  user-migrate:
+    image: ${IMAGE_PREFIX:-grpc-go}/user:${IMAGE_TAG:-latest}
+    profiles: [tools]
+    entrypoint: ["/app/user-migrate"]
+    command: ["-f", "/app/etc/user.yaml"]
+    environment:
+      USER_ENVIRONMENT: production
+      USER_DB_HOST: postgres
+      USER_DB_PASSWORD: ${USER_DB_PASSWORD:?set USER_DB_PASSWORD}
+    volumes:
+      - ../../user/etc/user.yaml:/app/etc/user.yaml:ro
+    networks: [backend]
+
+  web3-migrate:
+    image: ${IMAGE_PREFIX:-grpc-go}/web3:${IMAGE_TAG:-latest}
+    profiles: [tools]
+    entrypoint: ["/app/web3-migrate"]
+    command: ["-f", "/app/etc/web3.yaml"]
+    environment:
+      WEB3_ENVIRONMENT: production
+      WEB3_DB_HOST: postgres
+      WEB3_DB_PASSWORD: ${WEB3_DB_PASSWORD:?set WEB3_DB_PASSWORD}
+    volumes:
+      - ../../web3/etc/web3.yaml:/app/etc/web3.yaml:ro
+    networks: [backend]
+
+networks:
+  backend:
+    name: grpc-go-backend-prod
+
+volumes:
+  # 保留原 Keycloak PostgreSQL 生产卷名，迁移时不会意外创建空数据库。
+  postgres-data:
+    name: grpc-go-keycloak-postgres-prod
+  redis-data:
+    name: grpc-go-redis-prod
+  rabbitmq-data:
+    name: grpc-go-rabbitmq-prod
+  consul-data:
+    name: grpc-go-consul-prod
+  gateway-logs:
+  admin-logs:
+  user-logs:
+  web3-logs:
+

@@ -313,17 +313,53 @@ func applyEnvironment(cfg *Config) {
 	if value := os.Getenv("WEB3_ENVIRONMENT"); value != "" {
 		cfg.Environment = value
 	}
+	if value := os.Getenv("WEB3_ADVERTISE_HOST"); value != "" {
+		cfg.AdvertiseHost = value
+	}
+	if value := os.Getenv("WEB3_DB_HOST"); value != "" {
+		cfg.Database.Host = value
+	}
 	if value := os.Getenv("WEB3_DB_PASSWORD"); value != "" {
 		cfg.Database.Password = value
+	}
+	if value := os.Getenv("WEB3_REDIS_HOST"); value != "" {
+		cfg.Redis.Host = value
 	}
 	if value := os.Getenv("WEB3_REDIS_PASSWORD"); value != "" {
 		cfg.Redis.Password = value
 	}
+	if value := os.Getenv("WEB3_RABBITMQ_HOST"); value != "" {
+		cfg.RabbitMQ.Host = value
+	}
 	if value := os.Getenv("WEB3_RABBITMQ_PASSWORD"); value != "" {
 		cfg.RabbitMQ.Password = value
 	}
+	if value := os.Getenv("WEB3_AUTH_ISSUER"); value != "" {
+		cfg.Auth.AccessToken.Issuer = value
+	}
+	if value := os.Getenv("WEB3_AUTH_JWKS_URL"); value != "" {
+		cfg.Auth.AccessToken.JWKSURL = value
+	}
+	if value := os.Getenv("WEB3_CONSUL_HOST"); value != "" {
+		cfg.Consul.Host = value
+	}
+	if value := os.Getenv("WEB3_CONSUL_CHECK_HOST"); value != "" {
+		cfg.Consul.CheckHost = value
+	}
 	if value := os.Getenv("WEB3_CONSUL_TOKEN"); value != "" {
 		cfg.Consul.Token = value
+	}
+	if value := os.Getenv("WEB3_GRPC_CERT_FILE"); value != "" {
+		cfg.GRPC.CertFile = value
+	}
+	if value := os.Getenv("WEB3_GRPC_KEY_FILE"); value != "" {
+		cfg.GRPC.KeyFile = value
+	}
+	if value := os.Getenv("WEB3_GRPC_CA_FILE"); value != "" {
+		cfg.GRPC.ClientCAFile = value
+	}
+	if value := os.Getenv("WEB3_TRACING_ENDPOINT"); value != "" {
+		cfg.Tracing.Endpoint = value
 	}
 	if value := os.Getenv("WEB3_TRON_API_KEY"); value != "" {
 		cfg.TronApprovals.APIKey = value

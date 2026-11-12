@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "cors": {
+    "allow_origins": [
+      "__USER_WEB_ORIGIN__",
+      "__ADMIN_WEB_ORIGIN__"
+    ],
+    "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "allow_headers": ["Origin", "Content-Type", "Accept", "Authorization", "X-Request-ID"],
+    "expose_headers": ["Content-Length", "Content-Type", "X-Request-ID"],
+    "allow_credentials": true,
+    "max_age": 12
+  },
+  "rate_limit": {
+    "enabled": true,
+    "limit": 100,
+    "window": "1m",
+    "redis_timeout": "100ms",
+    "fail_closed": false
+  },
+  "circuit_breaker": {
+    "enabled": true,
+    "max_failures": 5,
+    "timeout": "30s",
+    "min_requests": 10,
+    "interval": "60s"
+  },
+  "anti_replay": {
+    "enabled": false,
+    "timestamp_tolerance_seconds": 300,
+    "nonce_expire_seconds": 600,
+    "nonce_cache_size": 10000,
+    "fallback_to_local": true
+  }
+}
+

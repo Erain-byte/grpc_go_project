@@ -1,12 +1,12 @@
 # Identity 本地与生产配置
 
-本目录只管理 Keycloak。Keycloak 专用 PostgreSQL 已移到 `deploy/postgres-keycloak`，其他基础组件也分别拥有独立目录。
+本目录只管理 Keycloak。项目唯一的 PostgreSQL 实例由 `deploy/postgresql` 管理；Keycloak 与业务服务分库、分账号使用该实例。
 
 ## 文件说明
 
 | 文件 | 用途 |
 |---|---|
-| `compose.yaml` | 本地 Keycloak 开发环境，连接独立 PostgreSQL |
+| `compose.yaml` | 本地 Keycloak 开发环境，连接共享 PostgreSQL 中的 `keycloak` 数据库 |
 | `compose.prod.yaml` | 生产模板，不会自动生效 |
 | `.env.example` | 本地变量示例 |
 | `.env.prod.example` | 生产变量示例 |
@@ -19,7 +19,8 @@
 ```powershell
 cd D:\grpc_go_project\deploy\identity
 Copy-Item .env.example .env  # 仅首次使用
-docker compose --env-file ..\postgres-keycloak\.env -f ..\postgres-keycloak\compose.yaml up -d
+docker compose --env-file ..\postgresql\.env -f ..\postgresql\compose.yaml up -d
+docker compose --env-file ..\postgresql\.env -f ..\postgresql\compose.yaml exec postgres /opt/grpc-go/create-service-databases.sh
 docker compose config --quiet
 docker compose up -d
 docker compose ps
@@ -117,13 +118,13 @@ docker compose --env-file .env.prod -f compose.prod.yaml up -d
 5. 创建并验证永久 `master` Realm 管理员，再停用 Bootstrap 临时管理员。
 6. 建立 PostgreSQL 备份与恢复演练。
 
-生产 PostgreSQL 的网络、数据卷、备份和启动方式见 `deploy/postgres-keycloak/README.md`。
+共享 PostgreSQL 的网络、分库、数据卷、备份和启动方式见 `deploy/postgresql/README.md`。
 
 ## 独立基础设施
 
 | 组件 | 文档 |
 |---|---|
-| PostgreSQL | `deploy/postgres-keycloak/README.md` |
+| PostgreSQL | `deploy/postgresql/README.md` |
 | Redis | `deploy/redis/README.md` |
 | Consul | `deploy/consul/README.md` |
 | RabbitMQ | `deploy/rabbitmq/README.md` |
