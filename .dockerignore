@@ -15,6 +15,8 @@
 frontend/**
 !frontend/user/
 !frontend/user/**
+!frontend/admin/
+!frontend/admin/**
 
 !deploy/
 deploy/**
@@ -24,6 +26,7 @@ deploy/production/**
 !deploy/production/docker/**
 !deploy/production/nginx/
 !deploy/production/nginx/user-web.conf
+!deploy/production/nginx/admin-web.conf
 
 # Local runtime artifacts inside the reopened module directories.
 **/logs/

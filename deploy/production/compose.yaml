@@ -404,6 +404,24 @@ services:
       - "${PUBLIC_BIND_ADDRESS:-127.0.0.1}:4181:4181"
     networks: [backend]
 
+  admin-web:
+    image: ${IMAGE_PREFIX:-grpc-go}/admin-web:${IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: deploy/production/docker/admin-web.Dockerfile
+      args:
+        NODE_VERSION: ${NODE_VERSION:-22-alpine}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org}
+        VITE_ADMIN_BFF_URL: ${ADMIN_BFF_PUBLIC_URL:?set ADMIN_BFF_PUBLIC_URL}
+    container_name: grpc-go-admin-web
+    restart: unless-stopped
+    depends_on:
+      admin-oauth2-proxy:
+        condition: service_started
+    ports:
+      - "${PUBLIC_BIND_ADDRESS:-127.0.0.1}:3000:8080"
+    networks: [backend]
+
   user-web:
     image: ${IMAGE_PREFIX:-grpc-go}/user-web:${IMAGE_TAG:-latest}
     build:
