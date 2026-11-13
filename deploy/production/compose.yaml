@@ -1,4 +1,4 @@
-name: grpc-go-production
+name: ${COMPOSE_PROJECT_NAME:-grpc-go-production}
 
 services:
   postgres:
@@ -119,13 +119,15 @@ services:
       - ./consul/gateway-runtime.template.json:/config/gateway-runtime.template.json:ro
       - ../consul/kv/admin-runtime.json:/config/admin-runtime.json:ro
     entrypoint: ["/bin/sh", "-ec"]
-    command: |
-      sed \
-        -e "s|__USER_WEB_ORIGIN__|$${USER_WEB_ORIGIN}|g" \
-        -e "s|__ADMIN_WEB_ORIGIN__|$${ADMIN_WEB_ORIGIN}|g" \
-        /config/gateway-runtime.template.json >/tmp/gateway-runtime.json
-      consul kv put -http-addr=http://consul:8500 grpc-go/config/gateway/runtime @/tmp/gateway-runtime.json
-      consul kv put -http-addr=http://consul:8500 grpc-go/config/admin/runtime @/config/admin-runtime.json
+    # command 必须是只包含一个脚本字符串的列表，保证 /bin/sh -ec 收到完整脚本。
+    command:
+      - |
+        sed \
+          -e "s|__USER_WEB_ORIGIN__|$${USER_WEB_ORIGIN}|g" \
+          -e "s|__ADMIN_WEB_ORIGIN__|$${ADMIN_WEB_ORIGIN}|g" \
+          /config/gateway-runtime.template.json >/tmp/gateway-runtime.json
+        consul kv put -http-addr=http://consul:8500 grpc-go/config/gateway/runtime @/tmp/gateway-runtime.json
+        consul kv put -http-addr=http://consul:8500 grpc-go/config/admin/runtime @/config/admin-runtime.json
     networks: [backend]
 
   jaeger:
@@ -439,18 +441,18 @@ services:
 
 networks:
   backend:
-    name: grpc-go-backend-prod
+    name: ${BACKEND_NETWORK_NAME:-grpc-go-backend-prod}
 
 volumes:
-  # 保留原 Keycloak PostgreSQL 生产卷名，迁移时不会意外创建空数据库。
+  # 生产环境默认保留旧卷名；测试环境通过 runing.env 使用独立卷名。
   postgres-data:
-    name: grpc-go-keycloak-postgres-prod
+    name: ${POSTGRES_VOLUME_NAME:-grpc-go-keycloak-postgres-prod}
   redis-data:
-    name: grpc-go-redis-prod
+    name: ${REDIS_VOLUME_NAME:-grpc-go-redis-prod}
   rabbitmq-data:
-    name: grpc-go-rabbitmq-prod
+    name: ${RABBITMQ_VOLUME_NAME:-grpc-go-rabbitmq-prod}
   consul-data:
-    name: grpc-go-consul-prod
+    name: ${CONSUL_VOLUME_NAME:-grpc-go-consul-prod}
   gateway-logs:
   admin-logs:
   user-logs:
