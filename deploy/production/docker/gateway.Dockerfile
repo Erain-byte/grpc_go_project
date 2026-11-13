@@ -1,6 +1,9 @@
 ARG GO_VERSION=1.26.2
 FROM golang:${GO_VERSION}-alpine AS builder
 
+ARG GOPROXY=https://proxy.golang.org,direct
+ENV GOPROXY=${GOPROXY}
+
 RUN apk add --no-cache ca-certificates git
 WORKDIR /src
 COPY gateway/go.mod gateway/go.sum ./

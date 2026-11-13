@@ -180,6 +180,7 @@ services:
       dockerfile: deploy/production/docker/gateway.Dockerfile
       args:
         GO_VERSION: ${GO_VERSION:-1.26.2}
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
     container_name: grpc-go-gateway
     restart: unless-stopped
     depends_on:
@@ -223,6 +224,7 @@ services:
       dockerfile: deploy/production/docker/admin.Dockerfile
       args:
         GO_VERSION: ${GO_VERSION:-1.26.2}
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
     container_name: grpc-go-admin
     restart: unless-stopped
     depends_on:
@@ -270,6 +272,7 @@ services:
       dockerfile: deploy/production/docker/user.Dockerfile
       args:
         GO_VERSION: ${GO_VERSION:-1.26.2}
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
     container_name: grpc-go-user
     restart: unless-stopped
     depends_on:
@@ -313,6 +316,7 @@ services:
       dockerfile: deploy/production/docker/web3.Dockerfile
       args:
         GO_VERSION: ${GO_VERSION:-1.26.2}
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
     container_name: grpc-go-web3
     restart: unless-stopped
     depends_on:
