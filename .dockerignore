@@ -11,6 +11,11 @@
 !web3/
 !web3/**
 
+!frontend/
+frontend/**
+!frontend/user/
+!frontend/user/**
+
 !deploy/
 deploy/**
 !deploy/production/
@@ -22,4 +27,7 @@ deploy/production/**
 **/logs/
 **/.gocache/
 **/.gotmp/
+**/node_modules/
+**/.expo/
+**/dist/
 

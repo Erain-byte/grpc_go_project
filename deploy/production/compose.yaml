@@ -404,6 +404,28 @@ services:
       - "${PUBLIC_BIND_ADDRESS:-127.0.0.1}:4181:4181"
     networks: [backend]
 
+  user-web:
+    image: ${IMAGE_PREFIX:-grpc-go}/user-web:${IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: deploy/production/docker/user-web.Dockerfile
+      args:
+        NODE_VERSION: ${NODE_VERSION:-22-alpine}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org}
+        EXPO_PUBLIC_KEYCLOAK_ISSUER: ${KEYCLOAK_PUBLIC_URL:?set KEYCLOAK_PUBLIC_URL}/realms/grpc-project
+        EXPO_PUBLIC_KEYCLOAK_CLIENT_ID: user-app
+        EXPO_PUBLIC_GATEWAY_URL: ${GATEWAY_PUBLIC_URL:?set GATEWAY_PUBLIC_URL}
+    container_name: grpc-go-user-web
+    restart: unless-stopped
+    depends_on:
+      gateway:
+        condition: service_started
+      keycloak:
+        condition: service_started
+    ports:
+      - "${PUBLIC_BIND_ADDRESS:-127.0.0.1}:8081:8080"
+    networks: [backend]
+
   admin-migrate:
     image: ${IMAGE_PREFIX:-grpc-go}/admin:${IMAGE_TAG:-latest}
     profiles: [tools]

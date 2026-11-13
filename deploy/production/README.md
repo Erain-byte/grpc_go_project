@@ -55,8 +55,13 @@ Run from the repository root:
 docker compose \
   --env-file /opt/grpc-go/env/production.env \
   -f deploy/production/compose.yaml \
-  build gateway admin user web3
+  build gateway admin user web3 user-web
 ```
+
+`user-web` is exported as static Expo Web files and served by its own Nginx
+container. `KEYCLOAK_PUBLIC_URL` and `GATEWAY_PUBLIC_URL` are embedded into
+the browser bundle at image build time. Rebuild `user-web` whenever either
+public URL changes.
 
 ## Start infrastructure and create databases
 
@@ -105,6 +110,7 @@ docker compose \
 Only loopback ports are published for Nginx and operations:
 
 - Gateway HTTP: `127.0.0.1:9080`
+- User Web: `127.0.0.1:8081`
 - Keycloak: `127.0.0.1:8180`
 - Admin OAuth2 Proxy: `127.0.0.1:4181`
 - Consul UI: `127.0.0.1:8500`
