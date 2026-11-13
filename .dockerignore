@@ -22,6 +22,8 @@ deploy/**
 deploy/production/**
 !deploy/production/docker/
 !deploy/production/docker/**
+!deploy/production/nginx/
+!deploy/production/nginx/user-web.conf
 
 # Local runtime artifacts inside the reopened module directories.
 **/logs/
