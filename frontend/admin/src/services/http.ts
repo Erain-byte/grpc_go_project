@@ -44,9 +44,12 @@ export async function postJSON<T>(path: string, body: unknown): Promise<T> {
     throw new APIError('无法确认登录状态，正在跳转登录', 0)
   }
 
-  if (response.status === 401 || response.status === 403) {
+  if (response.status === 401) {
     beginLogin()
     throw new APIError('登录状态无效，正在跳转登录', response.status)
+  }
+  if (response.status === 403) {
+    throw new APIError('当前账号没有后台管理权限', response.status)
   }
   const payload = await response.json().catch(() => ({})) as Record<string, unknown>
   if (!response.ok) {

@@ -9,17 +9,21 @@ const state = reactive<{ profile: AdminInfo | null; loading: boolean; error: str
 })
 
 export function useSession() {
-  async function loadProfile(force = false) {
-    if ((state.profile && !force) || state.loading) return
+  async function loadProfile(force = false): Promise<boolean> {
+    if (state.profile && !force) return true
+    if (state.loading) return false
     state.loading = true
     state.error = ''
     try {
-      state.profile = (await adminAPI.profile()).admin_info
+      //state.profile = (await adminAPI.profile()).admin_info
+      const{ admin_info }= await adminAPI.profile()
+      state.profile =admin_info
     } catch (error) {
       state.error = error instanceof Error ? error.message : '管理员信息加载失败'
     } finally {
       state.loading = false
     }
+    return state.profile !== null
   }
 
   return {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import { logout } from '../services/http'
 import { useSession } from '../stores/session'
@@ -14,7 +14,6 @@ const links = [
   { to: '/users', label: '用户管理', icon: '♙' },
   { to: '/admins', label: '管理员', icon: '♜' },
 ]
-onMounted(() => void session.loadProfile())
 </script>
 
 <template>
